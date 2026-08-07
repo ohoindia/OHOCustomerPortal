@@ -1,7 +1,10 @@
-import React from 'react';
+type IconProps = {
+  size?: number;
+  className?: string;
+};
 
-function icon(glyph) {
-  return function Icon({ size = 18, className = '' }) {
+function icon(glyph: string) {
+  return function Icon({ size = 18, className = '' }: IconProps) {
     return (
       <span
         className={className}

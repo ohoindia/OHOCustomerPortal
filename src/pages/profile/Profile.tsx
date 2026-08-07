@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Settings } from '../../components/Icons';
-import { AppShell, PageHeader } from '../../components/Layout';
+import { AppShell } from '../../components/Layout';
 import { MenuRow } from '../../components/Cards';
 
 export function Profile() {

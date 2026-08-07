@@ -1,5 +1,5 @@
 import { Heart, Share2 } from '../components/Icons';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   AppShell,
   PageHeader,

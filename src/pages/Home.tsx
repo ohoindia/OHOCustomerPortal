@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { Bell } from '../components/Icons';
 import { AppShell, SearchBar } from '../components/Layout';
 import { BookingCard } from '../components/Cards';
 import { bookings } from '../data/mockData';
+import type { ReactNode } from 'react';
 
 const services = [
   ['🏥', 'Hospitals', '/hospitals'],
@@ -62,7 +62,13 @@ export default function Home() {
     </AppShell>
   );
 }
-function SectionTitle({ title, action, onClick }) {
+type SectionTitleProps = {
+  title: ReactNode;
+  action?: ReactNode;
+  onClick?: () => void;
+};
+
+function SectionTitle({ title, action, onClick }: SectionTitleProps) {
   return (
     <div className="section-title">
       <h2>{title}</h2>

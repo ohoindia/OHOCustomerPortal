@@ -7,8 +7,14 @@ import {
   ArrowLeft,
 } from './Icons';
 import { NavLink, useNavigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import type { ComponentType } from 'react';
 
-export function Logo({ compact = false }) {
+type LogoProps = {
+  compact?: boolean;
+};
+
+export function Logo({ compact = false }: LogoProps) {
   return (
     <div className={`logo ${compact ? 'compact' : ''}`}>
       <strong>OHO</strong>
@@ -17,7 +23,13 @@ export function Logo({ compact = false }) {
   );
 }
 
-export function PageHeader({ title, right, back = true }) {
+type PageHeaderProps = {
+  title: ReactNode;
+  right?: ReactNode;
+  back?: boolean;
+};
+
+export function PageHeader({ title, right, back = true }: PageHeaderProps) {
   const navigate = useNavigate();
   return (
     <header className="page-header">
@@ -34,17 +46,23 @@ export function PageHeader({ title, right, back = true }) {
   );
 }
 
-const nav = [
-  ['/', Home, 'Home'],
-  ['/bookings', CalendarDays, 'Bookings'],
-  ['/wallet', WalletCards, 'Wallet'],
-  ['/notifications', Bell, 'Notifications'],
-  ['/profile', UserRound, 'Profile'],
+type BottomNavItem = {
+  to: string;
+  Icon: ComponentType<{ size?: number; className?: string }>;
+  label: string;
+};
+
+const nav: BottomNavItem[] = [
+  { to: '/', Icon: Home, label: 'Home' },
+  { to: '/bookings', Icon: CalendarDays, label: 'Bookings' },
+  { to: '/wallet', Icon: WalletCards, label: 'Wallet' },
+  { to: '/notifications', Icon: Bell, label: 'Notifications' },
+  { to: '/profile', Icon: UserRound, label: 'Profile' },
 ];
 export function BottomNav() {
   return (
     <nav className="bottom-nav">
-      {nav.map(([to, Icon, label]) => (
+      {nav.map(({ to, Icon, label }) => (
         <NavLink
           key={to}
           to={to}
@@ -59,7 +77,13 @@ export function BottomNav() {
   );
 }
 
-export function AppShell({ children, nav = true, className = '' }) {
+type AppShellProps = {
+  children: ReactNode;
+  nav?: boolean;
+  className?: string;
+};
+
+export function AppShell({ children, nav = true, className = '' }: AppShellProps) {
   return (
     <main className={`phone-shell ${className}`}>
       <div className="phone-content">{children}</div>
@@ -70,6 +94,8 @@ export function AppShell({ children, nav = true, className = '' }) {
 
 export function SearchBar({
   placeholder = 'Search doctors, hospitals, tests...',
+}: {
+  placeholder?: string;
 }) {
   return (
     <label className="search-bar">
@@ -80,12 +106,23 @@ export function SearchBar({
   );
 }
 
-export function Chip({ children, active }) {
+type ChipProps = {
+  children: ReactNode;
+  active?: boolean;
+};
+
+export function Chip({ children, active = false }: ChipProps) {
   return (
     <button className={`chip ${active ? 'active' : ''}`}>{children}</button>
   );
 }
-export function PrimaryButton({ children, onClick, className = '' }) {
+type PrimaryButtonProps = {
+  children: ReactNode;
+  onClick?: () => void;
+  className?: string;
+};
+
+export function PrimaryButton({ children, onClick, className = '' }: PrimaryButtonProps) {
   return (
     <button onClick={onClick} className={`primary-btn ${className}`}>
       {children}
