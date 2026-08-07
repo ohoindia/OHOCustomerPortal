@@ -828,6 +828,54 @@ button {
   font-size: 11px;
   color: #28476f;
 }
+@media (max-width: 699px) {
+  .bottom-nav a,
+  .service-grid small,
+  .distance,
+  .chip,
+  .status-pill,
+  .discount,
+  .package-card del,
+  .medicine-row small,
+  .date-grid button,
+  .time-grid button,
+  .patient-row small,
+  .family-row small,
+  .record-row small,
+  .timeline-row small,
+  .menu-row small,
+  .notification-row p,
+  .notification-row > small {
+    font-size: 11px;
+  }
+
+  .membership-card p,
+  .membership-card button,
+  .section-title button,
+  .text-btn,
+  .list-card p,
+  .rating,
+  .review-badge,
+  .tabs > *,
+  .test-row button,
+  .medicine-row > button,
+  .blue-banner p,
+  .upload-card p,
+  .upload-card button,
+  .doctor-profile p,
+  .doctor-summary small,
+  .amount-box span,
+  .profile-hero p,
+  .menu-row strong,
+  .wallet-card span,
+  .day-label,
+  .notification-row b,
+  .membership-detail p,
+  .benefit {
+    font-size: 12px;
+  }
+}
+
 @media (min-width: 700px) {
   body {
     padding: 30px;
