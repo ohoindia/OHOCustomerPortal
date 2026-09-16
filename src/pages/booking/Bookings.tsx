@@ -1,6 +1,6 @@
-import { AppShell, PageHeader } from '../../components/Layout';
-import { BookingCard } from '../../components/Cards';
-import { bookings } from '../../data/mockData';
+import { AppShell, PageHeader } from "../../components/Layout";
+import { BookingCard } from "../../components/Cards";
+import { bookings } from "../../data/mockData";
 
 export function Bookings() {
   return (

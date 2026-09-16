@@ -1,10 +1,5 @@
-import {
-  AppShell,
-  PageHeader,
-  SearchBar,
-  Chip,
-} from '../../components/Layout';
-import { packages } from '../../data/mockData';
+import { AppShell, PageHeader, SearchBar, Chip } from "../../components/Layout";
+import { packages } from "../../data/mockData";
 
 export function Packages() {
   return (

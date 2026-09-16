@@ -5,10 +5,10 @@ import {
   Bell,
   UserRound,
   ArrowLeft,
-} from './Icons';
-import { NavLink, useNavigate } from 'react-router-dom';
-import type { ReactNode } from 'react';
-import type { ComponentType } from 'react';
+} from "./Icons";
+import { NavLink, useNavigate } from "react-router-dom";
+import type { ReactNode } from "react";
+import type { ComponentType } from "react";
 
 type LogoProps = {
   compact?: boolean;
@@ -16,7 +16,7 @@ type LogoProps = {
 
 export function Logo({ compact = false }: LogoProps) {
   return (
-    <div className={`logo ${compact ? 'compact' : ''}`}>
+    <div className={`logo ${compact ? "compact" : ""}`}>
       <strong>OHO</strong>
       <span>INDIA LIFE</span>
     </div>
@@ -53,11 +53,11 @@ type BottomNavItem = {
 };
 
 const nav: BottomNavItem[] = [
-  { to: '/', Icon: Home, label: 'Home' },
-  { to: '/bookings', Icon: CalendarDays, label: 'Bookings' },
-  { to: '/wallet', Icon: WalletCards, label: 'Wallet' },
-  { to: '/notifications', Icon: Bell, label: 'Notifications' },
-  { to: '/profile', Icon: UserRound, label: 'Profile' },
+  { to: "/", Icon: Home, label: "Home" },
+  { to: "/bookings", Icon: CalendarDays, label: "Bookings" },
+  { to: "/wallet", Icon: WalletCards, label: "Wallet" },
+  { to: "/notifications", Icon: Bell, label: "Notifications" },
+  { to: "/profile", Icon: UserRound, label: "Profile" },
 ];
 export function BottomNav() {
   return (
@@ -66,8 +66,8 @@ export function BottomNav() {
         <NavLink
           key={to}
           to={to}
-          end={to === '/'}
-          className={({ isActive }) => (isActive ? 'active' : '')}
+          end={to === "/"}
+          className={({ isActive }) => (isActive ? "active" : "")}
         >
           <Icon size={19} />
           <span>{label}</span>
@@ -83,7 +83,11 @@ type AppShellProps = {
   className?: string;
 };
 
-export function AppShell({ children, nav = true, className = '' }: AppShellProps) {
+export function AppShell({
+  children,
+  nav = true,
+  className = "",
+}: AppShellProps) {
   return (
     <main className={`phone-shell ${className}`}>
       <div className="phone-content">{children}</div>
@@ -93,7 +97,7 @@ export function AppShell({ children, nav = true, className = '' }: AppShellProps
 }
 
 export function SearchBar({
-  placeholder = 'Search doctors, hospitals, tests...',
+  placeholder = "Search doctors, hospitals, tests...",
 }: {
   placeholder?: string;
 }) {
@@ -113,7 +117,7 @@ type ChipProps = {
 
 export function Chip({ children, active = false }: ChipProps) {
   return (
-    <button className={`chip ${active ? 'active' : ''}`}>{children}</button>
+    <button className={`chip ${active ? "active" : ""}`}>{children}</button>
   );
 }
 type PrimaryButtonProps = {
@@ -122,7 +126,11 @@ type PrimaryButtonProps = {
   className?: string;
 };
 
-export function PrimaryButton({ children, onClick, className = '' }: PrimaryButtonProps) {
+export function PrimaryButton({
+  children,
+  onClick,
+  className = "",
+}: PrimaryButtonProps) {
   return (
     <button onClick={onClick} className={`primary-btn ${className}`}>
       {children}

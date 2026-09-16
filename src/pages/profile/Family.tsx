@@ -1,4 +1,4 @@
-import { AppShell, PageHeader } from '../../components/Layout';
+import { AppShell, PageHeader } from "../../components/Layout";
 
 export function Family() {
   return (
@@ -6,9 +6,9 @@ export function Family() {
       <PageHeader title="My Family" />
       <div className="stack">
         {[
-          ['Srikanth Reddy', 'Self', '👨🏻'],
-          ['Sujatha Reddy', 'Wife', '👩🏻'],
-          ['Chinnu Reddy', 'Daughter', '👧🏻'],
+          ["Srikanth Reddy", "Self", "👨🏻"],
+          ["Sujatha Reddy", "Wife", "👩🏻"],
+          ["Chinnu Reddy", "Daughter", "👧🏻"],
         ].map(([n, r, a]) => (
           <article className="family-row" key={n}>
             <span>{a}</span>

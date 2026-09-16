@@ -1,11 +1,6 @@
-import { useNavigate } from 'react-router-dom';
-import {
-  AppShell,
-  PageHeader,
-  SearchBar,
-  Chip,
-} from '../../components/Layout';
-import { doctors } from '../../data/mockData';
+import { useNavigate } from "react-router-dom";
+import { AppShell, PageHeader, SearchBar, Chip } from "../../components/Layout";
+import { doctors } from "../../data/mockData";
 
 export function Doctors() {
   const nav = useNavigate();

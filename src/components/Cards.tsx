@@ -1,6 +1,6 @@
-import { Star, ChevronRight } from './Icons';
-import { useNavigate } from 'react-router-dom';
-import type { ReactNode } from 'react';
+import { Star, ChevronRight } from "./Icons";
+import { useNavigate } from "react-router-dom";
+import type { ReactNode } from "react";
 
 type Hospital = {
   id: number;
@@ -34,10 +34,9 @@ export function HospitalCard({ hospital }: HospitalCardProps) {
         <h3>{hospital.name}</h3>
         <p>{hospital.area}</p>
         <div className="rating">
-          <Star size={13} /> {hospital.rating} (
-          {hospital.reviews})
+          <Star size={13} /> {hospital.rating} ({hospital.reviews})
         </div>
-        <button className="text-btn" onClick={() => navigate('/doctor/1')}>
+        <button className="text-btn" onClick={() => navigate("/doctor/1")}>
           Book Now
         </button>
       </div>

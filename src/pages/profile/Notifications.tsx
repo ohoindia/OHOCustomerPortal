@@ -1,4 +1,4 @@
-import { AppShell, PageHeader } from '../../components/Layout';
+import { AppShell, PageHeader } from "../../components/Layout";
 
 export function Notifications() {
   return (
@@ -7,11 +7,11 @@ export function Notifications() {
       <h4 className="day-label">Today</h4>
       {[
         [
-          '📅',
-          'Appointment Confirmed',
-          'Dr. Rajesh Sharma on 20 May, 10:30 AM',
+          "📅",
+          "Appointment Confirmed",
+          "Dr. Rajesh Sharma on 20 May, 10:30 AM",
         ],
-        ['🧪', 'Lab Test Reminder', 'Your blood test is scheduled tomorrow'],
+        ["🧪", "Lab Test Reminder", "Your blood test is scheduled tomorrow"],
       ].map(([i, a, b]) => (
         <article className="notification-row" key={a}>
           <span>{i}</span>

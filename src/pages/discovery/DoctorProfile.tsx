@@ -1,7 +1,7 @@
-import { useNavigate } from 'react-router-dom';
-import { Share2 } from '../../components/Icons';
-import { AppShell, PageHeader, PrimaryButton } from '../../components/Layout';
-import { doctors } from '../../data/mockData';
+import { useNavigate } from "react-router-dom";
+import { Share2 } from "../../components/Icons";
+import { AppShell, PageHeader, PrimaryButton } from "../../components/Layout";
+import { doctors } from "../../data/mockData";
 
 export function DoctorProfile() {
   const nav = useNavigate();
@@ -33,7 +33,7 @@ export function DoctorProfile() {
         <span>Consultation Fee</span>
         <b>₹{d.fee}</b>
       </div>
-      <PrimaryButton onClick={() => nav('/book-appointment')}>
+      <PrimaryButton onClick={() => nav("/book-appointment")}>
         Book Appointment
       </PrimaryButton>
     </AppShell>

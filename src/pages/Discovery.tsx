@@ -1,20 +1,20 @@
-import { Heart, Share2 } from '../components/Icons';
-import { useNavigate } from 'react-router-dom';
+import { Heart, Share2 } from "../components/Icons";
+import { useNavigate } from "react-router-dom";
 import {
   AppShell,
   PageHeader,
   SearchBar,
   Chip,
   PrimaryButton,
-} from '../components/Layout';
-import { HospitalCard } from '../components/Cards';
+} from "../components/Layout";
+import { HospitalCard } from "../components/Cards";
 import {
   hospitals,
   doctors,
   packages,
   labTests,
   medicines,
-} from '../data/mockData';
+} from "../data/mockData";
 
 export function Hospitals() {
   return (
@@ -104,7 +104,7 @@ export function DoctorProfile() {
         <span>Consultation Fee</span>
         <b>₹{d.fee}</b>
       </div>
-      <PrimaryButton onClick={() => nav('/book-appointment')}>
+      <PrimaryButton onClick={() => nav("/book-appointment")}>
         Book Appointment
       </PrimaryButton>
     </AppShell>
@@ -186,13 +186,13 @@ export function Pharmacy() {
         <span>📄</span>
       </section>
       <div className="service-grid four">
-        {['All Medicines', 'Health Care', 'Baby Care', 'Devices'].map(
+        {["All Medicines", "Health Care", "Baby Care", "Devices"].map(
           (x, i) => (
             <button key={x}>
-              <span>{['💊', '🧴', '👶', '⌚'][i]}</span>
+              <span>{["💊", "🧴", "👶", "⌚"][i]}</span>
               <small>{x}</small>
             </button>
-          )
+          ),
         )}
       </div>
       <div className="section-title">

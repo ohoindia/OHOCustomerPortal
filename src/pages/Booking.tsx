@@ -1,7 +1,7 @@
-import { useNavigate } from 'react-router-dom';
-import { AppShell, PageHeader, PrimaryButton } from '../components/Layout';
-import { BookingCard } from '../components/Cards';
-import { bookings, doctors } from '../data/mockData';
+import { useNavigate } from "react-router-dom";
+import { AppShell, PageHeader, PrimaryButton } from "../components/Layout";
+import { BookingCard } from "../components/Cards";
+import { bookings, doctors } from "../data/mockData";
 
 export function BookAppointment() {
   const nav = useNavigate();
@@ -20,13 +20,13 @@ export function BookAppointment() {
       <h3 className="form-title">Select Date</h3>
       <div className="date-grid">
         {[
-          ['Mon', '20'],
-          ['Tue', '21'],
-          ['Wed', '22'],
-          ['Thu', '23'],
-          ['Fri', '24'],
+          ["Mon", "20"],
+          ["Tue", "21"],
+          ["Wed", "22"],
+          ["Thu", "23"],
+          ["Fri", "24"],
         ].map((d, i) => (
-          <button className={i === 0 ? 'selected' : ''} key={d[1]}>
+          <button className={i === 0 ? "selected" : ""} key={d[1]}>
             <small>{d[0]}</small>
             <b>{d[1]}</b>
             <small>May</small>
@@ -36,14 +36,14 @@ export function BookAppointment() {
       <h3 className="form-title">Select Time</h3>
       <div className="time-grid">
         {[
-          '09:00 AM',
-          '09:30 AM',
-          '10:00 AM',
-          '10:30 AM',
-          '11:00 AM',
-          '11:30 AM',
+          "09:00 AM",
+          "09:30 AM",
+          "10:00 AM",
+          "10:30 AM",
+          "11:00 AM",
+          "11:30 AM",
         ].map((t, i) => (
-          <button className={i === 3 ? 'selected' : ''} key={t}>
+          <button className={i === 3 ? "selected" : ""} key={t}>
             {t}
           </button>
         ))}
@@ -57,7 +57,7 @@ export function BookAppointment() {
         </div>
         <span>›</span>
       </article>
-      <PrimaryButton onClick={() => nav('/payment')}>
+      <PrimaryButton onClick={() => nav("/payment")}>
         Proceed to Pay <span>₹800 →</span>
       </PrimaryButton>
     </AppShell>
@@ -94,18 +94,18 @@ export function Payment() {
       </section>
       <h3>Payment Methods</h3>
       {[
-        'UPI (PhonePe / GPay / Paytm)',
-        'Credit / Debit Card',
-        'Net Banking',
-        'OHO Wallet · Balance ₹2,450',
+        "UPI (PhonePe / GPay / Paytm)",
+        "Credit / Debit Card",
+        "Net Banking",
+        "OHO Wallet · Balance ₹2,450",
       ].map((m, i) => (
         <label className="payment-row" key={m}>
-          <span>{['◉', '▣', '⌂', '▰'][i]}</span>
+          <span>{["◉", "▣", "⌂", "▰"][i]}</span>
           <b>{m}</b>
           <input type="radio" name="pay" defaultChecked={i === 3} />
         </label>
       ))}
-      <PrimaryButton onClick={() => nav('/order-tracking')}>
+      <PrimaryButton onClick={() => nav("/order-tracking")}>
         Pay ₹800
       </PrimaryButton>
     </AppShell>
@@ -118,11 +118,11 @@ export function OrderTracking() {
       <PageHeader title="Order Tracking" />
       <div className="timeline">
         {[
-          ['Order Placed', '20 May 2026, 10:00 AM'],
-          ['Confirmed', '20 May 2026, 10:05 AM'],
-          ['Packed', '20 May 2026, 11:30 AM'],
-          ['Out for Delivery', '20 May 2026, 04:00 PM'],
-          ['Delivered', '20 May 2026, 06:15 PM'],
+          ["Order Placed", "20 May 2026, 10:00 AM"],
+          ["Confirmed", "20 May 2026, 10:05 AM"],
+          ["Packed", "20 May 2026, 11:30 AM"],
+          ["Out for Delivery", "20 May 2026, 04:00 PM"],
+          ["Delivered", "20 May 2026, 06:15 PM"],
         ].map(([a, b]) => (
           <div className="timeline-row" key={a}>
             <span>✓</span>

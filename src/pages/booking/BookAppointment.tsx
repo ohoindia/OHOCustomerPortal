@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom';
-import { AppShell, PageHeader, PrimaryButton } from '../../components/Layout';
-import { doctors } from '../../data/mockData';
+import { useNavigate } from "react-router-dom";
+import { AppShell, PageHeader, PrimaryButton } from "../../components/Layout";
+import { doctors } from "../../data/mockData";
 
 export function BookAppointment() {
   const nav = useNavigate();
@@ -19,13 +19,13 @@ export function BookAppointment() {
       <h3 className="form-title">Select Date</h3>
       <div className="date-grid">
         {[
-          ['Mon', '20'],
-          ['Tue', '21'],
-          ['Wed', '22'],
-          ['Thu', '23'],
-          ['Fri', '24'],
+          ["Mon", "20"],
+          ["Tue", "21"],
+          ["Wed", "22"],
+          ["Thu", "23"],
+          ["Fri", "24"],
         ].map((d, i) => (
-          <button className={i === 0 ? 'selected' : ''} key={d[1]}>
+          <button className={i === 0 ? "selected" : ""} key={d[1]}>
             <small>{d[0]}</small>
             <b>{d[1]}</b>
             <small>May</small>
@@ -35,14 +35,14 @@ export function BookAppointment() {
       <h3 className="form-title">Select Time</h3>
       <div className="time-grid">
         {[
-          '09:00 AM',
-          '09:30 AM',
-          '10:00 AM',
-          '10:30 AM',
-          '11:00 AM',
-          '11:30 AM',
+          "09:00 AM",
+          "09:30 AM",
+          "10:00 AM",
+          "10:30 AM",
+          "11:00 AM",
+          "11:30 AM",
         ].map((t, i) => (
-          <button className={i === 3 ? 'selected' : ''} key={t}>
+          <button className={i === 3 ? "selected" : ""} key={t}>
             {t}
           </button>
         ))}
@@ -56,7 +56,7 @@ export function BookAppointment() {
         </div>
         <span>›</span>
       </article>
-      <PrimaryButton onClick={() => nav('/payment')}>
+      <PrimaryButton onClick={() => nav("/payment")}>
         Proceed to Pay <span>₹800 →</span>
       </PrimaryButton>
     </AppShell>

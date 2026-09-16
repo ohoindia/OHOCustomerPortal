@@ -1,7 +1,7 @@
-import { useNavigate } from 'react-router-dom';
-import { Settings } from '../components/Icons';
-import { AppShell, PageHeader } from '../components/Layout';
-import { MenuRow } from '../components/Cards';
+import { useNavigate } from "react-router-dom";
+import { Settings } from "../components/Icons";
+import { AppShell, PageHeader } from "../components/Layout";
+import { MenuRow } from "../components/Cards";
 
 export function Profile() {
   const nav = useNavigate();
@@ -20,25 +20,25 @@ export function Profile() {
           icon="👨‍👩‍👧"
           title="My Family"
           subtitle="Manage family members"
-          onClick={() => nav('/family')}
+          onClick={() => nav("/family")}
         />
         <MenuRow
           icon="📋"
           title="My Health Records"
           subtitle="View reports & prescriptions"
-          onClick={() => nav('/records')}
+          onClick={() => nav("/records")}
         />
         <MenuRow
           icon="🏅"
           title="Membership"
           subtitle="Gold Wellness Card"
-          onClick={() => nav('/membership')}
+          onClick={() => nav("/membership")}
         />
         <MenuRow
           icon="👛"
           title="Wallet & Rewards"
           subtitle="Cashback, offers & coupons"
-          onClick={() => nav('/wallet')}
+          onClick={() => nav("/wallet")}
         />
         <MenuRow
           icon="💳"
@@ -57,9 +57,9 @@ export function Family() {
       <PageHeader title="My Family" />
       <div className="stack">
         {[
-          ['Srikanth Reddy', 'Self', '👨🏻'],
-          ['Sujatha Reddy', 'Wife', '👩🏻'],
-          ['Chinnu Reddy', 'Daughter', '👧🏻'],
+          ["Srikanth Reddy", "Self", "👨🏻"],
+          ["Sujatha Reddy", "Wife", "👩🏻"],
+          ["Chinnu Reddy", "Daughter", "👧🏻"],
         ].map(([n, r, a]) => (
           <article className="family-row" key={n}>
             <span>{a}</span>
@@ -85,10 +85,10 @@ export function Records() {
         <span>Prescriptions</span>
       </div>
       {[
-        ['Blood Test Report', '20 May 2026'],
-        ['X-Ray Chest', '15 Apr 2026'],
-        ['ECG Report', '10 Mar 2026'],
-        ['MRI Scan', '05 Feb 2026'],
+        ["Blood Test Report", "20 May 2026"],
+        ["X-Ray Chest", "15 Apr 2026"],
+        ["ECG Report", "10 Mar 2026"],
+        ["MRI Scan", "05 Feb 2026"],
       ].map(([a, b]) => (
         <article className="record-row" key={a}>
           <span>📄</span>
@@ -143,11 +143,11 @@ export function Notifications() {
       <h4 className="day-label">Today</h4>
       {[
         [
-          '📅',
-          'Appointment Confirmed',
-          'Dr. Rajesh Sharma on 20 May, 10:30 AM',
+          "📅",
+          "Appointment Confirmed",
+          "Dr. Rajesh Sharma on 20 May, 10:30 AM",
         ],
-        ['🧪', 'Lab Test Reminder', 'Your blood test is scheduled tomorrow'],
+        ["🧪", "Lab Test Reminder", "Your blood test is scheduled tomorrow"],
       ].map(([i, a, b]) => (
         <article className="notification-row" key={a}>
           <span>{i}</span>
@@ -183,10 +183,10 @@ export function Membership() {
       </section>
       <h3>Membership Benefits</h3>
       {[
-        'Discounts at partner hospitals',
-        'Free annual health check',
-        'Priority appointment booking',
-        'OHO Coins on every purchase',
+        "Discounts at partner hospitals",
+        "Free annual health check",
+        "Priority appointment booking",
+        "OHO Coins on every purchase",
       ].map((x) => (
         <div className="benefit" key={x}>
           ✓ {x}

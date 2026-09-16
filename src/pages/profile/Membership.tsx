@@ -1,4 +1,4 @@
-import { AppShell, PageHeader } from '../../components/Layout';
+import { AppShell, PageHeader } from "../../components/Layout";
 
 function LogoMini() {
   return <div className="logo-mini">OHO</div>;
@@ -17,10 +17,10 @@ export function Membership() {
       </section>
       <h3>Membership Benefits</h3>
       {[
-        'Discounts at partner hospitals',
-        'Free annual health check',
-        'Priority appointment booking',
-        'OHO Coins on every purchase',
+        "Discounts at partner hospitals",
+        "Free annual health check",
+        "Priority appointment booking",
+        "OHO Coins on every purchase",
       ].map((x) => (
         <div className="benefit" key={x}>
           ✓ {x}

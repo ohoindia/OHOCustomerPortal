@@ -1,24 +1,24 @@
-import { Routes, Route } from 'react-router-dom';
-import { Splash } from './pages/auth/Splash';
-import { Login } from './pages/auth/Login';
-import { OTP } from './pages/auth/OTP';
-import Home from './pages/Home';
-import { Hospitals } from './pages/discovery/Hospitals';
-import { Doctors } from './pages/discovery/Doctors';
-import { DoctorProfile } from './pages/discovery/DoctorProfile';
-import { Packages } from './pages/discovery/Packages';
-import { LabTests } from './pages/discovery/LabTests';
-import { Pharmacy } from './pages/discovery/Pharmacy';
-import { BookAppointment } from './pages/booking/BookAppointment';
-import { Bookings } from './pages/booking/Bookings';
-import { Payment } from './pages/booking/Payment';
-import { OrderTracking } from './pages/booking/OrderTracking';
-import { Profile } from './pages/profile/Profile';
-import { Family } from './pages/profile/Family';
-import { Records } from './pages/profile/Records';
-import { Wallet } from './pages/profile/Wallet';
-import { Notifications } from './pages/profile/Notifications';
-import { Membership } from './pages/profile/Membership';
+import { Routes, Route } from "react-router-dom";
+import { Splash } from "./pages/auth/Splash";
+import { Login } from "./pages/auth/Login";
+import { OTP } from "./pages/auth/OTP";
+import Home from "./pages/Home";
+import { Hospitals } from "./pages/discovery/Hospitals";
+import { Doctors } from "./pages/discovery/Doctors";
+import { DoctorProfile } from "./pages/discovery/DoctorProfile";
+import { Packages } from "./pages/discovery/Packages";
+import { LabTests } from "./pages/discovery/LabTests";
+import { Pharmacy } from "./pages/discovery/Pharmacy";
+import { BookAppointment } from "./pages/booking/BookAppointment";
+import { Bookings } from "./pages/booking/Bookings";
+import { Payment } from "./pages/booking/Payment";
+import { OrderTracking } from "./pages/booking/OrderTracking";
+import { Profile } from "./pages/profile/Profile";
+import { Family } from "./pages/profile/Family";
+import { Records } from "./pages/profile/Records";
+import { Wallet } from "./pages/profile/Wallet";
+import { Notifications } from "./pages/profile/Notifications";
+import { Membership } from "./pages/profile/Membership";
 
 export default function App() {
   return (

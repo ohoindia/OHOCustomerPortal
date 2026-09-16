@@ -1,12 +1,7 @@
-import { Heart } from '../../components/Icons';
-import {
-  AppShell,
-  PageHeader,
-  SearchBar,
-  Chip,
-} from '../../components/Layout';
-import { HospitalCard } from '../../components/Cards';
-import { hospitals } from '../../data/mockData';
+import { Heart } from "../../components/Icons";
+import { AppShell, PageHeader, SearchBar, Chip } from "../../components/Layout";
+import { HospitalCard } from "../../components/Cards";
+import { hospitals } from "../../data/mockData";
 
 export function Hospitals() {
   return (

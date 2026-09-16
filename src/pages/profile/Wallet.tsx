@@ -1,5 +1,5 @@
-import { AppShell, PageHeader } from '../../components/Layout';
-import { MenuRow } from '../../components/Cards';
+import { AppShell, PageHeader } from "../../components/Layout";
+import { MenuRow } from "../../components/Cards";
 
 export function Wallet() {
   return (

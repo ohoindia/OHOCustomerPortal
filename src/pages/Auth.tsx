@@ -1,10 +1,10 @@
-import { useNavigate } from 'react-router-dom';
-import { Logo, PrimaryButton } from '../components/Layout';
+import { useNavigate } from "react-router-dom";
+import { Logo, PrimaryButton } from "../components/Layout";
 
 export function Splash() {
   const navigate = useNavigate();
   return (
-    <main className="auth-page splash" onClick={() => navigate('/login')}>
+    <main className="auth-page splash" onClick={() => navigate("/login")}>
       <Logo />
       <h2>
         Your Health.
@@ -32,7 +32,7 @@ export function Login() {
           <b>+91</b>
           <input placeholder="Enter Mobile Number" defaultValue="9876543210" />
         </label>
-        <PrimaryButton onClick={() => navigate('/otp')}>Continue</PrimaryButton>
+        <PrimaryButton onClick={() => navigate("/otp")}>Continue</PrimaryButton>
         <div className="divider">or</div>
         <button className="social-btn">🌈 Continue with Google</button>
         <button className="social-btn">● Continue with Apple</button>
@@ -46,7 +46,7 @@ export function Login() {
 
 export function OTP() {
   const navigate = useNavigate();
-  const digits = ['2', '4', '7', '8', '1', '6'];
+  const digits = ["2", "4", "7", "8", "1", "6"];
   return (
     <main className="auth-page otp-page">
       <section className="auth-card wide">
@@ -65,11 +65,11 @@ export function OTP() {
           Resend OTP in <b>00:25</b>
         </p>
         <div className="keypad">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, '⌫'].map((n, i) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"].map((n, i) => (
             <button key={i}>{n}</button>
           ))}
         </div>
-        <PrimaryButton onClick={() => navigate('/')}>
+        <PrimaryButton onClick={() => navigate("/")}>
           Verify & Continue
         </PrimaryButton>
       </section>

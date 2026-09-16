@@ -1,7 +1,7 @@
-import { useNavigate } from 'react-router-dom';
-import { Settings } from '../../components/Icons';
-import { AppShell } from '../../components/Layout';
-import { MenuRow } from '../../components/Cards';
+import { useNavigate } from "react-router-dom";
+import { Settings } from "../../components/Icons";
+import { AppShell } from "../../components/Layout";
+import { MenuRow } from "../../components/Cards";
 
 export function Profile() {
   const nav = useNavigate();
@@ -20,25 +20,25 @@ export function Profile() {
           icon="👨‍👩‍👧"
           title="My Family"
           subtitle="Manage family members"
-          onClick={() => nav('/family')}
+          onClick={() => nav("/family")}
         />
         <MenuRow
           icon="📋"
           title="My Health Records"
           subtitle="View reports & prescriptions"
-          onClick={() => nav('/records')}
+          onClick={() => nav("/records")}
         />
         <MenuRow
           icon="🏅"
           title="Membership"
           subtitle="Gold Wellness Card"
-          onClick={() => nav('/membership')}
+          onClick={() => nav("/membership")}
         />
         <MenuRow
           icon="👛"
           title="Wallet & Rewards"
           subtitle="Cashback, offers & coupons"
-          onClick={() => nav('/wallet')}
+          onClick={() => nav("/wallet")}
         />
         <MenuRow
           icon="💳"

@@ -1,4 +1,4 @@
-import { AppShell, PageHeader } from '../../components/Layout';
+import { AppShell, PageHeader } from "../../components/Layout";
 
 export function Pharmacy() {
   return (
@@ -13,13 +13,13 @@ export function Pharmacy() {
         <span>📄</span>
       </section>
       <div className="service-grid four">
-        {['All Medicines', 'Health Care', 'Baby Care', 'Devices'].map(
+        {["All Medicines", "Health Care", "Baby Care", "Devices"].map(
           (x, i) => (
             <button key={x}>
-              <span>{['💊', '🧴', '👶', '⌚'][i]}</span>
+              <span>{["💊", "🧴", "👶", "⌚"][i]}</span>
               <small>{x}</small>
             </button>
-          )
+          ),
         )}
       </div>
       <div className="section-title">
