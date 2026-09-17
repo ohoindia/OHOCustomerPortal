@@ -53,7 +53,7 @@ type BottomNavItem = {
 };
 
 const nav: BottomNavItem[] = [
-  { to: "/", Icon: Home, label: "Home" },
+  { to: "/home", Icon: Home, label: "Home" },
   { to: "/bookings", Icon: CalendarDays, label: "Bookings" },
   { to: "/wallet", Icon: WalletCards, label: "Wallet" },
   { to: "/notifications", Icon: Bell, label: "Notifications" },
@@ -66,7 +66,7 @@ export function BottomNav() {
         <NavLink
           key={to}
           to={to}
-          end={to === "/"}
+          end={to === "/home"}
           className={({ isActive }) => (isActive ? "active" : "")}
         >
           <Icon size={19} />

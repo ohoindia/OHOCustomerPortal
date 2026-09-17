@@ -118,7 +118,7 @@ export function OTP() {
         sessionStorage.setItem("member", JSON.stringify({ MemberId: result.data.customerId, Name: details.name, MobileNumber: details.mobileNumber, MemberTypeId: 'Primary' }));
         sessionStorage.setItem("memberId", String(result.data.customerId));
         sessionStorage.setItem("FullName", details.name);
-        navigate("/", {
+        navigate("/home", {
           replace: true,
           state: {
             mobileNumber: details.mobileNumber,

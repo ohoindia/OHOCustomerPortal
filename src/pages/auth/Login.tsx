@@ -2,6 +2,7 @@
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { authRequest, remainingSeconds } from "./api";
+import { getSessionMember } from "./member";
 import "./login.css";
 
 export function Login() {
@@ -17,8 +18,7 @@ export function Login() {
   const lookup = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (Number(sessionStorage.getItem("LogoutTime")) > Date.now())
-      navigate("/", { replace: true });
+    if (getSessionMember()) navigate("/home", { replace: true });
     return () => lookup.current?.abort();
   }, [navigate]);
 
@@ -139,7 +139,7 @@ export function Login() {
       })) {
         sessionStorage.setItem(key, String(value ?? ""));
       }
-      navigate("/", {
+      navigate("/home", {
         replace: true,
         state: {
           member,

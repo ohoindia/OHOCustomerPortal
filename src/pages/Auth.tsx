@@ -69,7 +69,7 @@ export function OTP() {
             <button key={i}>{n}</button>
           ))}
         </div>
-        <PrimaryButton onClick={() => navigate("/")}>
+        <PrimaryButton onClick={() => navigate("/home")}>
           Verify & Continue
         </PrimaryButton>
       </section>

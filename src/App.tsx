@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { getSessionMember } from "./pages/auth/member";
 import { Splash } from "./pages/auth/Splash";
 import { Login } from "./pages/auth/Login";
 import { OTP } from "./pages/auth/OTP";
@@ -20,30 +21,41 @@ import { Wallet } from "./pages/profile/Wallet";
 import { Notifications } from "./pages/profile/Notifications";
 import { Membership } from "./pages/profile/Membership";
 
+function DefaultRoute() {
+  return <Navigate to={getSessionMember() ? "/home" : "/login"} replace />;
+}
+
+function RequireLogin() {
+  return getSessionMember() ? <Outlet /> : <Navigate to="/login" replace />;
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/splash" element={<Splash />} />
       <Route path="/login" element={<Login />} />
       <Route path="/otp" element={<OTP />} />
-      <Route path="/" element={<Home />} />
-      <Route path="/hospitals" element={<Hospitals />} />
-      <Route path="/doctors" element={<Doctors />} />
-      <Route path="/doctor/:id" element={<DoctorProfile />} />
-      <Route path="/packages" element={<Packages />} />
-      <Route path="/lab-tests" element={<LabTests />} />
-      <Route path="/pharmacy" element={<Pharmacy />} />
-      <Route path="/book-appointment" element={<BookAppointment />} />
-      <Route path="/bookings" element={<Bookings />} />
-      <Route path="/payment" element={<Payment />} />
-      <Route path="/order-tracking" element={<OrderTracking />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/family" element={<Family />} />
-      <Route path="/records" element={<Records />} />
-      <Route path="/wallet" element={<Wallet />} />
-      <Route path="/notifications" element={<Notifications />} />
-      <Route path="/membership" element={<Membership />} />
-      <Route path="*" element={<Home />} />
+      <Route path="/" element={<DefaultRoute />} />
+      <Route element={<RequireLogin />}>
+        <Route path="/home" element={<Home />} />
+        <Route path="/hospitals" element={<Hospitals />} />
+        <Route path="/doctors" element={<Doctors />} />
+        <Route path="/doctor/:id" element={<DoctorProfile />} />
+        <Route path="/packages" element={<Packages />} />
+        <Route path="/lab-tests" element={<LabTests />} />
+        <Route path="/pharmacy" element={<Pharmacy />} />
+        <Route path="/book-appointment" element={<BookAppointment />} />
+        <Route path="/bookings" element={<Bookings />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/order-tracking" element={<OrderTracking />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/family" element={<Family />} />
+        <Route path="/records" element={<Records />} />
+        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/membership" element={<Membership />} />
+      </Route>
+      <Route path="*" element={<DefaultRoute />} />
     </Routes>
   );
 }

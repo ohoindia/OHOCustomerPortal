@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { AppShell, SearchBar } from "../components/Layout";
+import { AppShell } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
 import { bookings } from "../data/mockData";
 import type { ReactNode } from "react";

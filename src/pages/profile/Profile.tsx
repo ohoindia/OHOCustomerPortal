@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Settings } from "../../components/Icons";
 import { AppShell } from "../../components/Layout";
 import { MenuRow } from "../../components/Cards";
+import { clearSession } from "../auth/logout";
 
 export function Profile() {
   const nav = useNavigate();
@@ -47,6 +48,15 @@ export function Profile() {
         />
         <MenuRow icon="🎧" title="Support" subtitle="Help & support" />
       </div>
+      <MenuRow
+        icon="↪"
+        title="Logout"
+        subtitle="Sign out of your account"
+        onClick={() => {
+          clearSession();
+          window.location.replace("/login");
+        }}
+      />
     </AppShell>
   );
 }
