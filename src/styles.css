@@ -1,14 +1,24 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+/* CustomerPortal light theme: themeContext.js and MobileView.css. */
 :root {
-  font-family: "Arial";
-  color: #092044;
-  background: #eaf1fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  color: var(--text);
+  background: var(--surface);
   font-synthesis: none;
-  --blue: #0767dd;
-  --navy: #062a67;
-  --muted: #6f7f96;
-  --line: #e5eaf1;
-  --soft: #f4f7fb;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --brand: #0095b6;
+  --brand-strong: #0078a0;
+  --brand-active: #0e94c3;
+  --text: #000;
+  --muted: #616161;
+  --line: rgba(0, 0, 0, 0.2);
+  --surface: #fff;
+  --card: #dce9f4;
+  --soft: #f1f7fc;
+  --blue: var(--brand);
+  --navy: var(--brand-strong);
 }
 * {
   box-sizing: border-box;
@@ -27,18 +37,18 @@ button {
 .phone-shell,
 .auth-page {
   width: min(100%, 430px);
-  min-height: 100vh;
+  min-height: 100dvh;
   margin: auto;
   background: #fff;
   position: relative;
-  box-shadow: 0 0 40px #b7c4d5;
+  box-shadow: 0 8px 28px rgb(15 55 70 / 18%);
 }
 .phone-content {
   padding: 18px 16px 92px;
 }
 .logo {
   text-align: center;
-  color: #0754ad;
+  color: var(--brand);
 }
 .logo strong {
   font-size: 54px;
@@ -48,7 +58,7 @@ button {
   display: block;
   font-size: 14px;
   letter-spacing: 5px;
-  color: #092044;
+  color: var(--text);
 }
 .logo.compact strong {
   font-size: 38px;
@@ -76,7 +86,7 @@ button {
   border: 0;
   background: none;
   padding: 8px;
-  color: #092044;
+  color: var(--text);
 }
 .bottom-nav {
   position: absolute;
@@ -91,7 +101,7 @@ button {
   z-index: 4;
 }
 .bottom-nav a {
-  color: #8290a4;
+  color: var(--muted);
   text-decoration: none;
   font-size: 9px;
   display: flex;
@@ -102,13 +112,13 @@ button {
   width: 20%;
 }
 .bottom-nav a.active {
-  color: var(--blue);
+  color: var(--brand-active);
   font-weight: 700;
 }
 .search-bar {
   display: flex;
   align-items: center;
-  background: #f3f5f8;
+  background: var(--soft);
   border-radius: 12px;
   padding: 11px 13px;
   gap: 8px;
@@ -136,12 +146,12 @@ button {
   border-radius: 50%;
   width: 42px;
   height: 42px;
-  background: #d9e8fb;
-  color: #0753ad;
+  background: var(--card);
+  color: var(--brand);
   font-weight: 800;
 }
 .membership-card {
-  background: linear-gradient(135deg, #04327b, #0871df);
+  background: var(--brand);
   color: #fff;
   border-radius: 14px;
   padding: 16px;
@@ -203,7 +213,7 @@ button {
 .service-grid button {
   border: 0;
   background: none;
-  color: #17345f;
+  color: var(--text);
 }
 .service-grid span {
   display: grid;
@@ -212,7 +222,7 @@ button {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: #edf4ff;
+  background: var(--card);
   font-size: 18px;
 }
 .service-grid small {
@@ -236,7 +246,7 @@ button {
 .card-visual {
   width: 70px;
   height: 64px;
-  background: #edf4ff;
+  background: var(--card);
   border-radius: 10px;
   display: grid;
   place-items: center;
@@ -272,7 +282,7 @@ button {
 .status-pill,
 .discount {
   float: right;
-  background: #e8f3ff;
+  background: var(--card);
   color: var(--blue);
   padding: 4px 7px;
   border-radius: 20px;
@@ -280,12 +290,12 @@ button {
 }
 .strong {
   font-weight: 600;
-  color: #274464 !important;
+  color: var(--text) !important;
 }
 .offer-banner,
 .blue-banner,
 .upload-card {
-  background: #eaf4ff;
+  background: var(--card);
   border-radius: 12px;
   padding: 15px;
   display: flex;
@@ -339,7 +349,7 @@ button {
 }
 .phone-input {
   display: flex;
-  border: 1px solid #d8e0eb;
+  border: 1px solid var(--line);
   border-radius: 9px;
   padding: 12px;
   gap: 8px;
@@ -353,7 +363,7 @@ button {
 .primary-btn {
   border: 0;
   border-radius: 8px;
-  background: linear-gradient(90deg, #0873e8, #0760d0);
+  background: var(--brand-active);
   color: white;
   padding: 14px 16px;
   font-weight: 700;
@@ -365,7 +375,7 @@ button {
 .divider {
   text-align: center;
   margin: 17px;
-  color: #758399;
+  color: var(--muted);
 }
 .social-btn {
   width: 100%;
@@ -387,7 +397,7 @@ button {
   width: 43px;
   height: 46px;
   text-align: center;
-  border: 1px solid #dbe3ec;
+  border: 1px solid var(--line);
   border-radius: 7px;
   font-weight: 700;
 }
@@ -411,7 +421,7 @@ button {
 }
 .chip {
   border: 0;
-  background: #f0f3f7;
+  background: var(--soft);
   border-radius: 20px;
   padding: 8px 12px;
   font-size: 9px;
@@ -426,7 +436,7 @@ button {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #eef2f6;
+  background: var(--soft);
   font-size: 40px;
 }
 .doctor-avatar {
@@ -475,7 +485,7 @@ button {
 .body-copy {
   font-size: 11px;
   line-height: 1.7;
-  color: #4d607b;
+  color: var(--text);
 }
 .fee {
   display: flex;
@@ -486,7 +496,7 @@ button {
   font-size: 20px;
 }
 .package-card del {
-  color: #9ba7b7;
+  color: var(--muted);
   font-size: 10px;
 }
 .test-row,
@@ -527,7 +537,7 @@ button {
 .blue-banner p,
 .upload-card p {
   font-size: 10px;
-  color: #53708e;
+  color: var(--muted);
 }
 .upload-card button {
   border: 0;
@@ -681,7 +691,7 @@ button {
   color: var(--muted);
 }
 .profile-hero {
-  background: linear-gradient(135deg, #0a54bd, #0879e9);
+  background: var(--brand);
   color: white;
   margin: -18px -16px 10px;
   padding: 40px 18px 22px;
@@ -729,7 +739,7 @@ button {
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: #edf4ff;
+  background: var(--card);
   display: grid;
   place-items: center;
 }
@@ -745,7 +755,7 @@ button {
   border-radius: 8px;
 }
 .wallet-card {
-  background: linear-gradient(135deg, #0a52b9, #0b79e6);
+  background: var(--brand);
   color: #fff;
   border-radius: 13px;
   padding: 18px;
@@ -796,10 +806,10 @@ button {
 }
 .notification-row > small {
   font-size: 8px;
-  color: #98a4b3;
+  color: var(--muted);
 }
 .membership-detail {
-  background: linear-gradient(135deg, #063275, #0b6bd6);
+  background: var(--brand);
   color: white;
   border-radius: 17px;
   padding: 22px;
@@ -826,9 +836,9 @@ button {
   padding: 13px;
   border-bottom: 1px solid var(--line);
   font-size: 11px;
-  color: #28476f;
+  color: var(--text);
 }
-@media (max-width: 699px) {
+@media (max-width: 767px) {
   .bottom-nav a,
   .service-grid small,
   .distance,
@@ -876,17 +886,35 @@ button {
   }
 }
 
-@media (min-width: 700px) {
+@media (min-width: 768px) {
   body {
-    padding: 30px;
+    padding: 20px;
+    background: var(--brand-active);
   }
   .phone-shell,
   .auth-page {
-    min-height: 880px;
-    border-radius: 26px;
+    min-height: calc(100dvh - 40px);
+    border-radius: 30px;
     overflow: hidden;
   }
   .bottom-nav {
     position: absolute;
   }
+}
+
+/* Shared interaction colors stay consistent across all portal screens. */
+button, input, select, textarea {
+  accent-color: var(--brand);
+}
+button:focus-visible, a:focus-visible, input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 3px;
+}
+.primary-btn:hover:not(:disabled) {
+  background: var(--brand-strong);
+}
+input::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }

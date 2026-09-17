@@ -12,7 +12,7 @@
 }
 .login-brand h2 {
   margin: 6px 0 22px;
-  color: #0094c6;
+  color: var(--brand);
   font-size: 25px;
 }
 .login-brand p {
@@ -55,7 +55,7 @@
   line-height: 1.7;
 }
 .login-network > strong {
-  color: #0084b0;
+  color: var(--brand);
 }
 .login-footer {
   display: flex;
@@ -65,5 +65,5 @@
   line-height: 1.5;
 }
 .login-footer a {
-  color: #007aa3;
+  color: var(--brand-strong);
 }
