@@ -3,6 +3,8 @@ import { AppShell, SearchBar } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
 import { bookings } from "../data/mockData";
 import type { ReactNode } from "react";
+import { getSessionMember } from "./auth/member";
+import "./home-member.css";
 
 const services = [
   ["🏥", "Hospitals", "/hospitals"],
@@ -16,16 +18,20 @@ const services = [
 ];
 export default function Home() {
   const navigate = useNavigate();
+  const member = getSessionMember();
+  const name = member?.Name?.trim() || sessionStorage.getItem("FullName") || "Guest";
+  const location = [member?.Village, member?.City].filter((value, index, values) => value && values.indexOf(value) === index).join(", ");
+  const initials = name.split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
   return (
     <AppShell>
       <div className="home-top">
         <div>
-          <small>⌖ Hyderabad⌄</small>
-          <h1>Hello, Srikanth 👋</h1>
+          <small>⌖ {location || "Location not provided"}</small>
+          <h1>Hello, {name} 👋</h1>
         </div>
-        <button className="profile-mini">SR</button>
-      </div>
-      <SearchBar />
+        <button className="profile-mini" aria-label="View profile" onClick={() => navigate("/profile")}>{initials}</button>
+      </div>      
+      {/* <SearchBar /> */}
       <section className="membership-card">
         <div>
           <small>My Membership</small>

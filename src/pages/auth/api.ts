@@ -1,3 +1,20 @@
+export interface Member {
+  MemberId: number;
+  Name?: string | null;
+  MobileNumber?: string | null;
+  Gender?: string | null;
+  Age?: number | null;
+  DateofBirth?: string | null;
+  MemberTypeId?: string | null;
+  AddressLine1?: string | null;
+  AddressLine2?: string | null;
+  Village?: string | null;
+  City?: string | null;
+  Image?: string | null;
+  GroupId?: number | null;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
 export interface AuthResponse {
   status: boolean;
   message?: string;
@@ -5,7 +22,7 @@ export interface AuthResponse {
   guid?: string;
   futureTime?: string;
   JwtToken?: string;
-  memberData?: Array<Record<string, string | number | null>>;
+  memberData?: Member[];
   data?: { customerId?: number };
 }
 

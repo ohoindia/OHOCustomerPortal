@@ -125,11 +125,11 @@ export function Login() {
       if (
         !result.status ||
         !member ||
-        Number(member.MemberId) <= 0 ||
-        !result.JwtToken
+        !Number.isFinite(Number(member.MemberId)) ||
+        Number(member.MemberId) <= 0
       )
         throw new Error(result.message || "Login failed. Please try again.");
-      localStorage.setItem("token", result.JwtToken);
+      sessionStorage.setItem("member", JSON.stringify(member));
       for (const [key, value] of Object.entries({
         memberId: member.MemberId,
         gender: member.Gender,
@@ -146,7 +146,6 @@ export function Login() {
           memberId: member.MemberId,
           name: member.Name,
           mobileNumber,
-          token: result.JwtToken,
         },
       });
     } catch (err) {
