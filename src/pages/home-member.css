@@ -6,3 +6,44 @@
 .dashboard-member dt { color: var(--muted); margin-bottom: 4px; }
 .dashboard-member dd { margin: 0; overflow-wrap: anywhere; line-height: 1.5; }
 .dashboard-member .member-address { grid-column: 1 / -1; }
+
+.home-membership { flex-wrap: wrap; gap: 16px; padding: 20px; align-items: flex-start; }
+.home-membership-main { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.home-membership-main > small { font-size: 11px; opacity: .8; }
+.home-membership h2 { margin: 8px 0 12px; font-size: 17px; line-height: 1.35; }
+.home-membership p { margin: 8px 0; font-size: 12px; line-height: 1.5; }
+.home-membership .home-card-number { font-size: 15px; letter-spacing: 1.5px; opacity: 1; font-variant-numeric: tabular-nums; }
+.home-membership-main > button { margin-top: 8px; }
+.home-membership .gold-card { flex-shrink: 0; margin-top: 4px; }
+.home-package-details { min-width: 0; margin-top: 12px; padding: 16px; border: 1px solid #dce5f1; border-radius: 12px; background: #fff; color: #173454; }
+.home-package-details summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+.home-package-details summary > span { margin-left: 6px; background: #edf4ff; padding: 2px 7px; border-radius: 10px; }
+.home-package-details summary > .home-featured-package { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px 0 0; padding: 12px; background: linear-gradient(120deg, #1e699b, #0871b3); color: white; }
+.home-package-name { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 15px; }
+.home-package-name > span { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #ffffff25; font-size: 12px; }
+.home-package-active { padding: 3px 9px; border-radius: 20px; background: #dcfce7; color: #166534; font-size: 11px; }
+.home-featured-package > small { flex-basis: 100%; font-size: 11px; font-weight: 400; }
+.home-package-status { display: block; margin-top: 10px; font-size: 12px; font-weight: 400; }
+.home-benefits-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 16px; font-size: 12px; line-height: 1.5; }
+.home-benefits-table th, .home-benefits-table td { padding: 12px 8px; text-align: left; vertical-align: top; overflow-wrap: anywhere; border-bottom: 1px solid #e7edf5; }
+.home-benefits-table thead th { background: #f3f7fc; color: #506580; font-size: 11px; }
+.home-benefits-table th:first-child { width: 29%; }
+.home-benefits-table th:last-child, .home-benefits-table td:last-child { width: 25%; text-align: right; font-variant-numeric: tabular-nums; }
+.home-benefits-table tbody td:last-child { white-space: nowrap; font-weight: 600; }
+.home-benefits-table tfoot { background: #edf4ff; color: #094791; font-weight: 700; }
+.home-benefits-table tfoot td:last-child { white-space: nowrap; }
+@media (max-width: 380px) {
+  .home-package-details { padding: 12px; }
+  .home-benefits-table th, .home-benefits-table td { padding: 10px 5px; font-size: 11px; }
+}
+.home-package-row { display: flex; flex-direction: column; gap: 5px; padding-top: 14px; font-size: 12px; overflow-wrap: anywhere; }
+.home-package-row > span, .home-package-row > small { opacity: .8; font-size: 11px; }
+.home-package-empty { flex-basis: 100%; }
+.home-action-notice { margin-top: 12px; padding: 14px 16px; border: 1px solid #fecaca; border-radius: 12px; background: #fff5f5; color: #b91c1c; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.home-notice-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.home-action-notice button { color: inherit; background: none; border: 0; cursor: pointer; }
+.home-notice-heading > button { font-size: 22px; padding: 0 4px; line-height: 1; }
+.home-action-notice ul { margin: 8px 0; padding-left: 18px; }
+.home-action-notice li + li { margin-top: 5px; }
+.home-notice-actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+.home-notice-actions button { padding: 0; text-decoration: underline; font-size: 12px; font-weight: 600; }
