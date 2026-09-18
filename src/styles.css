@@ -1,7 +1,8 @@
 /* CustomerPortal light theme: themeContext.js and MobileView.css. */
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   color: var(--text);
   background: var(--surface);
   font-synthesis: none;
@@ -903,10 +904,14 @@ button {
 }
 
 /* Shared interaction colors stay consistent across all portal screens. */
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   accent-color: var(--brand);
 }
-button:focus-visible, a:focus-visible, input:focus-visible,
+button:focus-visible,
+a:focus-visible,
 summary:focus-visible {
   outline: 2px solid var(--brand-strong);
   outline-offset: 3px;
