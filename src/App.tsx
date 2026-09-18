@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { getSessionMember } from "./pages/auth/member";
 import { Splash } from "./pages/auth/Splash";
 import { Login } from "./pages/auth/Login";
@@ -30,6 +31,18 @@ function RequireLogin() {
 }
 
 export default function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const member = getSessionMember();
+    const customerName = member
+      ? member.Name?.trim() || sessionStorage.getItem("FullName")?.trim()
+      : "";
+    document.title = customerName
+      ? `${customerName} | OHOINDIA CUSTOMER APP`
+      : "OHOINDIA CUSTOMER APP";
+  }, [location]);
+
   return (
     <Routes>
       <Route path="/splash" element={<Splash />} />
