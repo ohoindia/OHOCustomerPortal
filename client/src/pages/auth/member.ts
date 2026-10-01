@@ -1,5 +1,5 @@
 import type { Member } from "./api";
-import { getAccessToken } from './session';
+import { getAccessToken } from "./session";
 
 export function getSessionMember(): Member | null {
   try {

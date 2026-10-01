@@ -1,44 +1,44 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: OHO customer NestJS API on Lambda and API Gateway HTTP API
 
 Parameters:
   VpcSubnetIds:
     Type: String
-    Default: ''
+    Default: ""
     Description: Comma-separated private subnet IDs; leave empty for a publicly reachable database
   VpcSecurityGroupIds:
     Type: String
-    Default: ''
+    Default: ""
     Description: Comma-separated Lambda security group IDs; required when subnet IDs are supplied
   OnboardingSmsQueueArn:
     Type: String
-    Default: ''
+    Default: ""
     Description: Optional ARN of the queue configured in ConfigValues or ConfigSecrets
 
 Conditions:
   UseVpc: !And
-    - !Not [!Equals [!Ref VpcSubnetIds, '']]
-    - !Not [!Equals [!Ref VpcSecurityGroupIds, '']]
-  UseQueue: !Not [!Equals [!Ref OnboardingSmsQueueArn, '']]
+    - !Not [!Equals [!Ref VpcSubnetIds, ""]]
+    - !Not [!Equals [!Ref VpcSecurityGroupIds, ""]]
+  UseQueue: !Not [!Equals [!Ref OnboardingSmsQueueArn, ""]]
 
 Rules:
   VpcParametersTogether:
     Assertions:
       - Assert: !Or
           - !And
-            - !Equals [!Ref VpcSubnetIds, '']
-            - !Equals [!Ref VpcSecurityGroupIds, '']
+            - !Equals [!Ref VpcSubnetIds, ""]
+            - !Equals [!Ref VpcSecurityGroupIds, ""]
           - !And
-            - !Not [!Equals [!Ref VpcSubnetIds, '']]
-            - !Not [!Equals [!Ref VpcSecurityGroupIds, '']]
+            - !Not [!Equals [!Ref VpcSubnetIds, ""]]
+            - !Not [!Equals [!Ref VpcSecurityGroupIds, ""]]
         AssertDescription: Supply both VPC subnet IDs and security group IDs, or leave both empty.
 
 Resources:
   CustomerHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: '$default'
+      StageName: "$default"
       DefaultRouteSettings:
         ThrottlingBurstLimit: 20
         ThrottlingRateLimit: 10
@@ -55,17 +55,17 @@ Resources:
       ReservedConcurrentExecutions: 5
       VpcConfig: !If
         - UseVpc
-        - SubnetIds: !Split [',', !Ref VpcSubnetIds]
-          SecurityGroupIds: !Split [',', !Ref VpcSecurityGroupIds]
+        - SubnetIds: !Split [",", !Ref VpcSubnetIds]
+          SecurityGroupIds: !Split [",", !Ref VpcSecurityGroupIds]
         - !Ref AWS::NoValue
       # DB_* settings are maintained directly in Lambda Environment variables.
       # Application settings are read from ConfigValues and ConfigSecrets in MySQL.
       # Keep Environment omitted so this template does not manage those values.
       Policies:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
         - !If
           - UseVpc
-          - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
+          - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
           - !Ref AWS::NoValue
         - !If
           - UseQueue
@@ -81,11 +81,11 @@ Resources:
             ApiId: !Ref CustomerHttpApi
             Path: /{proxy+}
             Method: ANY
-            PayloadFormatVersion: '2.0'
+            PayloadFormatVersion: "2.0"
 
 Outputs:
   ApiBaseUrl:
     Description: Base URL for both VITE_API_BASE_URL and VITE_LEGACY_API_BASE_URL
-    Value: !Sub 'https://${CustomerHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}'
+    Value: !Sub "https://${CustomerHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
   FunctionName:
     Value: !Ref CustomerApiFunction

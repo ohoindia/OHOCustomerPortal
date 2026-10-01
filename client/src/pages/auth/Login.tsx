@@ -127,7 +127,8 @@ export function Login() {
         !result.status ||
         !member ||
         !Number.isFinite(Number(member.MemberId)) ||
-        (Number(member.MemberId) <= 0 && !(Number(member.CommunityCustomerId) > 0))
+        (Number(member.MemberId) <= 0 &&
+          !(Number(member.CommunityCustomerId) > 0))
       )
         throw new Error(result.message || "Login failed. Please try again.");
       saveAuthSession(result, member);

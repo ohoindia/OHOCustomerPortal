@@ -1,5 +1,5 @@
-import { createApiRequest } from '../../../common/api/transport';
-import { clearAuthSession, getAccessToken } from '../pages/auth/session';
+import { createApiRequest } from "../../../common/api/transport";
+import { clearAuthSession, getAccessToken } from "../pages/auth/session";
 
 // Only the web adapter reads Vite environment variables.
 export const apiRequest = createApiRequest({
@@ -8,6 +8,7 @@ export const apiRequest = createApiRequest({
   getAccessToken,
   onUnauthorized: (rejectedToken) => {
     // A late response from an old session must not clear a fresh login.
-    if (sessionStorage.getItem('accessToken') === (rejectedToken ?? null)) clearAuthSession();
+    if (sessionStorage.getItem("accessToken") === (rejectedToken ?? null))
+      clearAuthSession();
   },
 });

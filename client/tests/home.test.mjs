@@ -1,13 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { loadModule } from './load-common.mjs';
+import { loadModule } from "./load-common.mjs";
 
 // Exercise the shared controllers with a mock transport; no customer API is contacted.
-function service(request = () => { throw new Error('Unexpected request'); }) {
+function service(
+  request = () => {
+    throw new Error("Unexpected request");
+  },
+) {
   return {
-    ...loadModule('../../common/utils/home.ts'),
-    ...loadModule('../../common/controllers/home.controller.ts').createHomeController(request),
+    ...loadModule("../../common/utils/home.ts"),
+    ...loadModule(
+      "../../common/controllers/home.controller.ts",
+    ).createHomeController(request),
   };
 }
 

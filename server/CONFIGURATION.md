@@ -12,20 +12,20 @@ The loader reads ConfigValues, followed by ConfigSecrets. Matching keys in Confi
 
 Use the existing .NET keys or their canonical aliases below.
 
-| Application setting | Existing .NET ConfigKey | Canonical ConfigKey | Default / notes |
-| --- | --- | --- | --- |
-| Allowed frontend origins | — | CORS_ORIGINS | `http://localhost:5173`; comma-separated origins |
-| Local HTTP port | — | PORT | `3000`; Lambda does not listen on a port |
-| SMS provider | SMSGateway | SMS_PROVIDER | `disabled`; accepts MSG91 / SMSFresh without case sensitivity |
-| MSG91 auth key | authkey | MSG91_AUTH_KEY | Required for MSG91; store in ConfigSecrets |
-| MSG91 OTP template | MSG91OTPTemplateId | MSG91_OTP_TEMPLATE_ID | Required for MSG91 |
-| MSG91 endpoint | MSG91OTPURL | MSG91_OTP_URL | `https://control.msg91.com/api/v5/flow` |
-| SMSFresh endpoint | SMSFreshOTPURL | SMSFRESH_OTP_URL | Required for SMSFresh |
-| SMSFresh user | smsfreshUser | SMSFRESH_USER | Required for SMSFresh |
-| SMSFresh password | smsfreshPass | SMSFRESH_PASSWORD | Required for SMSFresh; store in ConfigSecrets |
-| SMSFresh sender | smsfreshSender | SMSFRESH_SENDER | Required for SMSFresh |
-| Onboarding SMS queue | onboardingSMSQueue | ONBOARDING_SMS_QUEUE_URL | Optional; accepts queue name or HTTPS URL |
-| Queue region | — | AWS_REGION | `ap-south-1` |
+| Application setting      | Existing .NET ConfigKey | Canonical ConfigKey      | Default / notes                                               |
+| ------------------------ | ----------------------- | ------------------------ | ------------------------------------------------------------- |
+| Allowed frontend origins | —                       | CORS_ORIGINS             | `http://localhost:5173`; comma-separated origins              |
+| Local HTTP port          | —                       | PORT                     | `3000`; Lambda does not listen on a port                      |
+| SMS provider             | SMSGateway              | SMS_PROVIDER             | `disabled`; accepts MSG91 / SMSFresh without case sensitivity |
+| MSG91 auth key           | authkey                 | MSG91_AUTH_KEY           | Required for MSG91; store in ConfigSecrets                    |
+| MSG91 OTP template       | MSG91OTPTemplateId      | MSG91_OTP_TEMPLATE_ID    | Required for MSG91                                            |
+| MSG91 endpoint           | MSG91OTPURL             | MSG91_OTP_URL            | `https://control.msg91.com/api/v5/flow`                       |
+| SMSFresh endpoint        | SMSFreshOTPURL          | SMSFRESH_OTP_URL         | Required for SMSFresh                                         |
+| SMSFresh user            | smsfreshUser            | SMSFRESH_USER            | Required for SMSFresh                                         |
+| SMSFresh password        | smsfreshPass            | SMSFRESH_PASSWORD        | Required for SMSFresh; store in ConfigSecrets                 |
+| SMSFresh sender          | smsfreshSender          | SMSFRESH_SENDER          | Required for SMSFresh                                         |
+| Onboarding SMS queue     | onboardingSMSQueue      | ONBOARDING_SMS_QUEUE_URL | Optional; accepts queue name or HTTPS URL                     |
+| Queue region             | —                       | AWS_REGION               | `ap-south-1`                                                  |
 
 For example, retain `SMSGateway=MSG91` and `MSG91OTPTemplateId=...` in ConfigValues, and `authkey=...` in ConfigSecrets if these rows already exist. Add/update `CORS_ORIGINS` to the deployed frontend origin. Avoid creating duplicate aliases; update the existing row for each setting. No table changes or automatic inserts are performed by this app.
 

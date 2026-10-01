@@ -10,12 +10,12 @@ Customer profile, package, card, consultation, address, and verification routes 
 
 Keep the existing configuration-table workflow:
 
-| Table | ConfigKey | Value |
-| --- | --- | --- |
-| `ConfigSecrets` | `JWT_SECRET` | Required random signing secret of at least 32 bytes; use the same value across server instances |
-| `ConfigValues` | `JWT_TTL_SECONDS` | Optional; defaults to `3600`; allowed range `60`–`86400` seconds |
-| `ConfigValues` | `JWT_ISSUER` | Optional; defaults to `oho-customer-server` |
-| `ConfigValues` | `JWT_AUDIENCE` | Optional; defaults to `oho-customer-app` |
+| Table           | ConfigKey         | Value                                                                                           |
+| --------------- | ----------------- | ----------------------------------------------------------------------------------------------- |
+| `ConfigSecrets` | `JWT_SECRET`      | Required random signing secret of at least 32 bytes; use the same value across server instances |
+| `ConfigValues`  | `JWT_TTL_SECONDS` | Optional; defaults to `3600`; allowed range `60`–`86400` seconds                                |
+| `ConfigValues`  | `JWT_ISSUER`      | Optional; defaults to `oho-customer-server`                                                     |
+| `ConfigValues`  | `JWT_AUDIENCE`    | Optional; defaults to `oho-customer-app`                                                        |
 
 Generate a secret locally and store it in `ConfigSecrets` through your existing configuration process:
 

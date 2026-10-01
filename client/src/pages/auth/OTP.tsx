@@ -125,7 +125,7 @@ export function OTP() {
           MemberId: result.data.customerId,
           Name: details.name,
           MobileNumber: details.mobileNumber,
-          MemberTypeId: 'Primary',
+          MemberTypeId: "Primary",
         });
         navigate("/home", {
           replace: true,

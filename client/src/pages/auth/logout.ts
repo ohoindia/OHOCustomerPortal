@@ -1,4 +1,4 @@
-import { clearAuthSession } from './session';
+import { clearAuthSession } from "./session";
 
 export function clearSession() {
   clearAuthSession();

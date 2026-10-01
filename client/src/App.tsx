@@ -1,7 +1,11 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { getSessionMember } from "./pages/auth/member";
-import { clearAuthSession, getAccessToken, subscribeAuthSession } from './pages/auth/session';
+import {
+  clearAuthSession,
+  getAccessToken,
+  subscribeAuthSession,
+} from "./pages/auth/session";
 import { Splash } from "./pages/auth/Splash";
 import { Login } from "./pages/auth/Login";
 import { OTP } from "./pages/auth/OTP";
@@ -33,12 +37,21 @@ function RequireLogin() {
 
 export default function App() {
   const location = useLocation();
-  const token = useSyncExternalStore(subscribeAuthSession, getAccessToken, () => null);
+  const token = useSyncExternalStore(
+    subscribeAuthSession,
+    getAccessToken,
+    () => null,
+  );
 
   useEffect(() => {
     if (!token) return;
-    const expiresAt = Date.parse(sessionStorage.getItem('tokenExpiresAt') ?? '');
-    const timeout = window.setTimeout(() => clearAuthSession(), Math.max(0, expiresAt - Date.now()));
+    const expiresAt = Date.parse(
+      sessionStorage.getItem("tokenExpiresAt") ?? "",
+    );
+    const timeout = window.setTimeout(
+      () => clearAuthSession(),
+      Math.max(0, expiresAt - Date.now()),
+    );
     return () => window.clearTimeout(timeout);
   }, [token]);
 

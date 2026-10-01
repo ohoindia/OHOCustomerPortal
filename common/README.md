@@ -26,12 +26,12 @@ import {
   createAuthController,
   createCustomerController,
   createHomeController,
-} from '../../common';
+} from "../../common";
 
 // Supply these from your mobile app's configuration.
 const request = createApiRequest({
-  apiBaseUrl: 'https://your-customer-api.example',
-  legacyApiBaseUrl: 'https://your-catalog-api.example',
+  apiBaseUrl: "https://your-customer-api.example",
+  legacyApiBaseUrl: "https://your-catalog-api.example",
 });
 
 export const authController = createAuthController(request);

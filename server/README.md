@@ -54,26 +54,26 @@ npm --prefix server run start:prod
 
 Source references below are relative to `C:\code\app\ohoindia\OHOBackEnd`. Customer routes use `OHO.Lambda.API/Controllers/CustomerController.cs` and `OHO.Database.Repositaries/CustomerRepo.cs`, rather than the older Member APIs.
 
-| Module | Method and route | .NET logic / data source |
-| --- | --- | --- |
-| customer-auth | POST `/lambdaAPI/Customer/mobileNoValid` | Customer lookup, with the community fallback used by memberlogin |
-| customer-auth | POST `/lambdaAPI/Customer/checkingMobileno` | Registration/profile checks, daily OTP limit, resend cooldown, MobileOTPHistory |
-| customer-auth | POST `/lambdaAPI/Customer/toSetNewPassword` | Registered customer check, OTP generation and SMS delivery |
-| customer-auth | POST `/lambdaAPI/Customer/OTPValidation` | MobileNumber + GUID + OTPGenerated + expiry check |
-| customer-auth | POST `/lambdaAPI/Customer/memberlogin` | Customer and CommunityCustomers password checks, CommunityGroup lookup, UserLogin record |
-| customer-auth | POST `/lambdaAPI/Customer/add` | Duplicate check, OHOCODE sequence, Primary account defaults, onboarding notification |
-| customer-auth | POST `/lambdaAPI/Customer/updatePassword` | Password update and IsProfileCompleted flag |
-| customers | GET `/lambdaAPI/Customer/GetById/:id` | Customer table and explicit public field mapping |
-| customers | GET `/lambdaAPI/Customer/GetMemberProducts/:id` | View_Subscription, CustomerController.TransformData |
-| customers | GET `/lambdaAPI/Customer/AddressExistsOrNot/:id` | AddressLine1 check |
-| customers | POST `/lambdaAPI/Customer/KYCVerifiedOrNot` | Latest VALID/success AadhaarOTPVerificationData, linking missing CustomerId |
-| customers | POST `/lambdaAPI/Customer/PANVerifiedOrNot` | Valid PANVerification record and PANDocument |
-| cards | GET `/lambdaAPI/OHOCards/GetMemberCardByMemberId/:id` | OHOCardsController, OHOCardsRepo.GetMemberCardDetails |
-| consultations | POST `/lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList` | BookingConsultationRepo, service/status/policy joins, optional coupon filter |
-| communities | GET `/lambdaAPI/CommunityCustomers/GetById/:id` | CommunityCustomersController, customer association by mobile |
-| communities | GET `/lambdaAPI/Group/GetById/:id` | GroupController, GroupRepo.FetchGroupIdData |
-| catalog | POST `/ConfigValues/all` | OHO.APILambda ConfigValuesController, ConfigValues public columns |
-| catalog | POST `/Products/all` | OHO.APILambda ProductsController, GetDataRepo.SelectQry, ProductsDetails view |
+| Module        | Method and route                                                        | .NET logic / data source                                                                 |
+| ------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| customer-auth | POST `/lambdaAPI/Customer/mobileNoValid`                                | Customer lookup, with the community fallback used by memberlogin                         |
+| customer-auth | POST `/lambdaAPI/Customer/checkingMobileno`                             | Registration/profile checks, daily OTP limit, resend cooldown, MobileOTPHistory          |
+| customer-auth | POST `/lambdaAPI/Customer/toSetNewPassword`                             | Registered customer check, OTP generation and SMS delivery                               |
+| customer-auth | POST `/lambdaAPI/Customer/OTPValidation`                                | MobileNumber + GUID + OTPGenerated + expiry check                                        |
+| customer-auth | POST `/lambdaAPI/Customer/memberlogin`                                  | Customer and CommunityCustomers password checks, CommunityGroup lookup, UserLogin record |
+| customer-auth | POST `/lambdaAPI/Customer/add`                                          | Duplicate check, OHOCODE sequence, Primary account defaults, onboarding notification     |
+| customer-auth | POST `/lambdaAPI/Customer/updatePassword`                               | Password update and IsProfileCompleted flag                                              |
+| customers     | GET `/lambdaAPI/Customer/GetById/:id`                                   | Customer table and explicit public field mapping                                         |
+| customers     | GET `/lambdaAPI/Customer/GetMemberProducts/:id`                         | View_Subscription, CustomerController.TransformData                                      |
+| customers     | GET `/lambdaAPI/Customer/AddressExistsOrNot/:id`                        | AddressLine1 check                                                                       |
+| customers     | POST `/lambdaAPI/Customer/KYCVerifiedOrNot`                             | Latest VALID/success AadhaarOTPVerificationData, linking missing CustomerId              |
+| customers     | POST `/lambdaAPI/Customer/PANVerifiedOrNot`                             | Valid PANVerification record and PANDocument                                             |
+| cards         | GET `/lambdaAPI/OHOCards/GetMemberCardByMemberId/:id`                   | OHOCardsController, OHOCardsRepo.GetMemberCardDetails                                    |
+| consultations | POST `/lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList` | BookingConsultationRepo, service/status/policy joins, optional coupon filter             |
+| communities   | GET `/lambdaAPI/CommunityCustomers/GetById/:id`                         | CommunityCustomersController, customer association by mobile                             |
+| communities   | GET `/lambdaAPI/Group/GetById/:id`                                      | GroupController, GroupRepo.FetchGroupIdData                                              |
+| catalog       | POST `/ConfigValues/all`                                                | OHO.APILambda ConfigValuesController, ConfigValues public columns                        |
+| catalog       | POST `/Products/all`                                                    | OHO.APILambda ProductsController, GetDataRepo.SelectQry, ProductsDetails view            |
 
 Catalog endpoints also support `/api/...` and `/apiLambda/...` prefixes. Use the base URL without these prefixes for the supplied local frontend configuration. Pagination accepts `{ "skip": 0, "take": 0 }`; `take: 0` retains the legacy unlimited result behavior.
 
