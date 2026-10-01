@@ -11,21 +11,16 @@ export type ApiRequest = <T>(
 ) => Promise<T>;
 export type ApiConfiguration = {
   apiBaseUrl?: string;
-  legacyApiBaseUrl?: string;
   fetch?: typeof globalThis.fetch;
   getAccessToken?: () =>
     string | null | undefined | Promise<string | null | undefined>;
   onUnauthorized?: (rejectedToken?: string | null) => void | Promise<void>;
 };
-/** Each app supplies its own URLs; the shared layer has no platform storage or environment dependencies. */
+/** Each app supplies its own API base URL; the shared layer has no platform storage or environment dependencies. */
 export function createApiRequest(configuration: ApiConfiguration): ApiRequest {
   return async <T>(path: string, options: RequestOptions = {}): Promise<T> => {
     const normalizedPath = path.replace(/^\/+/, "");
-    const base = (
-      /^api\/(ConfigValues|Products)\//.test(normalizedPath)
-        ? configuration.legacyApiBaseUrl ?? configuration.apiBaseUrl
-        : configuration.apiBaseUrl
-    )?.replace(/\/+$/, "");
+    const base = configuration.apiBaseUrl?.replace(/\/+$/, "");
     if (!base)
       throw new Error(
         options.configurationError ?? "Customer service is not configured.",

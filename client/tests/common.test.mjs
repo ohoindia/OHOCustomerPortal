@@ -2,12 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule } from "./load-common.mjs";
 
-test("shared transport routes both API bases, serializes POST bodies, and forwards cancellation", async () => {
+test("shared transport uses one API base for customer and catalog requests, serializes POST bodies, and forwards cancellation", async () => {
   const calls = [];
   const { createApiRequest } = loadModule("../../common/api/transport.ts");
   const request = createApiRequest({
     apiBaseUrl: "https://customer.test///",
-    legacyApiBaseUrl: "https://catalog.test/",
     fetch: async (url, options) => {
       calls.push({ url, ...options });
       return { ok: true, json: async () => ({ status: true }) };
@@ -23,8 +22,10 @@ test("shared transport routes both API bases, serializes POST bodies, and forwar
   assert.equal(calls[0].method, "GET");
   assert.equal(calls[0].body, undefined);
   assert.equal(calls[0].signal, signal);
-  assert.equal(calls[1].url, "https://catalog.test/api/Products/all");
+  assert.equal(calls[1].url, "https://customer.test/api/Products/all");
   assert.equal(calls[1].method, "POST");
+  await request("api/ConfigValues/all");
+  assert.equal(calls[2].url, "https://customer.test/api/ConfigValues/all");
   assert.equal(calls[1].body, '{"skip":0,"take":0}');
 });
 

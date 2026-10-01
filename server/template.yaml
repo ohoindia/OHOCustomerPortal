@@ -85,7 +85,7 @@ Resources:
 
 Outputs:
   ApiBaseUrl:
-    Description: Base URL for both VITE_API_BASE_URL and VITE_LEGACY_API_BASE_URL
+    Description: Base URL for VITE_API_BASE_URL
     Value: !Sub "https://${CustomerHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
   FunctionName:
     Value: !Ref CustomerApiFunction

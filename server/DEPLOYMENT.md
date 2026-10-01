@@ -113,14 +113,13 @@ Invoke-RestMethod -Uri "$customerApiBase/health"
 
 Expect `{ "status": true, "service": "oho-customer-server" }`. Health checks do not validate database connectivity or SMS credentials. Check a read-only route using a designated test account, then test login, OTP registration and reset against that account. OTP tests send real SMS and successful registration/reset changes test data.
 
-Set both frontend build environment variables to the same base URL:
+Set the frontend build environment variable to the API base URL:
 
 ```dotenv
 VITE_API_BASE_URL=https://abc123.execute-api.ap-south-1.amazonaws.com
-VITE_LEGACY_API_BASE_URL=https://abc123.execute-api.ap-south-1.amazonaws.com
 ```
 
-Restart Vite for local use. For a hosted frontend, set these values in its build environment, rebuild with `npm run build` from the repository root, then publish the resulting frontend `client/dist` using your existing hosting process. Vite embeds these URLs at build time.
+Restart Vite for local use. For a hosted frontend, set this value in its build environment, rebuild with `npm run build` from the repository root, then publish the resulting frontend `client/dist` using your existing hosting process. Vite embeds this URL at build time.
 
 ## 7. Redeploy after code or dependency changes
 

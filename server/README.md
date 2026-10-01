@@ -25,11 +25,10 @@ Fill in `server/.env` with the database settings corresponding to the .NET `dbSt
 
 Only `DB_*` settings belong in `server/.env` locally or Lambda environment variables when deployed. All application settings, including SMS credentials, CORS origins, queue settings and the local port, are read from the existing `ConfigValues` and `ConfigSecrets` tables. `ConfigSecrets` takes precedence, matching .NET startup. Existing .NET key names are supported; see [CONFIGURATION.md](CONFIGURATION.md) for the mapping. SMS defaults to disabled until configured in these tables. OTPs are never returned in an API response or printed to the console.
 
-Set both values in the frontend's existing `client/.env.local`:
+Set the API base URL in the frontend's existing `client/.env.local`:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:3000
-VITE_LEGACY_API_BASE_URL=http://localhost:3000
 ```
 
 Start these in separate terminals, from the repository root:

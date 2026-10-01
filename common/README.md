@@ -4,7 +4,7 @@ This folder contains plain TypeScript used by the web app and the future React N
 
 ## Structure
 
-- `api/transport.ts`: JSON requests, API base URL selection, HTTP errors, and cancellation. Supply URLs and optionally a fetch implementation when creating the transport.
+- `api/transport.ts`: JSON requests, API base URL configuration, HTTP errors, and cancellation. Supply an API base URL and optionally a fetch implementation when creating the transport.
 - `models/customer.ts`: shared response models for customers, authentication, cards, products, and consultations.
 - `controllers/auth.controller.ts`: customer login, registration, OTP, and password reset requests, including authentication response validation.
 - `controllers/customer.controller.ts`: customer profiles, packages, address, Aadhaar, and PAN verification.
@@ -31,7 +31,6 @@ import {
 // Supply these from your mobile app's configuration.
 const request = createApiRequest({
   apiBaseUrl: "https://your-customer-api.example",
-  legacyApiBaseUrl: "https://your-catalog-api.example",
 });
 
 export const authController = createAuthController(request);
