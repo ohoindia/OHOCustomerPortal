@@ -1,79 +1,35 @@
 # OHO Customer App
 
-The React frontend now includes a modular NestJS backend in [server](server/README.md), implementing the customer APIs used by the app from the existing .NET backend. See that README for database/SMS configuration, endpoint mappings and local setup.
+The repository separates the web client and backend so a React Native mobile app can be developed alongside them.
 
-Run the backend with `npm run server:dev` and the frontend with `npm run dev` in separate terminals. Build and test the backend with `npm run server:build` and `npm run server:test`.
+- `client/`: existing React, TypeScript and Vite web app, including assets and frontend tests.
+- `server/`: NestJS backend. See [server setup](server/README.md) and [deployment](server/DEPLOYMENT.md).
+- `mobile/`: intended location for the future React Native app; it has not been scaffolded yet.
 
-## React + TypeScript + Vite
+From the repository root, install dependencies:
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```powershell
+npm run client:install
+npm --prefix server ci
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Frontend environment files belong in `client/`. For a new checkout, copy `client/.env.example` to `client/.env.local` and configure the API URLs. Backend configuration belongs in `server/.env` as described in its README.
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+Run these in separate terminals:
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```powershell
+npm run dev
+npm run server:dev
 ```
+
+Root commands forward to the appropriate app:
+
+```powershell
+npm run build
+npm run lint
+npm test
+npm run server:build
+npm run server:test
+```
+
+The web build is written to `client/dist/`. You can also run the frontend commands directly from `client/`.

@@ -1,6 +1,6 @@
 # OHO customer NestJS server
 
-This app implements the 18 endpoints currently called by `src/pages/auth` and `src/services/home.ts`. Controllers handle HTTP routing and DTO validation; services own business rules and parameterized MySQL queries. It runs independently of .NET and uses the existing OHO database. It does not migrate unrelated administrative APIs from the backend solution.
+This app implements the 18 endpoints currently called by `client/src/pages/auth` and `client/src/services/home.ts`. Controllers handle HTTP routing and DTO validation; services own business rules and parameterized MySQL queries. It runs independently of .NET and uses the existing OHO database. It does not migrate unrelated administrative APIs from the backend solution.
 
 ## Run locally
 
@@ -19,7 +19,7 @@ Fill in `server/.env` with the database settings corresponding to the .NET `dbSt
 
 Only `DB_*` settings belong in `server/.env` locally or Lambda environment variables when deployed. All application settings, including SMS credentials, CORS origins, queue settings and the local port, are read from the existing `ConfigValues` and `ConfigSecrets` tables. `ConfigSecrets` takes precedence, matching .NET startup. Existing .NET key names are supported; see [CONFIGURATION.md](CONFIGURATION.md) for the mapping. SMS defaults to disabled until configured in these tables. OTPs are never returned in an API response or printed to the console.
 
-Set both values in the frontend's existing `.env.local`:
+Set both values in the frontend's existing `client/.env.local`:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:3000
@@ -79,7 +79,7 @@ The SMS adapter follows `OHO.Lambda.API/Commands/SendOTPCommand.cs`. Optional `o
 - The frontend sends POST to `toSetNewPassword`, while the .NET controller declares GET with a body. This server implements POST.
 - `GetMemberProducts` returns a JSON array directly rather than a serialized JSON string. Joined subscription records are grouped into customers, products, policies, dependents, insurers and nominees. The dependent/insurer/nominee associations follow the .NET transformation.
 - Customer and community responses omit Password and OTP fields. MySQL TINYINT(1) and BIT(1) values become JSON booleans.
-- Registration and password reset require `guid` and `otpGenerated` alongside their existing fields. `src/pages/auth/OTP.tsx` now supplies them. Proofs must be unexpired and belong to the requested flow, and are expired atomically after use. These flows do not accept pre-migration OTP records without the flow marker.
+- Registration and password reset require `guid` and `otpGenerated` alongside their existing fields. `client/src/pages/auth/OTP.tsx` now supplies them. Proofs must be unexpired and belong to the requested flow, and are expired atomically after use. These flows do not accept pre-migration OTP records without the flow marker.
 - Five OTP sends per India calendar day are allowed. A resend must wait for the previous two-minute OTP expiry. Advisory locks serialize sends and OHOCODE generation across NestJS instances; mutation transactions lock OTP rows. Existing .NET writers do not participate in these advisory locks.
 - Community accounts can be detected and reset as well as logged in. The current React login screen still requires a positive MemberId, so community-only accounts (`MemberId: 0`, as in .NET) need a separate frontend change to enter the portal.
 - The existing four-digit plaintext password storage and `1234` registration default are retained for database compatibility. The source's JWT generation is commented out; this migration does not add session authorization to profile/card/consultation routes. Production authentication and password hashing require a coordinated database/frontend migration.

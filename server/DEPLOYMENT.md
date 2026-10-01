@@ -28,7 +28,7 @@ Use your existing profile instead of configuring a new one when available. Keep 
 
 ## 2. Prepare database and application configuration
 
-Database connection settings are stored directly in the Lambda function's **Configuration → Environment variables**. After creating the function in step 5, add:
+Database connection settings are stored directly in the Lambda function's **Configuration â†’ Environment variables**. After creating the function in step 5, add:
 
 ```dotenv
 DB_HOST=your-existing-mysql-host
@@ -94,7 +94,7 @@ On success, CloudFormation outputs `ApiBaseUrl` and `FunctionName`. Fetch them a
 aws cloudformation describe-stacks --stack-name oho-customer-api-dev --region ap-south-1 --query 'Stacks[0].Outputs' --output table
 ```
 
-Open the function identified by `FunctionName`, choose **Configuration → Environment variables → Edit**, add the database keys from step 2 and save. No SMS or application settings need to be added to Lambda environment variables. See [AWS Lambda environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html).
+Open the function identified by `FunctionName`, choose **Configuration â†’ Environment variables â†’ Edit**, add the database keys from step 2 and save. No SMS or application settings need to be added to Lambda environment variables. See [AWS Lambda environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html).
 
 The base URL has no `/Prod` or `/lambdaAPI` suffix because this template uses the HTTP API `$default` stage. Example:
 
@@ -120,7 +120,7 @@ VITE_API_BASE_URL=https://abc123.execute-api.ap-south-1.amazonaws.com
 VITE_LEGACY_API_BASE_URL=https://abc123.execute-api.ap-south-1.amazonaws.com
 ```
 
-Restart Vite for local use. For a hosted frontend, set these values in its build environment, rebuild with `npm run build` from the repository root, then publish the resulting frontend `dist` using your existing hosting process. Vite embeds these URLs at build time.
+Restart Vite for local use. For a hosted frontend, set these values in its build environment, rebuild with `npm run build` from the repository root, then publish the resulting frontend `client/dist` using your existing hosting process. Vite embeds these URLs at build time.
 
 ## 7. Redeploy after code or dependency changes
 
