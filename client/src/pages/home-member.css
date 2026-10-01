@@ -388,3 +388,39 @@
   font-size: 12px;
   font-weight: 600;
 }
+
+/* Family dashboard, based on the supplied home screen reference. */
+.family-home { background: #f7f7f9; }
+.family-home .phone-content { padding: 0 20px calc(105px + env(safe-area-inset-bottom, 0px)); }
+.family-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 -20px; padding: 28px 18px 24px; background: linear-gradient(115deg, #00a4ce, #0096c7); color: white; }
+.family-brand { display: flex; align-items: center; gap: 9px; }
+.family-brand > svg { width: 39px; height: 39px; }
+.family-brand strong { font-size: 23px; letter-spacing: -.6px; }
+.family-header-actions { display: flex; gap: 15px; }
+.family-header-actions button { display: grid; place-items: center; padding: 4px; background: none; border: 0; color: white; }
+.family-greeting { margin: 22px 0; font-size: 27px; line-height: 1.2; letter-spacing: -.6px; }
+.family-vault { position: relative; isolation: isolate; overflow: hidden; padding: 20px 18px 18px; border-radius: 17px; color: white; background: linear-gradient(120deg, #00a2cc, #076395); box-shadow: 0 5px 12px #06648b20; }
+.family-vault-heading { display: flex; align-items: flex-start; gap: 8px; justify-content: space-between; }
+.family-vault-heading h2 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.4; }
+.family-vault-heading > span { padding: 4px 9px; border-radius: 20px; background: #fff0d3; color: #966628; font-size: 12px; white-space: nowrap; }
+.family-vault-value { display: block; margin-top: 10px; font-size: 44px; letter-spacing: -1px; line-height: 1.15; }
+.family-vault p { margin: 7px 0 20px; font-size: 16px; color: #d5f3fc; }
+.family-vault > button { display: block; margin-left: auto; padding: 10px 18px; border: 1px solid #bdeaf8; border-radius: 10px; background: #ffffff08; color: white; font-size: 15px; font-weight: 600; }
+.family-vault-pattern { position: absolute; right: -8px; top: 90px; display: flex; gap: 20px; opacity: .12; z-index: -1; transform: rotate(-12deg); }
+.family-vault-pattern svg { width: 40px; height: 40px; }
+.family-actions h2, .family-activities h2 { margin: 22px 0 12px; font-size: 21px; letter-spacing: -.4px; }
+.family-action-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.family-action-grid button { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 116px; padding: 10px 5px; border: 1px solid #f0f0f2; border-radius: 17px; background: white; color: #101018; box-shadow: 0 4px 8px #0000000b; font-size: 15px; font-weight: 600; line-height: 1.25; }
+.family-action-grid button > span, .family-activity-icon { display: grid; place-items: center; width: 46px; height: 46px; margin-bottom: 8px; border-radius: 50%; background: #e3f4fa; }
+.family-action-grid svg { width: 27px; height: 27px; }
+.family-action-grid .family-scan-action { background: linear-gradient(130deg, #ebf8ff, #d7f0fb); }
+.family-scan-action > span { background: #bce8f7 !important; }
+.family-activity { display: flex; align-items: flex-start; gap: 14px; padding: 18px 16px; background: white; border-radius: 17px; box-shadow: 0 4px 8px #0000000b; }
+.family-activity-icon { flex-shrink: 0; margin: 0; }
+.family-activity h3 { margin: 0 0 5px; font-size: 17px; font-weight: 600; }
+.family-activity p { margin: 0; font-size: 14px; line-height: 1.5; color: #565961; }
+.family-member-details { margin-top: 20px; }
+.family-member-details > summary { padding: 12px 0; font-size: 14px; color: #00789e; cursor: pointer; }
+@media (max-width: 360px) { .family-home .phone-content { padding-inline: 14px; } .family-header { margin-inline: -14px; padding-inline: 14px; } .family-brand strong { font-size: 20px; } .family-header-actions { gap: 7px; } .family-vault-heading h2 { font-size: 16px; } .family-action-grid button { font-size: 13px; } }
+
+.family-scan-notice { padding: 12px; border-radius: 10px; background: #e3f4fa; color: #075f7d; font-size: 13px; line-height: 1.5; }

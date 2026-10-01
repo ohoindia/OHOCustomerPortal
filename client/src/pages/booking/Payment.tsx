@@ -4,7 +4,7 @@ import { AppShell, PageHeader, PrimaryButton } from "../../components/Layout";
 export function Payment() {
   const nav = useNavigate();
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title="Payment" />
       <section className="amount-box">
         <span>Amount to Pay</span>

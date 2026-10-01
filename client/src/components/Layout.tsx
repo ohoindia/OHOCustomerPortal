@@ -1,14 +1,7 @@
-import {
-  Home,
-  CalendarDays,
-  WalletCards,
-  Bell,
-  UserRound,
-  ArrowLeft,
-} from "./Icons";
+import { ArrowLeft } from "./Icons";
+import { DashboardIcon } from "./DashboardIcon";
 import { NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import type { ComponentType } from "react";
 
 type LogoProps = {
   compact?: boolean;
@@ -46,30 +39,19 @@ export function PageHeader({ title, right, back = true }: PageHeaderProps) {
   );
 }
 
-type BottomNavItem = {
-  to: string;
-  Icon: ComponentType<{ size?: number; className?: string }>;
-  label: string;
-};
+const nav = [
+  { to: "/home", icon: "home", label: "Home" },
+  { to: "/bookings", icon: "calendar", label: "Appointments" },
+  { to: "/records", icon: "records", label: "Health Records" },
+  { to: "/profile", icon: "profile", label: "Profile" },
+] as const;
 
-const nav: BottomNavItem[] = [
-  { to: "/home", Icon: Home, label: "Home" },
-  { to: "/bookings", Icon: CalendarDays, label: "Bookings" },
-  { to: "/wallet", Icon: WalletCards, label: "Wallet" },
-  { to: "/notifications", Icon: Bell, label: "Notifications" },
-  { to: "/profile", Icon: UserRound, label: "Profile" },
-];
 export function BottomNav() {
   return (
-    <nav className="bottom-nav">
-      {nav.map(({ to, Icon, label }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={to === "/home"}
-          className={({ isActive }) => (isActive ? "active" : "")}
-        >
-          <Icon size={19} />
+    <nav className="family-bottom-nav" aria-label="Main navigation">
+      {nav.map(({ to, icon, label }) => (
+        <NavLink key={to} to={to} end={to === "/home"}>
+          <DashboardIcon name={icon} />
           <span>{label}</span>
         </NavLink>
       ))}
@@ -79,19 +61,17 @@ export function BottomNav() {
 
 type AppShellProps = {
   children: ReactNode;
-  nav?: boolean;
   className?: string;
 };
 
 export function AppShell({
   children,
-  nav = true,
   className = "",
 }: AppShellProps) {
   return (
     <main className={`phone-shell ${className}`}>
       <div className="phone-content">{children}</div>
-      {nav && <BottomNav />}
+      <BottomNav />
     </main>
   );
 }

@@ -53,7 +53,7 @@ export function Profile() {
 
 export function Family() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title="My Family" />
       <div className="stack">
         {[
@@ -78,7 +78,7 @@ export function Family() {
 
 export function Records() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title="Health Records" />
       <div className="tabs">
         <b>Reports</b>
@@ -172,7 +172,7 @@ export function Notifications() {
 
 export function Membership() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title="Membership" />
       <section className="membership-detail">
         <LogoMini />

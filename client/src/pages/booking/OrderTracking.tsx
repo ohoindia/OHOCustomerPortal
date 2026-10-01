@@ -2,7 +2,7 @@ import { AppShell, PageHeader } from "../../components/Layout";
 
 export function OrderTracking() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title="Order Tracking" />
       <div className="timeline">
         {[

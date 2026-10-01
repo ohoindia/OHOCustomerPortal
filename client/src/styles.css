@@ -45,7 +45,7 @@ button {
   box-shadow: 0 8px 28px rgb(15 55 70 / 18%);
 }
 .phone-content {
-  padding: 18px 16px 92px;
+  padding: 18px 16px calc(100px + env(safe-area-inset-bottom, 0px));
 }
 .logo {
   text-align: center;
@@ -88,33 +88,6 @@ button {
   background: none;
   padding: 8px;
   color: var(--text);
-}
-.bottom-nav {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 70px;
-  background: #fff;
-  border-top: 1px solid var(--line);
-  display: flex;
-  justify-content: space-around;
-  z-index: 4;
-}
-.bottom-nav a {
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 9px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  width: 20%;
-}
-.bottom-nav a.active {
-  color: var(--brand-active);
-  font-weight: 700;
 }
 .search-bar {
   display: flex;
@@ -840,7 +813,6 @@ button {
   color: var(--text);
 }
 @media (max-width: 767px) {
-  .bottom-nav a,
   .service-grid small,
   .distance,
   .chip,
@@ -898,9 +870,6 @@ button {
     border-radius: 30px;
     overflow: hidden;
   }
-  .bottom-nav {
-    position: absolute;
-  }
 }
 
 /* Shared interaction colors stay consistent across all portal screens. */
@@ -923,3 +892,11 @@ input::placeholder {
   color: var(--muted);
   opacity: 1;
 }
+
+/* Shared navigation on every signed-in page. */
+.family-bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 430px); display: grid; grid-template-columns: repeat(4, 1fr); padding: 0 9px env(safe-area-inset-bottom, 0px); min-height: 78px; z-index: 5; background: white; border-top: 1px solid #e5e5eb; }
+.family-bottom-nav a { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; padding: 12px 0; font-size: 11px; text-decoration: none; color: #77777e; }
+.family-bottom-nav svg { width: 24px; height: 24px; }
+.family-bottom-nav a.active { color: #009dc4; }
+.family-bottom-nav a.active::before { content: ""; position: absolute; top: 0; height: 2px; width: 75%; background: #009dc4; }
+.family-bottom-nav a.active svg { fill: #d8f4fc; }

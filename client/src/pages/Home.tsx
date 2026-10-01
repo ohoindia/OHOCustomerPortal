@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { DashboardIcon } from "../components/DashboardIcon";
 import { AppShell } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
 import { useEffect, useState } from "react";
@@ -13,20 +14,11 @@ import {
 } from "../services/home";
 import "./home-member.css";
 
-const services = [
-  ["🏥", "Hospitals", "/hospitals"],
-  ["👨🏻‍⚕️", "Doctors", "/doctors"],
-  ["🧪", "Lab Tests", "/lab-tests"],
-  ["💊", "Pharmacy", "/pharmacy"],
-  ["♡", "Wellness", "/packages"],
-  ["🩺", "Health Checkups", "/packages"],
-  ["📦", "Packages", "/packages"],
-  ["•••", "More", "/profile"],
-];
 export default function Home() {
   const navigate = useNavigate();
   const [sessionMember] = useState(getSessionMember);
   const [cardFlipped, setCardFlipped] = useState(false);
+  const [showScanNotice, setShowScanNotice] = useState(false);
   const [data, setData] = useState<Awaited<
     ReturnType<typeof loadHomeData>
   > | null>(null);
@@ -147,31 +139,37 @@ export default function Home() {
   };
   const name =
     member?.Name?.trim() || sessionStorage.getItem("FullName") || "Guest";
-  const location = [member?.Village, member?.City]
-    .filter((value, index, values) => value && values.indexOf(value) === index)
-    .join(", ");
-  const initials = name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
   return (
-    <AppShell>
-      <div className="home-top">
-        <div>
-          <small>⌖ {location || "Location not provided"}</small>
-          <h1>Hello, {name} 👋</h1>
+    <AppShell className="family-home">
+      <header className="family-header">
+        <div className="family-brand"><DashboardIcon name="brand" /><strong>OHOINDIA</strong></div>
+        <div className="family-header-actions">
+          <button aria-label="Search doctors and hospitals" onClick={() => navigate("/doctors")}><DashboardIcon name="search" /></button>
+          <button aria-label="View notifications" onClick={() => navigate("/notifications")}><DashboardIcon name="bell" /></button>
         </div>
-        <button
-          className="profile-mini"
-          aria-label="View profile"
-          onClick={() => navigate("/profile")}
-        >
-          {initials}
-        </button>
-      </div>
-      {/* <SearchBar /> */}
+      </header>
+      <h3>Hello, {name} 👋</h3>
+      <section className="family-vault" aria-label="Family Health Account Vault">
+        <div className="family-vault-heading"><h2>Family Health Account Vault</h2><span>Liquidity</span></div>
+        <strong className="family-vault-value">&#8377;37,000</strong>
+        <p>Pre-loaded Health Liquidity</p>
+        <div className="family-vault-pattern" aria-hidden="true"><DashboardIcon name="doctor" /><DashboardIcon name="pharmacy" /><DashboardIcon name="records" /></div>
+        <button onClick={() => navigate("/membership")}>Account Details</button>
+      </section>
+      <section className="family-actions" aria-labelledby="quick-actions-title">
+        <h2 id="quick-actions-title">Quick Actions</h2>
+        <div className="family-action-grid">
+          <button onClick={() => navigate("/doctors")}><span><DashboardIcon name="doctor" /></span>Zero-Cash<br />OPD</button>
+          <button className="family-scan-action" onClick={() => setShowScanNotice((value) => !value)} aria-expanded={showScanNotice} aria-controls="scan-payment-notice"><span><DashboardIcon name="qr" /></span>Scan &amp; Pay<br />QR</button>
+          <button onClick={() => navigate("/pharmacy")}><span><DashboardIcon name="pharmacy" /></span>Pharmacy<br />Subsidies</button>
+        </div>
+        {showScanNotice && <p id="scan-payment-notice" className="family-scan-notice" role="status">QR payments are not available yet. Please contact your healthcare provider for payment assistance.</p>}
+      </section>
+      <section className="family-activities" aria-labelledby="recent-activities-title">
+        <h2 id="recent-activities-title">Recent Activities</h2>
+        <article className="family-activity"><span className="family-activity-icon"><DashboardIcon name="records" /></span><div><h3>No recent activities yet</h3><p>Your health visits and vault transactions will appear here.</p></div></article>
+      </section>
+      <details className="family-member-details"><summary>Membership &amp; care details</summary>
       <section className="oho-membership" aria-label="OHOINDIA membership card">
         <div
           className={`oho-card-flipper${cardFlipped ? " is-flipped" : ""}`}
@@ -354,15 +352,6 @@ export default function Home() {
           messages={actionMessages}
         />
       )}
-      <SectionTitle title="Quick Services" />
-      <div className="service-grid">
-        {services.map(([icon, label, to]) => (
-          <button key={label} onClick={() => navigate(to)}>
-            <span>{icon}</span>
-            <small>{label}</small>
-          </button>
-        ))}
-      </div>
       <SectionTitle
         title="Upcoming Appointment"
         action="View All"
@@ -401,6 +390,8 @@ export default function Home() {
         </div>
         <span>🎁</span>
       </section>
+      </details>
+
     </AppShell>
   );
 }

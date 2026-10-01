@@ -85,7 +85,7 @@ export function Bookings() {
 export function Payment() {
   const nav = useNavigate();
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title="Payment" />
       <section className="amount-box">
         <span>Amount to Pay</span>
@@ -114,7 +114,7 @@ export function Payment() {
 
 export function OrderTracking() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title="Order Tracking" />
       <div className="timeline">
         {[

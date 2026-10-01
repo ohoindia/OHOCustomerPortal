@@ -2,7 +2,7 @@ import { AppShell, PageHeader } from "../../components/Layout";
 
 export function Family() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title="My Family" />
       <div className="stack">
         {[
