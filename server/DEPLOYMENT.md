@@ -7,7 +7,7 @@ The commands below use PowerShell, region `ap-south-1` and stack `oho-customer-a
 ## 1. Prerequisites
 
 - Node.js 22+, npm, AWS CLI v2 and AWS SAM CLI installed.
-- AWS access to deploy CloudFormation, Lambda, API Gateway, IAM execution roles and SAM's S3 deployment artifacts. Your deployment identity also needs `secretsmanager:GetSecretValue` for the configuration secret, and `kms:Decrypt` if its key requires it.
+- AWS access to deploy CloudFormation, Lambda, API Gateway, IAM execution roles and SAM's S3 deployment artifacts, and to edit the function's database environment variables.
 - The existing OHO MySQL schema and views, database credentials and an SMS provider account. This stack does not create or migrate the database.
 
 Verify the tools and the AWS account you intend to use:
@@ -26,33 +26,23 @@ aws sts get-caller-identity
 
 Use your existing profile instead of configuring a new one when available. Keep the same profile and region for deployment, logs and validation commands.
 
-## 2. Create the deployment configuration secret
+## 2. Prepare database and application configuration
 
-In AWS Secrets Manager, in `ap-south-1`, create an **Other type of secret** named, for example, `oho/customer-server/dev`. In the plaintext JSON editor, enter the following keys and replace example values with your environment's settings:
+Database connection settings are stored directly in the Lambda function's **Configuration → Environment variables**. After creating the function in step 5, add:
 
-```json
-{
-  "CORS_ORIGINS": "https://your-customer-app.example.com",
-  "DB_HOST": "your-existing-mysql-host",
-  "DB_PORT": "3306",
-  "DB_USER": "your-db-user",
-  "DB_PASSWORD": "your-db-password",
-  "DB_NAME": "your-existing-db-name",
-  "DB_SSL": "true",
-  "SMS_PROVIDER": "msg91",
-  "MSG91_AUTH_KEY": "your-msg91-auth-key",
-  "MSG91_OTP_TEMPLATE_ID": "your-msg91-template-id",
-  "SMSFRESH_OTP_URL": "",
-  "SMSFRESH_USER": "",
-  "SMSFRESH_PASSWORD": "",
-  "SMSFRESH_SENDER": "",
-  "ONBOARDING_SMS_QUEUE_URL": ""
-}
+```dotenv
+DB_HOST=your-existing-mysql-host
+DB_PORT=3306
+DB_USER=your-db-user
+DB_PASSWORD=your-db-password
+DB_NAME=your-existing-db-name
+DB_TIMEZONE=+05:30
+DB_SSL=true
 ```
 
-All keys must exist, including empty keys for unused integrations: the template resolves each key separately. Use `smsfresh` and fill its settings if that is your provider. `SMS_PROVIDER=disabled` allows process/health checks but prevents OTP sending. Set `DB_SSL` according to the existing database configuration. Multiple allowed frontend origins may be separated by commas.
+Set `DB_SSL` according to the existing database. Locally, use the same `DB_*` keys in `server/.env`. The SAM template deliberately omits the function's `Environment` property; database values are maintained directly in Lambda, and are not saved in SAM parameters or Git.
 
-Record the secret's complete ARN. Supply the ARN as `ConfigSecretArn` during deployment; do not put passwords or API keys in the template, command line or `samconfig.toml`. CloudFormation resolves the secret into Lambda environment variables during deployment. The function does not fetch Secrets Manager on every invocation.
+All other application settings come from the existing MySQL `ConfigValues` and `ConfigSecrets` tables, using their `ConfigKey` / `ConfigValue` columns. Configure the frontend's `CORS_ORIGINS`, provider selection (`SMSGateway`), provider credentials and optional queue settings there. Existing .NET key names work without renaming; see [CONFIGURATION.md](CONFIGURATION.md). `ConfigSecrets` overrides `ConfigValues` and settings refresh after a 60-second cache interval. AWS Secrets Manager is not used by this app.
 
 ## 3. Configure database network access
 
@@ -67,7 +57,7 @@ Private subnets need a working NAT route for outbound HTTPS to MSG91/SMSFresh. A
 
 If the database is deliberately reachable outside a VPC, leave **both** VPC parameters empty and ensure its firewall permits the connection. Lambda's default outbound addresses are not fixed; use private networking or NAT with a controlled egress address when an IP allowlist is required.
 
-For onboarding SMS via SQS, fill the secret's `ONBOARDING_SMS_QUEUE_URL` and supply that queue's ARN as `OnboardingSmsQueueArn`. Leave both empty if not used. The template grants `sqs:SendMessage` only to the supplied ARN. A queue encrypted with a customer-managed KMS key needs corresponding KMS permissions added to the execution role and key policy.
+For onboarding SMS via SQS, configure `onboardingSMSQueue` (a queue name) or `ONBOARDING_SMS_QUEUE_URL` in the tables and supply the queue's ARN as `OnboardingSmsQueueArn`. Leave the setting and parameter empty if not used. The template grants `sqs:SendMessage` and `sqs:GetQueueUrl` only for the supplied ARN. A queue encrypted with a customer-managed KMS key needs corresponding KMS permissions added to the execution role and key policy.
 
 ## 4. Build and validate the deployment artifact
 
@@ -90,13 +80,11 @@ sam deploy --guided --template-file template.yaml --stack-name oho-customer-api-
 
 During the prompts:
 
-1. Supply the existing configuration secret's ARN for `ConfigSecretArn`.
-2. Keep `ConfigRevision` at `1` for the first deployment.
-3. Enter your VPC subnet/security group IDs, or leave both empty as described above.
-4. Enter the optional onboarding queue ARN, or leave it empty.
-5. Allow SAM to create the execution role; keep CloudFormation rollback enabled.
-6. Save settings to `samconfig.toml` for subsequent deployments. This file is ignored by Git.
-7. Review and confirm the CloudFormation changes.
+1. Enter your VPC subnet/security group IDs, or leave both empty as described above.
+2. Enter the optional onboarding queue ARN, or leave it empty.
+3. Allow SAM to create the execution role; keep CloudFormation rollback enabled.
+4. Save settings to `samconfig.toml` for subsequent deployments. This file is ignored by Git.
+5. Review and confirm the CloudFormation changes.
 
 The API follows the app's existing unauthenticated route behavior; the template does not add an authorizer. Review the authentication limitations in [README.md](README.md#compatibility-and-intentional-differences) before exposing customer data in a production environment.
 
@@ -105,6 +93,8 @@ On success, CloudFormation outputs `ApiBaseUrl` and `FunctionName`. Fetch them a
 ```powershell
 aws cloudformation describe-stacks --stack-name oho-customer-api-dev --region ap-south-1 --query 'Stacks[0].Outputs' --output table
 ```
+
+Open the function identified by `FunctionName`, choose **Configuration → Environment variables → Edit**, add the database keys from step 2 and save. No SMS or application settings need to be added to Lambda environment variables. See [AWS Lambda environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html).
 
 The base URL has no `/Prod` or `/lambdaAPI` suffix because this template uses the HTTP API `$default` stage. Example:
 
@@ -146,25 +136,19 @@ sam deploy --template-file template.yaml --config-env default --no-fail-on-empty
 
 This updates the existing CloudFormation stack and function. Its API base URL normally remains the same. Rebuild the artifact after every server change; redeploying without packaging would deploy the previous build. Keep the same stack name and region. If `samconfig.toml` is unavailable, repeat the guided command with the **existing** stack name and region to restore settings.
 
-After deployment, repeat the health and test-account checks. A server-only code update does not require rebuilding the frontend unless the API URL or frontend contract changes.
+After deployment, verify the function still has its database environment variables and repeat the health and test-account checks. A server-only code update does not require rebuilding the frontend unless the API URL or frontend contract changes.
 
-## 8. Redeploy configuration, secrets or infrastructure changes
+## 8. Database, table configuration and infrastructure changes
 
 For changed networking, concurrency, timeout, IAM permissions or API settings, update `template.yaml` or the relevant parameters, rebuild the artifact, validate and redeploy the same stack. Use `sam deploy --guided ...` with the same stack name and region to change saved parameter values.
 
-For a changed database password, SMS key or frontend CORS origin:
+For a changed database host/password or other database settings, edit the function's Lambda environment variables and save. Lambda starts fresh execution environments that create new database pools. No code redeployment is required. If you use the CLI to update environment variables, include every database key you want to retain: that operation replaces the entire variable map.
 
-1. Update the JSON secret in Secrets Manager.
-2. Repeat the build/validation commands in step 7.
-3. Run guided deployment against the same stack and increase `ConfigRevision`, for example from `1` to `2`:
+For a changed SMS key, provider, onboarding queue or frontend CORS origin, update its `ConfigKey` / `ConfigValue` in the existing `ConfigValues` or `ConfigSecrets` table. Warm instances refresh settings on the first settings lookup after their 60-second cache expires; cold instances read the current values immediately. No code redeployment or Lambda environment change is required. If the onboarding queue ARN changes, also update the SAM parameter and redeploy to grant access to the new queue.
 
-```powershell
-sam deploy --guided --template-file template.yaml --stack-name oho-customer-api-dev --region ap-south-1 --capabilities CAPABILITY_IAM
-```
+When upgrading a stack created with the previous Secrets Manager template, remove its obsolete `ConfigSecretArn` / `ConfigRevision` overrides from your ignored SAM configuration, deploy this template and then reapply the `DB_*` environment variables directly in Lambda. Removing the old template's managed `Environment` property can remove its previous values during that transition.
 
-Changing the secret alone does not refresh previously resolved Lambda environment variables. Incrementing `ConfigRevision` forces an environment configuration update and resolution of the latest secret values. Keep other parameters unchanged unless you intend to update them. See [CloudFormation Secrets Manager dynamic references](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references-secretsmanager.html).
-
-Avoid making routine code/configuration changes directly in the Lambda console: subsequent SAM deployments should remain the source of truth.
+Keep code and infrastructure changes in SAM. Maintain database environment variables directly in Lambda and application configuration directly in the database tables. Check database environment variables after infrastructure updates or function replacement.
 
 ## 9. Logs, troubleshooting and rollback
 
@@ -173,14 +157,14 @@ sam logs --name CustomerApiFunction --stack-name oho-customer-api-dev --region a
 ```
 
 - **Handler/module not found:** confirm `build/lambda/dist/lambda.js` and production `node_modules` exist, then package and redeploy.
-- **Database connection timeout:** check subnet routing, security groups, hostname, port and the deployed secret configuration. A successful health response does not prove database access.
+- **Database/configuration lookup failure:** check Lambda's database environment variables, networking and read access to both configuration tables. A health request without an Origin header does not prove database access.
 - **SMS HTTPS timeout in a VPC:** check the private subnet's NAT route and outbound HTTPS access.
 - **SQS AccessDenied:** check that the configured queue URL corresponds to the permitted ARN, its queue policy and any KMS permissions.
-- **CORS errors:** update the secret's allowed frontend origins and increment `ConfigRevision` before redeployment.
+- **CORS errors:** update `CORS_ORIGINS` in the configuration tables and allow the 60-second cache to expire; a conflicting value in `ConfigSecrets` overrides `ConfigValues`.
 - **Deployment failure:** inspect CloudFormation events. The saved rollback setting restores the stack on failed updates; a failed first deployment may require resolving the cause before recreating the failed stack.
 - **API/function throttling:** the template starts with API throttling at 10 requests/second, burst 20, and Lambda concurrency 5. Tune this against database capacity; each warm function can create a pool of up to 10 connections. Nest's in-memory rate limiter is per Lambda execution environment, so it is not a shared user limit across instances.
 
-For a successful release that needs to be reverted, use an isolated checkout/worktree of the previous known-good revision, copy your ignored SAM configuration into its `server` folder, run `npm ci`, tests and `package:lambda`, and deploy to the **same** stack and region. Review the infrastructure changes before applying that rollback. Configuration rollback also requires restoring the desired secret values and incrementing `ConfigRevision`; code rollback does not restore database data changed by API calls.
+For a successful release that needs to be reverted, use an isolated checkout/worktree of the previous known-good revision, copy your ignored SAM configuration into its `server` folder, run `npm ci`, tests and `package:lambda`, and deploy to the **same** stack and region. Review the infrastructure changes before applying that rollback. Restore configuration table values and database environment variables separately when needed; code rollback does not restore database data changed by API calls.
 
 No AWS resources are created by installing, building, packaging, testing or locally validating the template. The `sam deploy` commands perform the actual deployment.
 

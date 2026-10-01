@@ -9,6 +9,7 @@ import { CardsModule } from './cards/cards.module';
 import { ConsultationsModule } from './consultations/consultations.module';
 import { CommunitiesModule } from './communities/communities.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { RuntimeConfigModule } from './runtime-config/runtime-config.module';
 
 @Controller('health')
 class HealthController {
@@ -18,7 +19,7 @@ class HealthController {
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
-    DatabaseModule, CustomerAuthModule, CustomersModule, CardsModule,
+    DatabaseModule, RuntimeConfigModule, CustomerAuthModule, CustomersModule, CardsModule,
     ConsultationsModule, CommunitiesModule, CatalogModule,
   ],
   controllers: [HealthController],

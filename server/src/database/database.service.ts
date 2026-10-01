@@ -13,7 +13,7 @@ export class DatabaseService implements OnModuleDestroy {
   private getPool() {
     if (!this.pool) {
       if (!this.config.get('DB_NAME') || !this.config.get('DB_USER')) {
-        throw new ServiceUnavailableException('Configure DB_NAME and DB_USER in server/.env.');
+        throw new ServiceUnavailableException('Configure DB_NAME and DB_USER in Lambda environment variables or the local server/.env.');
       }
       this.pool = createPool({
         host: this.config.get('DB_HOST', 'localhost'),

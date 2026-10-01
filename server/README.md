@@ -17,7 +17,7 @@ Copy-Item server/.env.example server/.env
 
 Fill in `server/.env` with the database settings corresponding to the .NET `dbString`. Use the supplied `DB_TIMEZONE=+05:30` for the legacy India-time DATETIME columns. Set `DB_SSL=true` when the database requires TLS.
 
-Configure either `SMS_PROVIDER=msg91` with `MSG91_AUTH_KEY` and `MSG91_OTP_TEMPLATE_ID`, or `SMS_PROVIDER=smsfresh` with its URL, user, password and sender. SMS is disabled by default; OTP requests return a configuration error until a provider is configured. OTPs are never returned in an API response or printed to the console.
+Only `DB_*` settings belong in `server/.env` locally or Lambda environment variables when deployed. All application settings, including SMS credentials, CORS origins, queue settings and the local port, are read from the existing `ConfigValues` and `ConfigSecrets` tables. `ConfigSecrets` takes precedence, matching .NET startup. Existing .NET key names are supported; see [CONFIGURATION.md](CONFIGURATION.md) for the mapping. SMS defaults to disabled until configured in these tables. OTPs are never returned in an API response or printed to the console.
 
 Set both values in the frontend's existing `.env.local`:
 
@@ -71,7 +71,7 @@ Source references below are relative to `C:\code\app\ohoindia\OHOBackEnd`. Custo
 
 Catalog endpoints also support `/api/...` and `/apiLambda/...` prefixes. Use the base URL without these prefixes for the supplied local frontend configuration. Pagination accepts `{ "skip": 0, "take": 0 }`; `take: 0` retains the legacy unlimited result behavior.
 
-The SMS adapter follows `OHO.Lambda.API/Commands/SendOTPCommand.cs`. Optional `ONBOARDING_SMS_QUEUE_URL` uses AWS's default credential chain and the legacy camelCase `SendWebhookMSG` payload and message type attribute. Delivery failures after registration are logged for separate retry; there is no durable retry/outbox in this app. This registration UI collects no email, so it does not enqueue onboarding email. The legacy password audit queue is not implemented.
+The SMS adapter follows `OHO.Lambda.API/Commands/SendOTPCommand.cs`. Optional `onboardingSMSQueue` / `ONBOARDING_SMS_QUEUE_URL` is read from the configuration tables and accepts a queue name or HTTPS URL. It uses AWS's default credential chain and the legacy camelCase `SendWebhookMSG` payload and message type attribute. Delivery failures after registration are logged for separate retry; there is no durable retry/outbox in this app. This registration UI collects no email, so it does not enqueue onboarding email. The legacy password audit queue is not implemented.
 
 ## Compatibility and intentional differences
 

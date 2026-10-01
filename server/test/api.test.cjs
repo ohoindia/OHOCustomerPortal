@@ -82,6 +82,19 @@ test('PascalCase login and camelCase login preserve MemberId and hide credential
   assert.ok(calls.some(call => call.sql.startsWith('INSERT INTO UserLogin')));
 });
 
+test('CORS reads allowed origins from ConfigSecrets with precedence over ConfigValues', async () => {
+  const original = read;
+  read = async sql => sql.includes('FROM ConfigSecrets')
+    ? [{ ConfigKey: 'CORS_ORIGINS', ConfigValue: 'https://customer.example' }]
+    : sql.includes('FROM ConfigValues') ? [{ ConfigKey: 'CORS_ORIGINS', ConfigValue: 'https://old.example' }] : original(sql);
+  try {
+    const allowed = await fetch(`${base}/health`, { headers: { Origin: 'https://customer.example' } });
+    assert.equal(allowed.headers.get('access-control-allow-origin'), 'https://customer.example');
+    const blocked = await fetch(`${base}/health`, { headers: { Origin: 'https://old.example' } });
+    assert.equal(blocked.headers.get('access-control-allow-origin'), null);
+  } finally { read = original; }
+});
+
 test('mobile lookup and both OTP send routes use the expected business response envelope', async () => {
   assert.equal((await request('lambdaAPI/Customer/mobileNoValid', { mobileNumber: '9876543210' })).body.status, true);
   const registration = await request('lambdaAPI/Customer/checkingMobileno', { mobileNumber: '9876543210' });
