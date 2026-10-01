@@ -133,7 +133,7 @@ test("health and every home API return the JSON contracts consumed by React", as
   const cases = [
     ["health", undefined, (b) => b.status === true],
     [
-      "lambdaAPI/Customer/GetById/12",
+      "api/Customer/GetById/12",
       undefined,
       (b) =>
         b[0].MemberId === 12 &&
@@ -141,44 +141,44 @@ test("health and every home API return the JSON contracts consumed by React", as
         !("RegisteredWithOTP" in b[0]),
     ],
     [
-      "lambdaAPI/Customer/GetMemberProducts/12",
+      "api/Customer/GetMemberProducts/12",
       undefined,
       (b) => b[0].Products[0].ProductName === "Package",
     ],
     [
-      "lambdaAPI/Customer/AddressExistsOrNot/12",
+      "api/Customer/AddressExistsOrNot/12",
       undefined,
       (b) => b.status === true,
     ],
     [
-      "lambdaAPI/Customer/KYCVerifiedOrNot",
+      "api/Customer/KYCVerifiedOrNot",
       { customerId: 12, aadhaarNumber: "123456789012" },
       (b) => b.status === true,
     ],
     [
-      "lambdaAPI/Customer/PANVerifiedOrNot",
+      "api/Customer/PANVerifiedOrNot",
       { CustomerId: 12 },
       (b) => b.status === true,
     ],
     [
-      "lambdaAPI/OHOCards/GetMemberCardByMemberId/12",
+      "api/OHOCards/GetMemberCardByMemberId/12",
       undefined,
       (b) => b.returnData[0].IsActivated === true,
     ],
     [
-      "lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList",
+      "api/BookingConsultation/PendingAndSuccessConsultationList",
       { CustomerId: 12 },
       (b) => b[0].IsCouponClaimed === true,
     ],
-    ["lambdaAPI/CommunityCustomers/GetById/4", undefined, Array.isArray],
-    ["lambdaAPI/Group/GetById/3", undefined, (b) => b[0].GroupName === "Group"],
+    ["api/CommunityCustomers/GetById/4", undefined, Array.isArray],
+    ["api/Group/GetById/3", undefined, (b) => b[0].GroupName === "Group"],
     [
-      "ConfigValues/all",
+      "api/ConfigValues/all",
       { skip: 0, take: 0 },
       (b) => b[0].ConfigKey === "HealthTip",
     ],
-    ["Products/all", { Skip: 0, Take: 0 }, (b) => b[0].IsFree === true],
-    ["apiLambda/Products/all", { skip: 0, take: 10 }, Array.isArray],
+    ["api/Products/all", { Skip: 0, Take: 0 }, (b) => b[0].IsFree === true],
+    ["api/Products/all", { skip: 0, take: 10 }, Array.isArray],
   ];
   for (const [path, payload, verify] of cases) {
     const result = await request(path, payload);
@@ -192,7 +192,7 @@ test("PascalCase login and camelCase login preserve MemberId and hide credential
     { MobileNumber: "9876543210", Password: "4321" },
     { mobileNumber: "9876543210", password: "4321" },
   ]) {
-    const result = await request("lambdaAPI/Customer/memberlogin", body);
+    const result = await request("api/Customer/memberlogin", body);
     assert.equal(result.status, 200);
     assert.equal(result.body.memberData[0].MemberId, 12);
     assert.equal(result.body.memberData[0].Password, undefined);
@@ -203,7 +203,7 @@ test("PascalCase login and camelCase login preserve MemberId and hide credential
     assert.equal(
       (
         await request(
-          "lambdaAPI/Customer/GetById/12",
+          "api/Customer/GetById/12",
           undefined,
           result.body.JwtToken,
         )
@@ -244,18 +244,18 @@ test("CORS reads allowed origins from ConfigSecrets with precedence over ConfigV
 test("mobile lookup and both OTP send routes use the expected business response envelope", async () => {
   assert.equal(
     (
-      await request("lambdaAPI/Customer/mobileNoValid", {
+      await request("api/Customer/mobileNoValid", {
         mobileNumber: "9876543210",
       })
     ).body.status,
     true,
   );
-  const registration = await request("lambdaAPI/Customer/checkingMobileno", {
+  const registration = await request("api/Customer/checkingMobileno", {
     mobileNumber: "9876543210",
   });
   assert.equal(registration.status, 200);
   assert.equal(registration.body.status, false);
-  const reset = await request("lambdaAPI/Customer/toSetNewPassword", {
+  const reset = await request("api/Customer/toSetNewPassword", {
     mobileNumber: "9876543210",
   });
   assert.equal(reset.status, 200);
@@ -264,14 +264,14 @@ test("mobile lookup and both OTP send routes use the expected business response 
 
 test("validation rejects malformed IDs, duplicate case aliases, SQL payloads and unknown fields", async () => {
   for (const [path, payload] of [
-    ["lambdaAPI/Customer/GetById/-1"],
-    ["lambdaAPI/Customer/GetById/not-a-number"],
+    ["api/Customer/GetById/-1"],
+    ["api/Customer/GetById/not-a-number"],
     [
-      "lambdaAPI/Customer/memberlogin",
+      "api/Customer/memberlogin",
       { mobileNumber: "9876543210' OR 1=1", password: "4321" },
     ],
     [
-      "lambdaAPI/Customer/memberlogin",
+      "api/Customer/memberlogin",
       {
         mobileNumber: "9876543210",
         MobileNumber: "9876543210",
@@ -279,14 +279,14 @@ test("validation rejects malformed IDs, duplicate case aliases, SQL payloads and
       },
     ],
     [
-      "lambdaAPI/Customer/memberlogin",
+      "api/Customer/memberlogin",
       {
         mobileNumber: "9876543210",
         password: "4321",
         sql: "DROP TABLE Customer",
       },
     ],
-    ["Products/all", { take: -1 }],
+    ["api/Products/all", { take: -1 }],
   ]) {
     const count = calls.length;
     assert.equal((await request(path, payload)).status, 400, path);
@@ -307,7 +307,7 @@ test("validation rejects malformed IDs, duplicate case aliases, SQL payloads and
 });
 
 test("password reset cannot bypass OTP and consumes a valid proof", async () => {
-  const path = "lambdaAPI/Customer/updatePassword";
+  const path = "api/Customer/updatePassword";
   const body = {
     mobileNumber: "9876543210",
     password: "1234",
@@ -389,7 +389,7 @@ test("a consumed reset OTP cannot authorize another password update", async () =
 });
 
 test("OTP validation supports legacy aliases and rejects an incorrect code", async () => {
-  const result = await request("lambdaAPI/Customer/OTPValidation", {
+  const result = await request("api/Customer/OTPValidation", {
     MobileNumber: "9876543210",
     GUID: guid,
     OTPGenerated: "654321",
@@ -397,7 +397,7 @@ test("OTP validation supports legacy aliases and rejects an incorrect code", asy
   assert.equal(result.body.status, true);
   assert.equal(
     (
-      await request("lambdaAPI/Customer/OTPValidation", {
+      await request("api/Customer/OTPValidation", {
         mobileNumber: "9876543210",
         guid,
         otpGenerated: "000000",
@@ -418,7 +418,7 @@ test("registration verifies the proof, assigns OHOCODE and returns data.customer
         ? [{ OHOCODE: "OHO 000041" }]
         : [];
   try {
-    const result = await request("lambdaAPI/Customer/add", {
+    const result = await request("api/Customer/add", {
       mobileNumber: "9876543210",
       guid,
       otpGenerated: "654321",
@@ -589,32 +589,30 @@ test("database releases advisory lock after commit or rollback, then returns con
 
 test("JWT protection denies anonymous access to every customer data endpoint", async () => {
   for (const [path, body] of [
-    ["lambdaAPI/Customer/GetById/12"],
-    ["lambdaAPI/Customer/GetMemberProducts/12"],
-    ["lambdaAPI/Customer/AddressExistsOrNot/12"],
-    ["lambdaAPI/OHOCards/GetMemberCardByMemberId/12"],
-    ["lambdaAPI/CommunityCustomers/GetById/4"],
-    ["lambdaAPI/Group/GetById/3"],
+    ["api/Customer/GetById/12"],
+    ["api/Customer/GetMemberProducts/12"],
+    ["api/Customer/AddressExistsOrNot/12"],
+    ["api/OHOCards/GetMemberCardByMemberId/12"],
+    ["api/CommunityCustomers/GetById/4"],
+    ["api/Group/GetById/3"],
     [
-      "lambdaAPI/Customer/KYCVerifiedOrNot",
+      "api/Customer/KYCVerifiedOrNot",
       { customerId: 12, aadhaarNumber: "123456789012" },
     ],
-    ["lambdaAPI/Customer/PANVerifiedOrNot", { customerId: 12 }],
+    ["api/Customer/PANVerifiedOrNot", { customerId: 12 }],
     [
-      "lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList",
+      "api/BookingConsultation/PendingAndSuccessConsultationList",
       { CustomerId: 12 },
     ],
-    ["Products/all", {}],
-    ["ConfigValues/all", {}],
     ["api/Products/all", {}],
-    ["apiLambda/ConfigValues/all", {}],
+    ["api/ConfigValues/all", {}],
   ])
     assert.equal((await request(path, body, null)).status, 401, path);
   assert.equal((await request("health", undefined, null)).status, 200);
   assert.equal(
     (
       await request(
-        "lambdaAPI/Customer/mobileNoValid",
+        "api/Customer/mobileNoValid",
         { mobileNumber: "9876543210" },
         null,
       )
@@ -625,26 +623,26 @@ test("JWT protection denies anonymous access to every customer data endpoint", a
 
 test("ownership checks reject other customer, community and group IDs", async () => {
   for (const [path, body] of [
-    ["lambdaAPI/Customer/GetById/99"],
-    ["lambdaAPI/Customer/GetMemberProducts/99"],
-    ["lambdaAPI/Customer/AddressExistsOrNot/99"],
-    ["lambdaAPI/OHOCards/GetMemberCardByMemberId/99"],
-    ["lambdaAPI/CommunityCustomers/GetById/99"],
-    ["lambdaAPI/Group/GetById/99"],
+    ["api/Customer/GetById/99"],
+    ["api/Customer/GetMemberProducts/99"],
+    ["api/Customer/AddressExistsOrNot/99"],
+    ["api/OHOCards/GetMemberCardByMemberId/99"],
+    ["api/CommunityCustomers/GetById/99"],
+    ["api/Group/GetById/99"],
     [
-      "lambdaAPI/Customer/KYCVerifiedOrNot",
+      "api/Customer/KYCVerifiedOrNot",
       { customerId: 99, aadhaarNumber: "123456789012" },
     ],
-    ["lambdaAPI/Customer/PANVerifiedOrNot", { CustomerId: 99 }],
+    ["api/Customer/PANVerifiedOrNot", { CustomerId: 99 }],
     [
-      "lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList",
+      "api/BookingConsultation/PendingAndSuccessConsultationList",
       { CustomerId: 99 },
     ],
   ])
     assert.equal((await request(path, body)).status, 403, path);
   assert.equal(
     (
-      await request("lambdaAPI/Customer/KYCVerifiedOrNot", {
+      await request("api/Customer/KYCVerifiedOrNot", {
         customerId: 12,
         aadhaarNumber: "999999999999",
       })
@@ -656,13 +654,13 @@ test("ownership checks reject other customer, community and group IDs", async ()
 test("invalid tokens cannot reach customer SQL and failed login does not issue a token", async () => {
   const count = calls.length;
   assert.equal(
-    (await request("lambdaAPI/Customer/GetById/12", undefined, "invalid-token"))
+    (await request("api/Customer/GetById/12", undefined, "invalid-token"))
       .status,
     401,
   );
   assert.equal(calls.length, count);
   const result = await request(
-    "lambdaAPI/Customer/memberlogin",
+    "api/Customer/memberlogin",
     { mobileNumber: "9876543210", password: "0000" },
     null,
   );
@@ -678,7 +676,7 @@ test("community password login cannot grant access to a customer with a differen
       : original(sql);
   try {
     const result = await request(
-      "lambdaAPI/Customer/memberlogin",
+      "api/Customer/memberlogin",
       { mobileNumber: "9876543210", password: "4321" },
       null,
     );
@@ -686,13 +684,13 @@ test("community password login cannot grant access to a customer with a differen
     assert.equal(result.body.memberData[0].MemberId, 0);
     const token = result.body.JwtToken;
     assert.equal(
-      (await request("lambdaAPI/Customer/GetById/12", undefined, token)).status,
+      (await request("api/Customer/GetById/12", undefined, token)).status,
       403,
     );
     assert.equal(
       (
         await request(
-          "lambdaAPI/CommunityCustomers/GetById/4",
+          "api/CommunityCustomers/GetById/4",
           undefined,
           token,
         )
@@ -700,7 +698,7 @@ test("community password login cannot grant access to a customer with a differen
       200,
     );
     assert.equal(
-      (await request("lambdaAPI/Group/GetById/3", undefined, token)).status,
+      (await request("api/Group/GetById/3", undefined, token)).status,
       200,
     );
   } finally {

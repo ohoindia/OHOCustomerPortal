@@ -29,7 +29,7 @@ import { CustomersService } from "./customers.service";
 @ApiForbiddenResponse({
   description: "Requested data does not belong to the authenticated account.",
 })
-@Controller("lambdaAPI/Customer")
+@Controller("api/Customer")
 export class CustomersController {
   constructor(private readonly service: CustomersService) {}
   @Get("GetById/:id")

@@ -96,7 +96,7 @@ aws cloudformation describe-stacks --stack-name oho-customer-api-dev --region ap
 
 Open the function identified by `FunctionName`, choose **Configuration â†’ Environment variables â†’ Edit**, add the database keys from step 2 and save. No SMS or application settings need to be added to Lambda environment variables. See [AWS Lambda environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html).
 
-The base URL has no `/Prod` or `/lambdaAPI` suffix because this template uses the HTTP API `$default` stage. Example:
+The base URL has no `/Prod` or `/api` suffix because this template uses the HTTP API `$default` stage. Example:
 
 ```text
 https://abc123.execute-api.ap-south-1.amazonaws.com

@@ -22,9 +22,9 @@ export function createApiRequest(configuration: ApiConfiguration): ApiRequest {
   return async <T>(path: string, options: RequestOptions = {}): Promise<T> => {
     const normalizedPath = path.replace(/^\/+/, "");
     const base = (
-      normalizedPath.startsWith("lambdaAPI/")
-        ? configuration.apiBaseUrl
-        : configuration.legacyApiBaseUrl
+      /^api\/(ConfigValues|Products)\//.test(normalizedPath)
+        ? configuration.legacyApiBaseUrl ?? configuration.apiBaseUrl
+        : configuration.apiBaseUrl
     )?.replace(/\/+$/, "");
     if (!base)
       throw new Error(

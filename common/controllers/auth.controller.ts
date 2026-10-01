@@ -15,7 +15,7 @@ export function createAuthController(apiRequest: ApiRequest) {
     signal?: AbortSignal,
   ): Promise<AuthResponse> {
     const data = await apiRequest<AuthResponse>(
-      `lambdaAPI/Customer/${action}`,
+      `api/Customer/${action}`,
       {
         body,
         signal,

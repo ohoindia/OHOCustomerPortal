@@ -20,7 +20,7 @@ import { CardsService } from "./cards.service";
 @ApiForbiddenResponse({
   description: "Requested data does not belong to the authenticated account.",
 })
-@Controller("lambdaAPI/OHOCards")
+@Controller("api/OHOCards")
 export class CardsController {
   constructor(private readonly service: CardsService) {}
   @Get("GetMemberCardByMemberId/:id")

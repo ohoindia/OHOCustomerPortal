@@ -53,7 +53,7 @@ test("Lambda handles cold and warm HTTP API requests without listening on a port
 
 test("Lambda forwards JSON bodies through the normal Nest validation and error filter", async () => {
   const response = await handler(
-    event("/lambdaAPI/Customer/memberlogin", "POST", {
+    event("/api/Customer/memberlogin", "POST", {
       mobileNumber: "invalid",
       Password: "1234",
     }),

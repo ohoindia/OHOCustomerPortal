@@ -3,7 +3,7 @@ import type { Appointment } from "../models/customer";
 export function createConsultationController(apiRequest: ApiRequest) {
   const fetchAppointments = (id: number, signal?: AbortSignal) =>
     apiRequest<Appointment[]>(
-      "lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList",
+      "api/BookingConsultation/PendingAndSuccessConsultationList",
       {
         body: { CustomerId: id },
         signal,

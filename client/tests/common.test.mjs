@@ -14,28 +14,28 @@ test("shared transport routes both API bases, serializes POST bodies, and forwar
     },
   });
   const signal = new AbortController().signal;
-  await request("/lambdaAPI/Customer/GetById/7", { signal });
-  await request("Products/all", { body: { skip: 0, take: 0 } });
+  await request("/api/Customer/GetById/7", { signal });
+  await request("api/Products/all", { body: { skip: 0, take: 0 } });
   assert.equal(
     calls[0].url,
-    "https://customer.test/lambdaAPI/Customer/GetById/7",
+    "https://customer.test/api/Customer/GetById/7",
   );
   assert.equal(calls[0].method, "GET");
   assert.equal(calls[0].body, undefined);
   assert.equal(calls[0].signal, signal);
-  assert.equal(calls[1].url, "https://catalog.test/Products/all");
+  assert.equal(calls[1].url, "https://catalog.test/api/Products/all");
   assert.equal(calls[1].method, "POST");
   assert.equal(calls[1].body, '{"skip":0,"take":0}');
 });
 
 test("shared transport reports configuration and HTTP failures and preserves abort errors", async () => {
   const { createApiRequest } = loadModule("../../common/api/transport.ts");
-  await assert.rejects(createApiRequest({})("Products/all"), /not configured/);
+  await assert.rejects(createApiRequest({})("api/Products/all"), /not configured/);
   const failed = createApiRequest({
     apiBaseUrl: "https://test",
     fetch: async () => ({ ok: false, status: 503 }),
   });
-  await assert.rejects(failed("lambdaAPI/Customer/GetById/7"), /503/);
+  await assert.rejects(failed("api/Customer/GetById/7"), /503/);
   const abort = new Error("aborted");
   const cancelled = createApiRequest({
     apiBaseUrl: "https://test",
@@ -44,7 +44,7 @@ test("shared transport reports configuration and HTTP failures and preserves abo
     },
   });
   await assert.rejects(
-    cancelled("lambdaAPI/Customer/GetById/7"),
+    cancelled("api/Customer/GetById/7"),
     (error) => error === abort,
   );
 });
@@ -65,7 +65,7 @@ test("auth controller preserves OTP proofs and validates the response envelope",
     return { status: false, message: "Invalid OTP" };
   });
   assert.equal((await auth.authRequest("updatePassword", body)).status, false);
-  assert.equal(captured.path, "lambdaAPI/Customer/updatePassword");
+  assert.equal(captured.path, "api/Customer/updatePassword");
   assert.equal(captured.options.body, body);
   await assert.rejects(
     createAuthController(async () => ({})).authRequest("memberlogin", {}),
@@ -93,14 +93,14 @@ test("shared transport attaches tokens from async mobile storage and handles pro
     },
   });
   await assert.rejects(
-    request("lambdaAPI/Customer/GetById/7"),
+    request("api/Customer/GetById/7"),
     /session has expired/,
   );
   assert.equal(headers.Authorization, "Bearer session-token");
   assert.equal(rejectedToken, "session-token");
   rejectedToken = undefined;
   await assert.rejects(
-    request("lambdaAPI/Customer/memberlogin", {
+    request("api/Customer/memberlogin", {
       body: {},
       authentication: false,
     }),
@@ -119,5 +119,5 @@ test("403 responses keep the signed-in session", async () => {
       assert.fail("Forbidden access must not log out the user"),
     fetch: async () => ({ ok: false, status: 403 }),
   });
-  await assert.rejects(request("lambdaAPI/Customer/GetById/99"), /403/);
+  await assert.rejects(request("api/Customer/GetById/99"), /403/);
 });

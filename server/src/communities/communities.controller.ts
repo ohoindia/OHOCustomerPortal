@@ -20,7 +20,7 @@ import { CommunitiesService } from "./communities.service";
 @ApiForbiddenResponse({
   description: "Requested data does not belong to the authenticated account.",
 })
-@Controller("lambdaAPI/CommunityCustomers")
+@Controller("api/CommunityCustomers")
 export class CommunityCustomersController {
   constructor(private readonly service: CommunitiesService) {}
   @Get("GetById/:id")
@@ -48,7 +48,7 @@ export class CommunityCustomersController {
 @ApiForbiddenResponse({
   description: "Requested data does not belong to the authenticated account.",
 })
-@Controller("lambdaAPI/Group")
+@Controller("api/Group")
 export class GroupsController {
   constructor(private readonly service: CommunitiesService) {}
   @Get("GetById/:id")

@@ -21,7 +21,7 @@ import { ConsultationsService } from "./consultations.service";
 @ApiForbiddenResponse({
   description: "Requested data does not belong to the authenticated account.",
 })
-@Controller("lambdaAPI/BookingConsultation")
+@Controller("api/BookingConsultation")
 export class ConsultationsController {
   constructor(private readonly service: ConsultationsService) {}
   @Post("PendingAndSuccessConsultationList")

@@ -64,9 +64,9 @@ test("loads every applicable dashboard endpoint once and uses fresh profile for 
     if (path.includes("GetMemberCard"))
       return { status: true, returnData: [{ IsActivated: true }] };
     if (path.includes("ConsultationList")) return [];
-    if (path === "ConfigValues/all")
+    if (path === "api/ConfigValues/all")
       return [{ ConfigKey: "HealthTip", ConfigValue: "Daily tip" }];
-    if (path === "Products/all")
+    if (path === "api/Products/all")
       return [
         { ProductName: "Free", IsFree: true, IsActive: true },
         { ProductName: "Inactive", IsFree: true, IsActive: false },
@@ -76,7 +76,7 @@ test("loads every applicable dashboard endpoint once and uses fresh profile for 
   const result = await loadHomeData(7, 0, 2, new AbortController().signal);
   assert.equal(calls.length, 10);
   assert.equal(new Set(calls.map((call) => call.path)).size, 10);
-  assert.ok(calls.some((call) => call.path === "lambdaAPI/Group/GetById/9"));
+  assert.ok(calls.some((call) => call.path === "api/Group/GetById/9"));
   assert.equal(
     calls.find((call) => call.path.endsWith("KYCVerifiedOrNot")).body
       .aadhaarNumber,
@@ -156,7 +156,7 @@ test("community customers use fallback without sending invalid member requests",
   const result = await loadHomeData(0, 12, 0, new AbortController().signal);
   assert.equal(result.customer.Name, "Community customer");
   assert.equal(paths.length, 3);
-  assert.ok(paths.includes("lambdaAPI/CommunityCustomers/GetById/12"));
+  assert.ok(paths.includes("api/CommunityCustomers/GetById/12"));
 });
 
 test("upcoming appointments exclude past and cancelled bookings and sort earliest first", () => {

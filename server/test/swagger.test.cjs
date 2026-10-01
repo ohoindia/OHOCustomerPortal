@@ -46,16 +46,16 @@ test("OpenAPI documents routes, inherited DTO fields and JWT security accurately
   assert.equal(document.info.title, "OHO Customer API");
   assert.equal(document.components.securitySchemes.jwt.scheme, "bearer");
   const paths = document.paths;
-  assert.deepEqual(paths["/lambdaAPI/Customer/GetById/{id}"].get.security, [
+  assert.deepEqual(paths["/api/Customer/GetById/{id}"].get.security, [
     { jwt: [] },
   ]);
-  assert.deepEqual(paths["/ConfigValues/all"].post.security, [{ jwt: [] }]);
+  assert.deepEqual(paths["/api/ConfigValues/all"].post.security, [{ jwt: [] }]);
   assert.equal(
-    paths["/lambdaAPI/Customer/memberlogin"].post.security?.length ?? 0,
+    paths["/api/Customer/memberlogin"].post.security?.length ?? 0,
     0,
   );
   assert.equal(paths["/health"].get.security?.length ?? 0, 0);
-  assert.ok(paths["/apiLambda/Products/all"]);
+  assert.ok(paths["/api/Products/all"]);
   const schemas = document.components.schemas;
   assert.ok(schemas.LoginDto.properties.mobileNumber);
   assert.ok(schemas.LoginDto.properties.password.writeOnly);
@@ -66,7 +66,7 @@ test("OpenAPI documents routes, inherited DTO fields and JWT security accurately
   assert.ok(schemas.AuthResponseDto.properties.JwtToken);
   // Publishing the docs does not bypass API authentication.
   assert.equal(
-    (await fetch(`${base}/lambdaAPI/Customer/GetById/12`)).status,
+    (await fetch(`${base}/api/Customer/GetById/12`)).status,
     401,
   );
 });

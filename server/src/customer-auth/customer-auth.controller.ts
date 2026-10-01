@@ -19,7 +19,7 @@ import { Public } from "../auth/jwt-auth.guard";
 @ApiTags("Authentication")
 @ApiBadRequestResponse({ description: "Malformed or invalid request." })
 @ApiOkResponse({ type: AuthResponseDto })
-@Controller("lambdaAPI/Customer")
+@Controller("api/Customer")
 @Public()
 export class CustomerAuthController {
   constructor(private readonly service: CustomerAuthService) {}

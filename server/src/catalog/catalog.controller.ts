@@ -19,7 +19,7 @@ import { CatalogService } from "./catalog.service";
 @ApiForbiddenResponse({
   description: "Requested data does not belong to the authenticated account.",
 })
-@Controller(["ConfigValues", "api/ConfigValues", "apiLambda/ConfigValues"])
+@Controller("api/ConfigValues")
 export class ConfigValuesController {
   constructor(private readonly service: CatalogService) {}
   @Post("all")
@@ -44,7 +44,7 @@ export class ConfigValuesController {
 @ApiForbiddenResponse({
   description: "Requested data does not belong to the authenticated account.",
 })
-@Controller(["Products", "api/Products", "apiLambda/Products"])
+@Controller("api/Products")
 export class ProductsController {
   constructor(private readonly service: CatalogService) {}
   @Post("all")

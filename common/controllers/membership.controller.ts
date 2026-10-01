@@ -5,6 +5,6 @@ export function createMembershipController(apiRequest: ApiRequest) {
     apiRequest<{
       status: boolean;
       returnData?: MemberCard[];
-    }>(`lambdaAPI/OHOCards/GetMemberCardByMemberId/${id}`, { signal });
+    }>(`api/OHOCards/GetMemberCardByMemberId/${id}`, { signal });
   return { fetchMemberCard };
 }
