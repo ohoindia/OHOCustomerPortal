@@ -1,4 +1,10 @@
-# React + TypeScript + Vite
+# OHO Customer App
+
+The React frontend now includes a modular NestJS backend in [server](server/README.md), implementing the customer APIs used by the app from the existing .NET backend. See that README for database/SMS configuration, endpoint mappings and local setup.
+
+Run the backend with `npm run server:dev` and the frontend with `npm run dev` in separate terminals. Build and test the backend with `npm run server:build` and `npm run server:test`.
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

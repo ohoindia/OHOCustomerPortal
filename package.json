@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "server:dev": "npm --prefix server run start:dev",
+    "server:build": "npm --prefix server run build",
+    "server:test": "npm --prefix server test",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

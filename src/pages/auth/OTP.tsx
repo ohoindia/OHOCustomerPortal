@@ -99,6 +99,8 @@ export function OTP() {
         const result = await authRequest("updatePassword", {
           mobileNumber: details.mobileNumber,
           password,
+          guid,
+          otpGenerated: otp,
         });
         if (!result.status)
           throw new Error(result.message || "Unable to update password.");
@@ -108,6 +110,8 @@ export function OTP() {
           cardHolderType: "Primary",
           mobileNumber: details.mobileNumber,
           name: details.name,
+          guid,
+          otpGenerated: otp,
         });
         if (!result.status || !result.data?.customerId)
           throw new Error(

@@ -1,0 +1,228 @@
+require('reflect-metadata');
+const assert = require('node:assert/strict');
+const { test, before, after } = require('node:test');
+const { Test } = require('@nestjs/testing');
+const { AppModule } = require('../dist/app.module');
+const { configureApp } = require('../dist/bootstrap');
+const { DatabaseService } = require('../dist/database/database.service');
+const { NotificationsService } = require('../dist/notifications/notifications.service');
+const { CustomerAuthService } = require('../dist/customer-auth/customer-auth.service');
+const { transformSubscriptions } = require('../dist/customers/subscriptions.mapper');
+
+let app, base;
+const calls = [];
+const guid = '2f842899-28ac-4f0b-a2da-258529e5d0b3';
+let otp = { OTPGenerated: '654321', ExpiredOTPOn: new Date(Date.now() + 120000), ValidFor: 'CustomerPasswordReset' };
+const customer = { CustomerId: 12, Name: 'Customer', MobileNumber: '9876543210', Password: '4321', CardHolderType: 'Primary', AddressLine1: 'Hyderabad', RegisteredWithOTP: 'secret', AadhaarNumber: '123456789012' };
+let read = async (sql) => {
+  if (sql.includes('MobileOTPHistory')) return otp ? [otp] : [];
+  if (sql.includes('FROM Customer')) return [customer];
+  if (sql.includes('FROM OHOCards')) return [{ OHOCardnumber: '1234 5678', IsActivated: true }];
+  if (sql.includes('BookingConsultation bc')) return [{ BookingConsultationId: 1, IsCouponClaimed: true }];
+  if (sql.includes('FROM View_Subscription')) return [{ MemberId: 12, MemberProductId: 21, ProductName: 'Package', IsFree: true }];
+  if (sql.includes('FROM AadhaarOTPVerificationData')) return [{ CustomerId: 12 }];
+  if (sql.includes('FROM PANVerification')) return [{ PANDocument: 'pan.pdf', Valid: true }];
+  if (sql.includes('FROM `Group`')) return [{ GroupName: 'Group' }];
+  if (sql.includes('FROM ProductsDetails')) return [{ ProductName: 'Package', IsFree: true }];
+  if (sql.includes('FROM ConfigValues')) return [{ ConfigKey: 'Help', ConfigValue: 'value' }];
+  return [];
+};
+const db = {
+  async rows(sql, values = []) { calls.push({ sql, values }); return read(sql, values); },
+  async execute(sql, values = []) { calls.push({ sql, values }); return { affectedRows: 1, insertId: 12 }; },
+  async transaction(work) { return work({}); },
+};
+const notifications = { async sendOtp() {}, async onboarding() {} };
+before(async () => {
+  const module = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(DatabaseService).useValue(db)
+    .overrideProvider(NotificationsService).useValue(notifications).compile();
+  app = module.createNestApplication({ logger: false });
+  configureApp(app);
+  await app.listen(0, '127.0.0.1');
+  base = await app.getUrl();
+});
+after(async () => { await app?.close(); });
+async function request(path, body) {
+  const response = await fetch(`${base}/${path}`, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  return { status: response.status, body: await response.json() };
+}
+
+test('health and every home API return the JSON contracts consumed by React', async () => {
+  const cases = [
+    ['health', undefined, b => b.status === true],
+    ['lambdaAPI/Customer/GetById/12', undefined, b => b[0].MemberId === 12 && !('Password' in b[0]) && !('RegisteredWithOTP' in b[0])],
+    ['lambdaAPI/Customer/GetMemberProducts/12', undefined, b => b[0].Products[0].ProductName === 'Package'],
+    ['lambdaAPI/Customer/AddressExistsOrNot/12', undefined, b => b.status === true],
+    ['lambdaAPI/Customer/KYCVerifiedOrNot', { customerId: 12, aadhaarNumber: '123456789012' }, b => b.status === true],
+    ['lambdaAPI/Customer/PANVerifiedOrNot', { CustomerId: 12 }, b => b.status === true],
+    ['lambdaAPI/OHOCards/GetMemberCardByMemberId/12', undefined, b => b.returnData[0].IsActivated === true],
+    ['lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList', { CustomerId: 12 }, b => b[0].IsCouponClaimed === true],
+    ['lambdaAPI/CommunityCustomers/GetById/4', undefined, Array.isArray],
+    ['lambdaAPI/Group/GetById/3', undefined, b => b[0].GroupName === 'Group'],
+    ['ConfigValues/all', { skip: 0, take: 0 }, b => b[0].ConfigKey === 'Help'],
+    ['Products/all', { Skip: 0, Take: 0 }, b => b[0].IsFree === true],
+    ['apiLambda/Products/all', { skip: 0, take: 10 }, Array.isArray],
+  ];
+  for (const [path, payload, verify] of cases) {
+    const result = await request(path, payload);
+    assert.equal(result.status, 200, path);
+    assert.ok(verify(result.body), path);
+  }
+});
+
+test('PascalCase login and camelCase login preserve MemberId and hide credentials', async () => {
+  for (const body of [{ MobileNumber: '9876543210', Password: '4321' }, { mobileNumber: '9876543210', password: '4321' }]) {
+    const result = await request('lambdaAPI/Customer/memberlogin', body);
+    assert.equal(result.status, 200);
+    assert.equal(result.body.memberData[0].MemberId, 12);
+    assert.equal(result.body.memberData[0].Password, undefined);
+    assert.equal(result.body.memberData[0].RegisteredWithOTP, undefined);
+  }
+  assert.ok(calls.some(call => call.sql.startsWith('INSERT INTO UserLogin')));
+});
+
+test('mobile lookup and both OTP send routes use the expected business response envelope', async () => {
+  assert.equal((await request('lambdaAPI/Customer/mobileNoValid', { mobileNumber: '9876543210' })).body.status, true);
+  const registration = await request('lambdaAPI/Customer/checkingMobileno', { mobileNumber: '9876543210' });
+  assert.equal(registration.status, 200);
+  assert.equal(registration.body.status, false);
+  const reset = await request('lambdaAPI/Customer/toSetNewPassword', { mobileNumber: '9876543210' });
+  assert.equal(reset.status, 200);
+  assert.equal(reset.body.message, 'OTP already sent');
+});
+
+test('validation rejects malformed IDs, duplicate case aliases, SQL payloads and unknown fields', async () => {
+  for (const [path, payload] of [
+    ['lambdaAPI/Customer/GetById/-1'],
+    ['lambdaAPI/Customer/GetById/not-a-number'],
+    ['lambdaAPI/Customer/memberlogin', { mobileNumber: "9876543210' OR 1=1", password: '4321' }],
+    ['lambdaAPI/Customer/memberlogin', { mobileNumber: '9876543210', MobileNumber: '9876543210', password: '4321' }],
+    ['lambdaAPI/Customer/memberlogin', { mobileNumber: '9876543210', password: '4321', sql: 'DROP TABLE Customer' }],
+    ['Products/all', { take: -1 }],
+  ]) {
+    const count = calls.length;
+    assert.equal((await request(path, payload)).status, 400, path);
+    assert.equal(calls.length, count, 'Validation should run before SQL');
+  }
+});
+
+test('password reset cannot bypass OTP and consumes a valid proof', async () => {
+  const path = 'lambdaAPI/Customer/updatePassword';
+  const body = { mobileNumber: '9876543210', password: '1234', guid, otpGenerated: '654321' };
+  assert.equal((await request(path, { mobileNumber: body.mobileNumber, password: body.password })).status, 400);
+  for (const record of [null, { ...otp, OTPGenerated: '111111' }, { ...otp, ExpiredOTPOn: new Date(0) }, { ...otp, ExpiredOTPOn: 'invalid' }, { ...otp, ValidFor: 'CustomerRegistration' }]) {
+    const saved = otp;
+    otp = record;
+    const start = calls.length;
+    const result = await request(path, body);
+    assert.equal(result.body.status, false);
+    assert.ok(!calls.slice(start).some(call => call.sql.startsWith('UPDATE Customer')));
+    otp = saved;
+  }
+  const result = await request(path, body);
+  assert.equal(result.body.status, true);
+  assert.ok(calls.some(call => call.sql.startsWith('UPDATE MobileOTPHistory SET ExpiredOTPOn')));
+});
+
+test('a consumed reset OTP cannot authorize another password update', async () => {
+  let proof = { OTPGenerated: '654321', ExpiredOTPOn: new Date(Date.now() + 120000), ValidFor: 'CustomerPasswordReset' };
+  let passwordWrites = 0;
+  const statefulDb = {
+    async rows() { return [proof]; },
+    async execute(sql, values) {
+      if (sql.startsWith('UPDATE Customer')) passwordWrites++;
+      if (sql.startsWith('UPDATE MobileOTPHistory')) proof = { ...proof, ExpiredOTPOn: values[0] };
+      return { affectedRows: 1 };
+    },
+    async transaction(work) { return work({}); },
+  };
+  const service = new CustomerAuthService(statefulDb, notifications);
+  const body = { mobileNumber: '9876543210', password: '1234', guid, otpGenerated: '654321' };
+  assert.equal((await service.resetPassword(body)).status, true);
+  assert.equal((await service.resetPassword(body)).status, false);
+  assert.equal(passwordWrites, 1);
+});
+
+test('OTP validation supports legacy aliases and rejects an incorrect code', async () => {
+  const result = await request('lambdaAPI/Customer/OTPValidation', { MobileNumber: '9876543210', GUID: guid, OTPGenerated: '654321' });
+  assert.equal(result.body.status, true);
+  assert.equal((await request('lambdaAPI/Customer/OTPValidation', { mobileNumber: '9876543210', guid, otpGenerated: '000000' })).body.status, false);
+});
+
+test('registration verifies the proof, assigns OHOCODE and returns data.customerId', async () => {
+  const original = read;
+  const originalOtp = otp;
+  otp = { ...otp, ValidFor: 'CustomerRegistration' };
+  read = async sql => sql.includes('MobileOTPHistory') ? [otp] : sql.includes('SELECT OHOCODE') ? [{ OHOCODE: 'OHO 000041' }] : [];
+  try {
+    const result = await request('lambdaAPI/Customer/add', { mobileNumber: '9876543210', guid, otpGenerated: '654321', name: 'Customer', cardHolderType: 'Primary' });
+    assert.equal(result.body.status, true);
+    assert.equal(result.body.data.customerId, 12);
+    assert.ok(calls.some(call => call.sql.startsWith('INSERT INTO Customer') && call.values.includes('OHO 000042')));
+  } finally { read = original; otp = originalOtp; }
+});
+
+test('OTP send enforces daily limit and resend cooldown without invoking SMS', async () => {
+  const service = new CustomerAuthService(db, { sendOtp: () => assert.fail('SMS must not be sent') });
+  const original = read;
+  try {
+    read = async sql => sql.includes('MobileOTPHistory') ? Array.from({ length: 5 }, () => ({ ExpiredOTPOn: new Date(0) })) : [];
+    assert.equal((await service.sendOtp({ mobileNumber: '9876543210' }, false)).status, false);
+    read = async sql => sql.includes('MobileOTPHistory') ? [{ ExpiredOTPOn: new Date(Date.now() + 120000) }] : [];
+    assert.equal((await service.sendOtp({ mobileNumber: '9876543210' }, false)).message, 'OTP already sent');
+  } finally { read = original; }
+});
+
+test('OTP sends persist six-digit proof only after successful delivery', async () => {
+  const original = read;
+  read = async () => [];
+  const sent = [];
+  const service = new CustomerAuthService(db, { async sendOtp(mobile, code) { sent.push({ mobile, code }); } });
+  try {
+    const result = await service.sendOtp({ mobileNumber: '9876543210' }, false);
+    assert.equal(result.status, true);
+    assert.match(sent[0].code, /^\d{6}$/);
+    const insert = calls.findLast(call => call.sql.startsWith('INSERT INTO MobileOTPHistory'));
+    assert.equal(insert.values[1], sent[0].code);
+    assert.equal(insert.values[5], 'CustomerRegistration');
+    assert.ok(Date.parse(result.futureTime) > Date.now());
+    const failed = new CustomerAuthService(db, { async sendOtp() { throw new Error('delivery failed'); } });
+    const start = calls.length;
+    await assert.rejects(failed.sendOtp({ mobileNumber: '9876543210' }, false), /delivery failed/);
+    assert.ok(!calls.slice(start).some(call => call.sql.startsWith('INSERT INTO MobileOTPHistory')));
+  } finally { read = original; }
+});
+
+test('subscription mapping removes duplicate joins and preserves nested policy associations', () => {
+  const row = { MemberId: 12, MemberProductId: 21, ProductName: 'Package', PoliciesId: 7, PoliciesCustomerId: 40, IndividualProductsId: 9, MemberDependentId: 5, DependentMemberId: 40, InsurerDetailsId: 40, NomineeId: 6, NomineeProductsId: 9, EmployeeId: 3, EndorseEmail: 'template' };
+  const result = transformSubscriptions([row, { ...row }, { ...row, NomineeId: 8, NomineeProductsId: 99 }]);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].Products.length, 1);
+  const product = result[0].Products[0];
+  assert.equal(product.RMId, 3);
+  assert.equal(product.ProductEndorseEmail, 'template');
+  assert.equal(product.Policies.length, 1);
+  assert.equal(product.Policies[0].Dependents.length, 1);
+  assert.equal(product.Policies[0].Insurer.length, 1);
+  assert.equal(product.Policies[0].Nominees.length, 1);
+  assert.deepEqual(transformSubscriptions([{ MemberId: 12, MemberProductId: null }]), []);
+});
+
+test('database releases advisory lock after commit or rollback, then returns connection', async () => {
+  for (const shouldFail of [false, true]) {
+    const events = [];
+    const connection = {
+      async execute(sql) { events.push(sql.includes('GET_LOCK') ? 'lock' : 'unlock'); return [[{ Acquired: 1 }]]; },
+      async beginTransaction() { events.push('begin'); },
+      async commit() { events.push('commit'); },
+      async rollback() { events.push('rollback'); },
+      release() { events.push('release'); },
+    };
+    const service = new DatabaseService({});
+    service.getPool = () => ({ async getConnection() { return connection; } });
+    const work = service.transaction(async () => { events.push('work'); if (shouldFail) throw new Error('failure'); }, 'lock-name');
+    if (shouldFail) await assert.rejects(work, /failure/); else await work;
+    assert.deepEqual(events, ['lock', 'begin', 'work', shouldFail ? 'rollback' : 'commit', 'unlock', 'release']);
+  }
+});
