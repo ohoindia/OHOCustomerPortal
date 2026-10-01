@@ -21,6 +21,7 @@ function normalize(key: string) {
 @Injectable()
 export class RuntimeConfigService {
   private settings = new Map<string, string>();
+  private secrets = new Map<string, string>();
   private expiresAt = 0;
   private loading?: Promise<void>;
   constructor(private readonly db: DatabaseService) {}
@@ -39,6 +40,9 @@ export class RuntimeConfigService {
       if (row.ConfigValue != null) settings.set(key, String(row.ConfigValue));
     }
     this.settings = settings;
+    this.secrets = new Map(secrets
+      .filter(row => typeof row.ConfigKey === 'string' && row.ConfigValue != null && !normalize(row.ConfigKey).startsWith('DB_') && normalize(row.ConfigKey) !== 'DBSTRING')
+      .map(row => [normalize(String(row.ConfigKey)), String(row.ConfigValue)]));
     this.expiresAt = Date.now() + 60000;
   }
 
@@ -49,5 +53,10 @@ export class RuntimeConfigService {
       await this.loading;
     }
     return this.settings.get(normalize(key)) ?? fallback;
+  }
+
+  async getSecret(key: string): Promise<string> {
+    await this.get(key);
+    return this.secrets.get(normalize(key)) ?? '';
   }
 }

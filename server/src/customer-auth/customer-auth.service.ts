@@ -4,6 +4,7 @@ import { Connection, DatabaseService, DbRow } from '../database/database.service
 import { LoginDto, MobileDto, OtpDto, RegisterDto, ResetPasswordDto } from '../common/dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { toMember } from '../customers/member.mapper';
+import { SessionService } from '../auth/session.service';
 
 const failure = (message: string) => ({ status: false as const, message });
 function equals(a: unknown, b: string) {
@@ -14,7 +15,7 @@ function equals(a: unknown, b: string) {
 
 @Injectable()
 export class CustomerAuthService {
-  constructor(private readonly db: DatabaseService, private readonly notifications: NotificationsService) {}
+  constructor(private readonly db: DatabaseService, private readonly notifications: NotificationsService, private readonly sessions: SessionService) {}
 
   async mobileNoValid(dto: MobileDto) {
     const rows = await this.db.rows('SELECT CustomerId FROM Customer WHERE MobileNumber = ? LIMIT 1', [dto.mobileNumber]);
@@ -69,7 +70,8 @@ export class CustomerAuthService {
         const code = `OHO ${String(number).padStart(6, '0')}`;
         const saved = await this.db.execute('INSERT INTO Customer (Name, MobileNumber, CardHolderType, RegisterOn, IsActive, Password, IsProfileCompleted, OHOCODE, RegisteredWithOTP, OTPValidateDate) VALUES (?, ?, ?, ?, TRUE, ?, TRUE, ?, ?, ?)', [dto.name.trim(), dto.mobileNumber, dto.cardHolderType, new Date(), '1234', code, dto.otpGenerated, proof.ExpiredOTPOn as Date], connection);
         await this.consumeOtp(dto, connection);
-        return { status: true as const, message: 'Your registration completed successfully.', data: { customerId: saved.insertId } };
+        const token = await this.sessions.issue({ customerId: saved.insertId, communityCustomerId: 0, groupId: 0 }, '1234');
+        return { status: true as const, message: 'Your registration completed successfully.', data: { customerId: saved.insertId }, ...token };
     }, 'oho-customer-code');
     if (result.status) await this.notifications.onboarding(result.data.customerId);
     return result;
@@ -96,17 +98,18 @@ export class CustomerAuthService {
     const customers = await this.db.rows('SELECT * FROM Customer WHERE MobileNumber = ? LIMIT 1', [dto.mobileNumber]);
     const communities = await this.db.rows('SELECT * FROM CommunityCustomers WHERE MobileNumber = ? LIMIT 1', [dto.mobileNumber]);
     const customer = customers[0];
-    const community = communities[0];
-    const customerValid = customer && equals(customer.Password, dto.password);
-    const communityValid = community && equals(community.Password, dto.password);
+    const community = communities[0]?.IsActive === false || communities[0]?.IsActive === 0 ? undefined : communities[0];
+    const customerValid = customer && customer.IsActive !== false && customer.IsActive !== 0 && equals(customer.Password, dto.password);
+    const communityValid = community && community.IsActive !== false && community.IsActive !== 0 && equals(community.Password, dto.password);
     if (!customerValid && !communityValid) return failure(!customer && !community ? 'Mobile Number not yet registered. Please create account' : "Incorrect password. Please reset your password using the 'Forgot Password' link");
     const groups = community?.GroupId ? await this.db.rows('SELECT CommunityId FROM CommunityGroup WHERE GroupId = ? LIMIT 1', [Number(community.GroupId)]) : [];
-    const member = toMember(customerValid ? customer : community, !customerValid);
+    const member = toMember(customerValid ? customer : community!, !customerValid);
     Object.assign(member, { GroupId: community?.GroupId ?? 0, CommunityCustomerId: community?.CommunityCustomersId ?? 0, CommunityId: groups[0]?.CommunityId ?? 0 });
+    const token = await this.sessions.issue({ customerId: customerValid ? Number(customer.CustomerId) : 0, communityCustomerId: Number(community?.CommunityCustomersId ?? 0), groupId: Number(community?.GroupId ?? 0) }, dto.password);
     if (customerValid) {
       const now = new Date();
       await this.db.execute('INSERT INTO UserLogin (LoginId, LoginTime, ExpiryTime, CustomerId) VALUES (?, ?, ?, ?)', [dto.mobileNumber, now, new Date(now.getTime() + 86400000), Number(customer.CustomerId)]);
     }
-    return { status: true, memberData: [member] };
+    return { status: true, memberData: [member], ...token };
   }
 }

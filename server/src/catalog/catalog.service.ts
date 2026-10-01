@@ -5,8 +5,8 @@ import { DatabaseService } from '../database/database.service';
 export class CatalogService {
   constructor(private readonly db: DatabaseService) {}
   configValues(dto: PaginationDto) {
-    // Only the two public columns used by the customer app; ConfigSecrets is deliberately separate.
-    return this.paginate('SELECT ConfigKey, ConfigValue FROM ConfigValues', dto);
+    // Only settings consumed by the customer dashboard may leave the server.
+    return this.paginate("SELECT ConfigKey, ConfigValue FROM ConfigValues WHERE ConfigKey IN ('HealthTip', 'OHOCareMobileNumber')", dto);
   }
   products(dto: PaginationDto) { return this.paginate('SELECT * FROM ProductsDetails', dto); }
   private paginate(query: string, dto: PaginationDto) {

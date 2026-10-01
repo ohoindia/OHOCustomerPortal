@@ -1,32 +1,14 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import test from "node:test";
-import vm from "node:vm";
-import ts from "typescript";
 
-// Exercise the real service with a mock transport; no customer API is contacted.
-function service(
-  request = () => {
-    throw new Error("Unexpected request");
-  },
-) {
-  const source = readFileSync(
-    new URL("../src/services/home.ts", import.meta.url),
-    "utf8",
-  );
-  const { outputText } = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
-    },
-  });
-  const exports = {};
-  vm.runInNewContext(outputText, {
-    exports,
-    Date,
-    require: () => ({ apiRequest: request }),
-  });
-  return exports;
+import { loadModule } from './load-common.mjs';
+
+// Exercise the shared controllers with a mock transport; no customer API is contacted.
+function service(request = () => { throw new Error('Unexpected request'); }) {
+  return {
+    ...loadModule('../../common/utils/home.ts'),
+    ...loadModule('../../common/controllers/home.controller.ts').createHomeController(request),
+  };
 }
 
 test("card and package expiry distinguish yesterday, today, future and missing dates", () => {

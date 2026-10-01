@@ -7,15 +7,19 @@ const { configureApp } = require('../dist/bootstrap');
 const { DatabaseService } = require('../dist/database/database.service');
 const { NotificationsService } = require('../dist/notifications/notifications.service');
 const { CustomerAuthService } = require('../dist/customer-auth/customer-auth.service');
+const { SessionService } = require('../dist/auth/session.service');
+const { RuntimeConfigService } = require('../dist/runtime-config/runtime-config.service');
 const { transformSubscriptions } = require('../dist/customers/subscriptions.mapper');
 
-let app, base;
+let app, base, accessToken;
 const calls = [];
 const guid = '2f842899-28ac-4f0b-a2da-258529e5d0b3';
 let otp = { OTPGenerated: '654321', ExpiredOTPOn: new Date(Date.now() + 120000), ValidFor: 'CustomerPasswordReset' };
 const customer = { CustomerId: 12, Name: 'Customer', MobileNumber: '9876543210', Password: '4321', CardHolderType: 'Primary', AddressLine1: 'Hyderabad', RegisteredWithOTP: 'secret', AadhaarNumber: '123456789012' };
 let read = async (sql) => {
   if (sql.includes('MobileOTPHistory')) return otp ? [otp] : [];
+  if (sql.includes('FROM ConfigSecrets')) return [{ ConfigKey: 'JWT_SECRET', ConfigValue: 'test-only-secret-at-least-thirty-two-characters' }];
+  if (sql.includes('FROM CommunityCustomers')) return [{ CommunityCustomersId: 4, GroupId: 3, MobileNumber: '9876543210', Password: '4321', IsActive: true }];
   if (sql.includes('FROM Customer')) return [customer];
   if (sql.includes('FROM OHOCards')) return [{ OHOCardnumber: '1234 5678', IsActivated: true }];
   if (sql.includes('BookingConsultation bc')) return [{ BookingConsultationId: 1, IsCouponClaimed: true }];
@@ -24,7 +28,7 @@ let read = async (sql) => {
   if (sql.includes('FROM PANVerification')) return [{ PANDocument: 'pan.pdf', Valid: true }];
   if (sql.includes('FROM `Group`')) return [{ GroupName: 'Group' }];
   if (sql.includes('FROM ProductsDetails')) return [{ ProductName: 'Package', IsFree: true }];
-  if (sql.includes('FROM ConfigValues')) return [{ ConfigKey: 'Help', ConfigValue: 'value' }];
+  if (sql.includes('FROM ConfigValues')) return [{ ConfigKey: 'HealthTip', ConfigValue: 'value' }];
   return [];
 };
 const db = {
@@ -41,10 +45,12 @@ before(async () => {
   configureApp(app);
   await app.listen(0, '127.0.0.1');
   base = await app.getUrl();
+  accessToken = (await app.get(SessionService).issue({ customerId: 12, communityCustomerId: 4, groupId: 3 }, '4321')).JwtToken;
 });
 after(async () => { await app?.close(); });
-async function request(path, body) {
-  const response = await fetch(`${base}/${path}`, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+async function request(path, body, token = accessToken) {
+  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+  const response = await fetch(`${base}/${path}`, { headers, ...(body === undefined ? {} : { method: 'POST', body: JSON.stringify(body) }) });
   return { status: response.status, body: await response.json() };
 }
 
@@ -60,7 +66,7 @@ test('health and every home API return the JSON contracts consumed by React', as
     ['lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList', { CustomerId: 12 }, b => b[0].IsCouponClaimed === true],
     ['lambdaAPI/CommunityCustomers/GetById/4', undefined, Array.isArray],
     ['lambdaAPI/Group/GetById/3', undefined, b => b[0].GroupName === 'Group'],
-    ['ConfigValues/all', { skip: 0, take: 0 }, b => b[0].ConfigKey === 'Help'],
+    ['ConfigValues/all', { skip: 0, take: 0 }, b => b[0].ConfigKey === 'HealthTip'],
     ['Products/all', { Skip: 0, Take: 0 }, b => b[0].IsFree === true],
     ['apiLambda/Products/all', { skip: 0, take: 10 }, Array.isArray],
   ];
@@ -78,6 +84,10 @@ test('PascalCase login and camelCase login preserve MemberId and hide credential
     assert.equal(result.body.memberData[0].MemberId, 12);
     assert.equal(result.body.memberData[0].Password, undefined);
     assert.equal(result.body.memberData[0].RegisteredWithOTP, undefined);
+    assert.equal(typeof result.body.JwtToken, 'string');
+    assert.equal(result.body.tokenType, 'Bearer');
+    assert.ok(Date.parse(result.body.expiresAt) > Date.now());
+    assert.equal((await request('lambdaAPI/Customer/GetById/12', undefined, result.body.JwtToken)).status, 200);
   }
   assert.ok(calls.some(call => call.sql.startsWith('INSERT INTO UserLogin')));
 });
@@ -88,11 +98,12 @@ test('CORS reads allowed origins from ConfigSecrets with precedence over ConfigV
     ? [{ ConfigKey: 'CORS_ORIGINS', ConfigValue: 'https://customer.example' }]
     : sql.includes('FROM ConfigValues') ? [{ ConfigKey: 'CORS_ORIGINS', ConfigValue: 'https://old.example' }] : original(sql);
   try {
+    app.get(RuntimeConfigService).expiresAt = 0;
     const allowed = await fetch(`${base}/health`, { headers: { Origin: 'https://customer.example' } });
     assert.equal(allowed.headers.get('access-control-allow-origin'), 'https://customer.example');
     const blocked = await fetch(`${base}/health`, { headers: { Origin: 'https://old.example' } });
     assert.equal(blocked.headers.get('access-control-allow-origin'), null);
-  } finally { read = original; }
+  } finally { read = original; app.get(RuntimeConfigService).expiresAt = 0; }
 });
 
 test('mobile lookup and both OTP send routes use the expected business response envelope', async () => {
@@ -116,7 +127,7 @@ test('validation rejects malformed IDs, duplicate case aliases, SQL payloads and
   ]) {
     const count = calls.length;
     assert.equal((await request(path, payload)).status, 400, path);
-    assert.equal(calls.length, count, 'Validation should run before SQL');
+    assert.ok(calls.slice(count).every(call => call.sql.startsWith('SELECT Password, IsActive, MobileNumber') || call.sql.startsWith('SELECT GroupId, MobileNumber, IsActive') || /^SELECT ConfigKey, ConfigValue FROM Config(Values|Secrets) ORDER BY/.test(call.sql)), 'Invalid input must not reach business SQL');
   }
 });
 
@@ -150,7 +161,7 @@ test('a consumed reset OTP cannot authorize another password update', async () =
     },
     async transaction(work) { return work({}); },
   };
-  const service = new CustomerAuthService(statefulDb, notifications);
+  const service = new CustomerAuthService(statefulDb, notifications, app.get(SessionService));
   const body = { mobileNumber: '9876543210', password: '1234', guid, otpGenerated: '654321' };
   assert.equal((await service.resetPassword(body)).status, true);
   assert.equal((await service.resetPassword(body)).status, false);
@@ -172,6 +183,7 @@ test('registration verifies the proof, assigns OHOCODE and returns data.customer
     const result = await request('lambdaAPI/Customer/add', { mobileNumber: '9876543210', guid, otpGenerated: '654321', name: 'Customer', cardHolderType: 'Primary' });
     assert.equal(result.body.status, true);
     assert.equal(result.body.data.customerId, 12);
+    assert.equal(typeof result.body.JwtToken, 'string');
     assert.ok(calls.some(call => call.sql.startsWith('INSERT INTO Customer') && call.values.includes('OHO 000042')));
   } finally { read = original; otp = originalOtp; }
 });
@@ -238,4 +250,55 @@ test('database releases advisory lock after commit or rollback, then returns con
     if (shouldFail) await assert.rejects(work, /failure/); else await work;
     assert.deepEqual(events, ['lock', 'begin', 'work', shouldFail ? 'rollback' : 'commit', 'unlock', 'release']);
   }
+});
+
+
+test('JWT protection denies anonymous access to every customer data endpoint', async () => {
+  for (const [path, body] of [
+    ['lambdaAPI/Customer/GetById/12'], ['lambdaAPI/Customer/GetMemberProducts/12'],
+    ['lambdaAPI/Customer/AddressExistsOrNot/12'], ['lambdaAPI/OHOCards/GetMemberCardByMemberId/12'],
+    ['lambdaAPI/CommunityCustomers/GetById/4'], ['lambdaAPI/Group/GetById/3'],
+    ['lambdaAPI/Customer/KYCVerifiedOrNot', {customerId:12,aadhaarNumber:'123456789012'}],
+    ['lambdaAPI/Customer/PANVerifiedOrNot', {customerId:12}],
+    ['lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList', {CustomerId:12}],
+    ['Products/all', {}], ['ConfigValues/all', {}], ['api/Products/all', {}], ['apiLambda/ConfigValues/all', {}],
+  ]) assert.equal((await request(path, body, null)).status, 401, path);
+  assert.equal((await request('health', undefined, null)).status, 200);
+  assert.equal((await request('lambdaAPI/Customer/mobileNoValid', {mobileNumber:'9876543210'}, null)).status, 200);
+});
+
+test('ownership checks reject other customer, community and group IDs', async () => {
+  for (const [path, body] of [
+    ['lambdaAPI/Customer/GetById/99'], ['lambdaAPI/Customer/GetMemberProducts/99'],
+    ['lambdaAPI/Customer/AddressExistsOrNot/99'], ['lambdaAPI/OHOCards/GetMemberCardByMemberId/99'],
+    ['lambdaAPI/CommunityCustomers/GetById/99'], ['lambdaAPI/Group/GetById/99'],
+    ['lambdaAPI/Customer/KYCVerifiedOrNot', {customerId:99,aadhaarNumber:'123456789012'}],
+    ['lambdaAPI/Customer/PANVerifiedOrNot', {CustomerId:99}],
+    ['lambdaAPI/BookingConsultation/PendingAndSuccessConsultationList', {CustomerId:99}],
+  ]) assert.equal((await request(path, body)).status, 403, path);
+  assert.equal((await request('lambdaAPI/Customer/KYCVerifiedOrNot', {customerId:12,aadhaarNumber:'999999999999'})).status, 403);
+});
+
+test('invalid tokens cannot reach customer SQL and failed login does not issue a token', async () => {
+  const count = calls.length;
+  assert.equal((await request('lambdaAPI/Customer/GetById/12', undefined, 'invalid-token')).status, 401);
+  assert.equal(calls.length, count);
+  const result = await request('lambdaAPI/Customer/memberlogin', {mobileNumber:'9876543210',password:'0000'}, null);
+  assert.equal(result.body.status, false);
+  assert.equal(result.body.JwtToken, undefined);
+});
+
+test('community password login cannot grant access to a customer with a different password', async () => {
+  const original = read;
+  read = async sql => sql.startsWith('SELECT * FROM Customer WHERE MobileNumber')
+    ? [{ ...customer, Password: '0000' }] : original(sql);
+  try {
+    const result = await request('lambdaAPI/Customer/memberlogin', { mobileNumber: '9876543210', password: '4321' }, null);
+    assert.equal(result.body.status, true);
+    assert.equal(result.body.memberData[0].MemberId, 0);
+    const token = result.body.JwtToken;
+    assert.equal((await request('lambdaAPI/Customer/GetById/12', undefined, token)).status, 403);
+    assert.equal((await request('lambdaAPI/CommunityCustomers/GetById/4', undefined, token)).status, 200);
+    assert.equal((await request('lambdaAPI/Group/GetById/3', undefined, token)).status, 200);
+  } finally { read = original; }
 });

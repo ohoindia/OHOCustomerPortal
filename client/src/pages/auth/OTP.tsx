@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { authRequest, remainingSeconds } from "./api";
 import "./login.css";
+import { clearAuthSession, saveAuthSession } from "./session";
 
 type OTPState = {
   mobileNumber: string;
@@ -104,6 +105,7 @@ export function OTP() {
         });
         if (!result.status)
           throw new Error(result.message || "Unable to update password.");
+        clearAuthSession();
         navigate("/login", { replace: true });
       } else {
         const result = await authRequest("add", {
@@ -119,17 +121,12 @@ export function OTP() {
               result.message ||
               "Customer creation failed. Please try again.",
           );
-        sessionStorage.setItem(
-          "member",
-          JSON.stringify({
-            MemberId: result.data.customerId,
-            Name: details.name,
-            MobileNumber: details.mobileNumber,
-            MemberTypeId: "Primary",
-          }),
-        );
-        sessionStorage.setItem("memberId", String(result.data.customerId));
-        sessionStorage.setItem("FullName", details.name);
+        saveAuthSession(result, {
+          MemberId: result.data.customerId,
+          Name: details.name,
+          MobileNumber: details.mobileNumber,
+          MemberTypeId: 'Primary',
+        });
         navigate("/home", {
           replace: true,
           state: {

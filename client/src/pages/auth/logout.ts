@@ -1,4 +1,7 @@
+import { clearAuthSession } from './session';
+
 export function clearSession() {
+  clearAuthSession();
   sessionStorage.clear();
   localStorage.clear();
 

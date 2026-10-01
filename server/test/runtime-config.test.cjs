@@ -23,6 +23,8 @@ test('configuration matches .NET precedence, supports legacy aliases and ignores
   ]));
   assert.equal(await settings.get('SMS_PROVIDER'), 'MSG91');
   assert.equal(await settings.get('MSG91_AUTH_KEY'), 'private-key');
+  assert.equal(await settings.getSecret('MSG91_AUTH_KEY'), 'private-key');
+  assert.equal(await settings.getSecret('CORS_ORIGINS'), '');
   assert.equal(await settings.get('SMSFRESH_PASSWORD'), 'private-password');
   assert.equal(await settings.get('ONBOARDING_SMS_QUEUE_URL'), 'welcome-queue');
   assert.equal(await settings.get('cors_origins'), 'https://customer.example');

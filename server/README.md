@@ -1,5 +1,11 @@
 # OHO customer NestJS server
 
+JWT authentication protects customer data routes. Before running, configure `JWT_SECRET` in `ConfigSecrets`; see [authentication setup and session behavior](AUTHENTICATION.md).
+
+Swagger UI: [http://localhost:3000/swagger](http://localhost:3000/swagger). OpenAPI JSON: [http://localhost:3000/swagger-json](http://localhost:3000/swagger-json). Use your configured port if it differs from 3000. After Lambda deployment, append `/swagger` or `/swagger-json` to the API base URL.
+
+Start the backend with `npm run server:dev` from the repository root. In Swagger, execute `memberlogin`, copy the returned `JwtToken`, and paste it into **Authorize** without the `Bearer` prefix. Protected endpoints then send the authorization header. Documentation is public; customer API routes retain JWT and ownership checks. Executing registration, OTP, and password-reset requests invokes the real configured services.
+
 This app implements the 18 endpoints currently called by `client/src/pages/auth` and `client/src/services/home.ts`. Controllers handle HTTP routing and DTO validation; services own business rules and parameterized MySQL queries. It runs independently of .NET and uses the existing OHO database. It does not migrate unrelated administrative APIs from the backend solution.
 
 ## Run locally
@@ -81,8 +87,8 @@ The SMS adapter follows `OHO.Lambda.API/Commands/SendOTPCommand.cs`. Optional `o
 - Customer and community responses omit Password and OTP fields. MySQL TINYINT(1) and BIT(1) values become JSON booleans.
 - Registration and password reset require `guid` and `otpGenerated` alongside their existing fields. `client/src/pages/auth/OTP.tsx` now supplies them. Proofs must be unexpired and belong to the requested flow, and are expired atomically after use. These flows do not accept pre-migration OTP records without the flow marker.
 - Five OTP sends per India calendar day are allowed. A resend must wait for the previous two-minute OTP expiry. Advisory locks serialize sends and OHOCODE generation across NestJS instances; mutation transactions lock OTP rows. Existing .NET writers do not participate in these advisory locks.
-- Community accounts can be detected and reset as well as logged in. The current React login screen still requires a positive MemberId, so community-only accounts (`MemberId: 0`, as in .NET) need a separate frontend change to enter the portal.
-- The existing four-digit plaintext password storage and `1234` registration default are retained for database compatibility. The source's JWT generation is commented out; this migration does not add session authorization to profile/card/consultation routes. Production authentication and password hashing require a coordinated database/frontend migration.
+- Community accounts can be detected, reset, and logged in. Community-only accounts (`MemberId: 0`, as in .NET) can enter the portal with a valid JWT; their data access is restricted to their community identity and group.
+- The existing four-digit plaintext password storage and `1234` registration default are retained for database compatibility. Login and OTP-verified registration now issue expiring JWTs. Data routes require a token and enforce customer ownership. Password hashing still requires a coordinated database migration. See [authentication](AUTHENTICATION.md).
 - Invalid input returns HTTP 400, configuration errors HTTP 503, throttling HTTP 429 and unexpected failures HTTP 500. Error responses never expose stack traces. Business failures retain the `status: false` envelope.
 
 ## Validation and live dependencies

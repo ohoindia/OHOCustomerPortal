@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { authRequest, remainingSeconds } from "./api";
 import { getSessionMember } from "./member";
+import { saveAuthSession } from "./session";
 import "./login.css";
 
 export function Login() {
@@ -126,19 +127,10 @@ export function Login() {
         !result.status ||
         !member ||
         !Number.isFinite(Number(member.MemberId)) ||
-        Number(member.MemberId) <= 0
+        (Number(member.MemberId) <= 0 && !(Number(member.CommunityCustomerId) > 0))
       )
         throw new Error(result.message || "Login failed. Please try again.");
-      sessionStorage.setItem("member", JSON.stringify(member));
-      for (const [key, value] of Object.entries({
-        memberId: member.MemberId,
-        gender: member.Gender,
-        FullName: member.Name,
-        UserImage: member.Image,
-        groupId: member.GroupId,
-      })) {
-        sessionStorage.setItem(key, String(value ?? ""));
-      }
+      saveAuthSession(result, member);
       navigate("/home", {
         replace: true,
         state: {

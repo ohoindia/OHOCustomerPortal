@@ -1,5 +1,7 @@
 # Configuration sources
 
+JWT signing requires `JWT_SECRET` in `ConfigSecrets`. Optional `JWT_TTL_SECONDS`, `JWT_ISSUER`, and `JWT_AUDIENCE` settings are documented in [authentication setup](AUTHENTICATION.md).
+
 Database connection settings come from **Lambda environment variables** (or `server/.env` locally): `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_TIMEZONE` and `DB_SSL`. Database values in configuration tables are ignored by the runtime settings loader.
 
 Application settings come exclusively from the existing **ConfigValues** and **ConfigSecrets** MySQL tables. These are the actual names confirmed in .NET models and startup code. Both use `ConfigKey` and `ConfigValue` columns. There is no AWS Secrets Manager dependency and no SMS/queue/CORS environment variable fallback.

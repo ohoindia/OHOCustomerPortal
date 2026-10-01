@@ -31,3 +31,11 @@ test('Lambda forwards JSON bodies through the normal Nest validation and error f
   assert.equal(response.statusCode, 400);
   assert.equal(JSON.parse(response.body).status, false);
 });
+
+test('Lambda serves Swagger UI, its assets and the OpenAPI document without a JWT', async () => {
+  for (const path of ['/swagger', '/swagger/swagger-ui.css', '/swagger-json']) {
+    const response = await handler(event(path), { getRemainingTimeInMillis: () => 29000 }, () => {});
+    assert.equal(response.statusCode, 200, path);
+    if (path === '/swagger-json') assert.equal(JSON.parse(response.body).info.title, 'OHO Customer API');
+  }
+});
