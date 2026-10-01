@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: OHO customer NestJS API on Lambda and API Gateway HTTP API
+
+Parameters:
+  ConfigSecretArn:
+    Type: String
+    Description: ARN of the existing Secrets Manager JSON secret described in DEPLOYMENT.md
+  ConfigRevision:
+    Type: String
+    Default: '1'
+    Description: Increment to refresh Secrets Manager values in Lambda environment variables
+  VpcSubnetIds:
+    Type: String
+    Default: ''
+    Description: Comma-separated private subnet IDs; leave empty for a publicly reachable database
+  VpcSecurityGroupIds:
+    Type: String
+    Default: ''
+    Description: Comma-separated Lambda security group IDs; required when subnet IDs are supplied
+  OnboardingSmsQueueArn:
+    Type: String
+    Default: ''
+    Description: Optional ARN of the queue configured in the secret; grants only SendMessage
+
+Conditions:
+  UseVpc: !And
+    - !Not [!Equals [!Ref VpcSubnetIds, '']]
+    - !Not [!Equals [!Ref VpcSecurityGroupIds, '']]
+  UseQueue: !Not [!Equals [!Ref OnboardingSmsQueueArn, '']]
+
+Rules:
+  VpcParametersTogether:
+    Assertions:
+      - Assert: !Or
+          - !And
+            - !Equals [!Ref VpcSubnetIds, '']
+            - !Equals [!Ref VpcSecurityGroupIds, '']
+          - !And
+            - !Not [!Equals [!Ref VpcSubnetIds, '']]
+            - !Not [!Equals [!Ref VpcSecurityGroupIds, '']]
+        AssertDescription: Supply both VPC subnet IDs and security group IDs, or leave both empty.
+
+Resources:
+  CustomerHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: '$default'
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 20
+        ThrottlingRateLimit: 10
+
+  CustomerApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: build/lambda/
+      Handler: dist/lambda.handler
+      Runtime: nodejs22.x
+      Architectures: [x86_64]
+      MemorySize: 1024
+      Timeout: 29
+      ReservedConcurrentExecutions: 5
+      VpcConfig: !If
+        - UseVpc
+        - SubnetIds: !Split [',', !Ref VpcSubnetIds]
+          SecurityGroupIds: !Split [',', !Ref VpcSecurityGroupIds]
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          NODE_ENV: production
+          CONFIG_REVISION: !Ref ConfigRevision
+          CORS_ORIGINS: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:CORS_ORIGINS}}'
+          DB_HOST: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:DB_HOST}}'
+          DB_PORT: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:DB_PORT}}'
+          DB_USER: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:DB_USER}}'
+          DB_PASSWORD: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:DB_PASSWORD}}'
+          DB_NAME: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:DB_NAME}}'
+          DB_TIMEZONE: '+05:30'
+          DB_SSL: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:DB_SSL}}'
+          SMS_PROVIDER: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:SMS_PROVIDER}}'
+          MSG91_AUTH_KEY: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:MSG91_AUTH_KEY}}'
+          MSG91_OTP_TEMPLATE_ID: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:MSG91_OTP_TEMPLATE_ID}}'
+          SMSFRESH_OTP_URL: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:SMSFRESH_OTP_URL}}'
+          SMSFRESH_USER: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:SMSFRESH_USER}}'
+          SMSFRESH_PASSWORD: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:SMSFRESH_PASSWORD}}'
+          SMSFRESH_SENDER: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:SMSFRESH_SENDER}}'
+          ONBOARDING_SMS_QUEUE_URL: !Sub '{{resolve:secretsmanager:${ConfigSecretArn}:SecretString:ONBOARDING_SMS_QUEUE_URL}}'
+      Policies:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - !If
+          - UseVpc
+          - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
+          - !Ref AWS::NoValue
+        - !If
+          - UseQueue
+          - Statement:
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !Ref OnboardingSmsQueueArn
+          - !Ref AWS::NoValue
+      Events:
+        Proxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref CustomerHttpApi
+            Path: /{proxy+}
+            Method: ANY
+            PayloadFormatVersion: '2.0'
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL for both VITE_API_BASE_URL and VITE_LEGACY_API_BASE_URL
+    Value: !Sub 'https://${CustomerHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}'
+  FunctionName:
+    Value: !Ref CustomerApiFunction

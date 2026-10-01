@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "nest build",
+    "package:lambda": "npm run build && node scripts/package-lambda.cjs",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
@@ -11,6 +12,7 @@
   },
   "engines": { "node": ">=22" },
   "dependencies": {
+    "@codegenie/serverless-express": "^4.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
@@ -24,6 +26,7 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/testing": "^11.0.0",
     "@types/express": "^5.0.0",

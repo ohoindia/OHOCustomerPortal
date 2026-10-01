@@ -4,6 +4,8 @@ This app implements the 18 endpoints currently called by `src/pages/auth` and `s
 
 ## Run locally
 
+For a new AWS Lambda deployment and redeployment after changes, see [DEPLOYMENT.md](DEPLOYMENT.md). The Lambda entry point and AWS SAM template are included.
+
 Requires Node.js 22 or newer and access to the existing MySQL database.
 
 From the repository root:

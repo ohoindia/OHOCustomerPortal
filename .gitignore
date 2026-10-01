@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .env
 server/coverage
+server/build/
+server/.aws-sam/
+server/samconfig.toml
 
 # Editor directories and files
 .vscode/*
