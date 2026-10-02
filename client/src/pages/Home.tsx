@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { Logo, AppShell } from "../components/Layout";
-import AccountDetails from "../components/AccountDetails";
 import { BookingCard } from "../components/Cards";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
@@ -26,7 +25,6 @@ const services = [
 export default function Home() {
   const navigate = useNavigate();
   const [sessionMember] = useState(getSessionMember);
-  const [accountDetailsVisible, setAccountDetailsVisible] = useState(false);
   const [data, setData] = useState<Awaited<
     ReturnType<typeof loadHomeData>
   > | null>(null);
@@ -192,12 +190,7 @@ export default function Home() {
               {vaultMembershipStatus}
             </span>
           )}
-          <button
-            type="button"
-            aria-controls="home-account-details"
-            aria-expanded={accountDetailsVisible}
-            onClick={() => setAccountDetailsVisible((visible) => !visible)}
-          >
+          <button type="button" onClick={() => navigate("/account-details")}>
             Account Details
           </button>
         </div>
@@ -214,7 +207,6 @@ export default function Home() {
           Explore your care network <span aria-hidden="true">→</span>
         </button>
       </section>
-      <AccountDetails data={data} visible={accountDetailsVisible} />
       {actionMessages.length > 0 && (
         <ActionNotice
           key={actionMessages.join("|")}

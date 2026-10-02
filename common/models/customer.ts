@@ -29,6 +29,36 @@ export interface AuthResponse {
   };
 }
 export type MemberProduct = {
+  ShortDescription?: string | null;
+  PaidAmount?: number | null;
+  SumAssured?: number | null;
+  MaximumMembers?: number | null;
+  ProductCategoryName?: string | null;
+  Policies?: Array<{
+    PoliciesId?: number;
+    PoliciesProductName?: string | null;
+    PolicyCOINumber?: string | null;
+    Dependents?: Array<{
+      MemberDependentId?: number;
+      DependentFullName?: string | null;
+      DependentRelationship?: string | null;
+      DependentDateofBirth?: string | null;
+      DependentGender?: string | null;
+    }>;
+    Insurer?: Array<{
+      InsurerDetailsId?: number;
+      InsurerName?: string | null;
+      InsurerRelationship?: string | null;
+      InsurerDateofBirth?: string | null;
+      InsurerGender?: string | null;
+      InsurerMobileNumber?: string | null;
+    }>;
+    Nominees?: Array<{
+      NomineeId?: number;
+      NomineeFullName?: string | null;
+      NomineeRelationship?: string | null;
+    }>;
+  }>;
   ProductName?: string;
   IssuedOn?: string;
   ValidTill?: string;

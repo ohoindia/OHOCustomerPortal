@@ -11,6 +11,11 @@
     "client:install": "npm --prefix client ci",
     "server:dev": "npm --prefix server run start:dev",
     "server:build": "npm --prefix server run build",
-    "server:test": "npm --prefix server test"
+    "server:test": "npm --prefix server test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9"
   }
 }

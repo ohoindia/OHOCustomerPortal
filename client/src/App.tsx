@@ -10,6 +10,7 @@ import { Splash } from "./pages/auth/Splash";
 import { Login } from "./pages/auth/Login";
 import { OTP } from "./pages/auth/OTP";
 import Home from "./pages/Home";
+import AccountDetailsPage from "./pages/AccountDetails";
 import { Hospitals } from "./pages/discovery/Hospitals";
 import { Doctors } from "./pages/discovery/Doctors";
 import { DoctorProfile } from "./pages/discovery/DoctorProfile";
@@ -73,6 +74,7 @@ export default function App() {
       <Route path="/" element={<DefaultRoute />} />
       <Route element={<RequireLogin />}>
         <Route path="/home" element={<Home />} />
+        <Route path="/account-details" element={<AccountDetailsPage />} />
         <Route path="/hospitals" element={<Hospitals />} />
         <Route path="/doctors" element={<Doctors />} />
         <Route path="/doctor/:id" element={<DoctorProfile />} />

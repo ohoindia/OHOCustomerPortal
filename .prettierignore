@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-ssr/
+coverage/
+build/
+.aws-sam/
+package-lock.json
+*.tsbuildinfo
+.env
+.env.*
