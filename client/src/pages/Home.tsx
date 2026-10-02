@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { AppShell } from "../components/Layout";
+import { Logo, AppShell } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
@@ -158,6 +158,7 @@ export default function Home() {
     .toUpperCase();
   return (
     <AppShell>
+      <header className="home-brand"><Logo compact /><span className="home-account-label">Member account</span></header>
       <div className="home-top">
         <div>
           <small>⌖ {location || "Location not provided"}</small>
@@ -171,7 +172,12 @@ export default function Home() {
           {initials}
         </button>
       </div>
-      {/* <SearchBar /> */}
+      <section className="home-welcome" aria-labelledby="home-welcome-title">
+        <span>CARE FOR THE WHOLE FAMILY</span>
+        <h2 id="home-welcome-title">Your health. Your account.<br />All in one place.</h2>
+        <p>Access your benefits and find care close to home.</p>
+        <button onClick={() => navigate("/hospitals")}>Explore your care network <span aria-hidden="true">→</span></button>
+      </section>
       <section className="oho-membership" aria-label="OHOINDIA membership card">
         <div
           className={`oho-card-flipper${cardFlipped ? " is-flipped" : ""}`}

@@ -16,9 +16,9 @@ type LogoProps = {
 
 export function Logo({ compact = false }: LogoProps) {
   return (
-    <div className={`logo ${compact ? "compact" : ""}`}>
-      <strong>OHO</strong>
-      <span>INDIA LIFE</span>
+    <div className={`logo brand-lockup ${compact ? "compact" : ""}`}>
+      <img src={`${import.meta.env.BASE_URL}oho-brand.png`} alt="" />
+      <div><strong>OHOINDIA</strong><small>A Hyperlocal Health Fintech for Bharat</small></div>
     </div>
   );
 }

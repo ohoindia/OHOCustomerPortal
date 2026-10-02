@@ -155,24 +155,26 @@ export function Login() {
   return (
     <main className="auth-page login-page">
       <header className="login-brand">
-        <img
-          src={`${import.meta.env.BASE_URL}applogo.png`}
-          alt="OHOINDIA"
-          width="60"
-          height="60"
-        />
-        <h2>OHOINDIA</h2>
-        <p>
-          <strong>
-            Unlock OPD's by Subscribing With OHOINDIA &amp;
-            <br />
-            Explore More Health Packages.
-          </strong>
-        </p>
+        <a className="brand-lockup" href="https://www.ohoindialife.com/" target="_blank" rel="noreferrer">
+          <img src={`${import.meta.env.BASE_URL}oho-brand.png`} alt="" width="54" height="54" />
+          <div><strong>OHOINDIA</strong><small>A Hyperlocal Health Fintech for Bharat</small></div>
+        </a>
       </header>
+      <section className="login-intro" aria-labelledby="login-intro-title">
+        <span className="login-eyebrow">YOUR FAMILY'S HEALTH ACCOUNT</span>
+        <h2 id="login-intro-title">Everyday care.<br /><em>Extraordinary peace of mind.</em></h2>
+        <p>Manage your family's routine healthcare, memberships, and appointments in one place.</p>
+        <div className="login-benefits">
+          <div><span aria-hidden="true">01</span><strong>Your care, connected</strong><p>Find doctors and hospitals in your network.</p></div>
+          <div><span aria-hidden="true">02</span><strong>Your benefits, together</strong><p>Keep your membership and health packages close.</p></div>
+          <div><span aria-hidden="true">03</span><strong>Your family, first</strong><p>Manage appointments and family health records.</p></div>
+        </div>
+        <a className="login-learn" href="https://www.ohoindialife.com/concept" target="_blank" rel="noreferrer">Discover how OHOINDIA works <span aria-hidden="true">↗</span></a>
+      </section>
       <section className="auth-card">
-        <h1>Welcome Back!</h1>
-        <p>Please login to continue</p>
+        <span className="login-eyebrow">MEMBER ACCESS</span>
+        <h1>{exists === false ? "Join the OHO family" : "Welcome to OHOINDIA"}</h1>
+        <p>Enter your mobile number to sign in or create an account.</p>
         <form onSubmit={submit} noValidate>
           <label htmlFor="mobileNumber">
             Enter Mobile Number <span aria-hidden="true">*</span>
@@ -273,6 +275,7 @@ export function Login() {
                   : "Continue"}
           </button>
         </form>
+        <p className="login-security">Your account connects you to your family's care.</p>
       </section>
       <section className="login-network" aria-label="Hospital service areas">
         <strong>
@@ -289,7 +292,7 @@ export function Login() {
         <span>All rights reserved. &copy; OHOINDIA</span>
         <span>Powered by OHOINDIA TECHNOLOGY v1.0</span>
         <a
-          href="https://www.ohoindialife.in/privacypolicy"
+          href="https://www.ohoindialife.com/privacy"
           target="_blank"
           rel="noreferrer"
         >

@@ -1,23 +1,22 @@
-/* CustomerPortal light theme: themeContext.js and MobileView.css. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
+
 :root {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
-    Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
   color: var(--text);
   background: var(--surface);
   font-synthesis: none;
   color-scheme: light;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --brand: #0095b6;
-  --brand-strong: #0078a0;
-  --brand-active: #0e94c3;
-  --text: #000;
-  --muted: #616161;
-  --line: rgba(0, 0, 0, 0.2);
-  --surface: #fff;
-  --card: #dce9f4;
-  --soft: #f1f7fc;
+  --brand: #0094c6;
+  --brand-strong: #142344;
+  --brand-active: #007ca8;
+  --text: #142344;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --surface: #f4f8fc;
+  --card: #e0f2fe;
+  --soft: #f0f7fc;
   --blue: var(--brand);
   --navy: var(--brand-strong);
 }
@@ -923,3 +922,31 @@ input::placeholder {
   color: var(--muted);
   opacity: 1;
 }
+
+/* OHO India website branding, shared by all customer screens. */
+h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif; letter-spacing: -0.025em; }
+body { background: radial-gradient(ellipse at top left, #e0f2fe, transparent 55%), #f4f8fc; }
+.phone-shell { background: #f8fafc; box-shadow: 0 16px 60px rgb(20 35 68 / 10%); }
+.brand-lockup { display: flex; align-items: center; gap: 10px; text-align: left; }
+.brand-lockup img { width: 54px; height: 54px; object-fit: contain; }
+.brand-lockup strong { display: block; color: var(--brand); font-size: 23px; letter-spacing: -0.04em; }
+.brand-lockup small { display: block; margin-top: 3px; color: var(--brand-strong); font-size: 10px; letter-spacing: 0; }
+.logo.brand-lockup { justify-content: center; }
+.logo.compact.brand-lockup strong { font-size: 23px; }
+.primary-btn { background: #030e37; border-radius: 999px; min-height: 48px; box-shadow: 0 5px 14px rgb(20 35 68 / 12%); }
+.primary-btn:hover:not(:disabled) { background: #142344; }
+.bottom-nav { border-top-color: var(--line); box-shadow: 0 -4px 18px rgb(20 35 68 / 4%); }
+.bottom-nav a.active { color: var(--brand-strong); background: #f0f9ff; }
+.bottom-nav a { font-size: 11px; }
+.section-title h2 { font-size: 16px; }
+.section-title button, .text-btn { color: #007ca8; font-size: 12px; }
+.list-card, .home-package-details { box-shadow: 0 3px 12px rgb(20 35 68 / 3%); }
+.service-grid { gap: 10px; }
+.service-grid button { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 13px 3px; }
+.service-grid button:hover { border-color: var(--brand); background: #f0f9ff; }
+.service-grid span { background: var(--soft); color: #007ca8; }
+.service-grid small { font-size: 11px; line-height: 1.5; font-weight: 500; }
+.offer-banner { background: linear-gradient(120deg, #142344, #030e37); color: #fff; line-height: 1.6; }
+.offer-banner p { font-size: 12px; }
+.offer-banner a { color: #a5e6ff; }
+@media (min-width: 768px) { body { background: radial-gradient(ellipse at top left, #e0f2fe, transparent 55%), #f4f8fc; } }
