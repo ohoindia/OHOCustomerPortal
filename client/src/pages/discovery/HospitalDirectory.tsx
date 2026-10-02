@@ -1,3 +1,4 @@
+import { UI_TEXT } from "../../../../common/content/labels";
 import { useMemo, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { AppShell, PageHeader } from "../../components/Layout";
@@ -63,9 +64,7 @@ export function HospitalDirectory() {
   }
   function locate(next: HospitalProximity = proximity) {
     if (!navigator.geolocation) {
-      setLocationError(
-        "Your browser does not support location. You can still search all hospitals.",
-      );
+      setLocationError(UI_TEXT.yourBrowserDoesNotSupportLocationYouCanStill);
       return;
     }
     setLocating(true);
@@ -83,8 +82,8 @@ export function HospitalDirectory() {
         setLocating(false);
         setLocationError(
           error.code === 1
-            ? "Location access was denied. Allow it in your browser to see distances and nearby hospitals."
-            : "Unable to find your location. Please try again; all hospitals remain available.",
+            ? UI_TEXT.locationAccessWasDeniedAllowItInYourBrowser
+            : UI_TEXT.unableToFindYourLocationPleaseTryAgainAll,
         );
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
@@ -97,47 +96,49 @@ export function HospitalDirectory() {
   return (
     <AppShell className="hospital-directory">
       <PageHeader
-        title={isBooking ? "Book Service · Choose Hospital" : "Hospitals"}
+        title={
+          isBooking ? UI_TEXT.bookServiceChooseHospital : UI_TEXT.hospitals
+        }
       />
       <div className="hospital-directory-content">
         <div
           className="hospital-view-toggle"
           role="group"
-          aria-label="Hospital view"
+          aria-label={UI_TEXT.hospitalView}
         >
           <button
             type="button"
             aria-pressed={view === "list"}
             onClick={() => setView("list")}
           >
-            ☷ List view
+            {UI_TEXT.listView}
           </button>
           <button
             type="button"
             aria-pressed={view === "map"}
             onClick={() => setView("map")}
           >
-            ⌖ Map view
+            {UI_TEXT.mapView}
           </button>
         </div>
         <label className="hospital-search">
-          <span className="sr-only">Search hospitals</span>
+          <span className="sr-only">{UI_TEXT.searchHospitals}</span>
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search hospitals, city or speciality..."
+            placeholder={UI_TEXT.searchHospitalsCityOrSpeciality}
           />
         </label>
         <div className="hospital-filter-row">
           <label>
-            Speciality
+            {UI_TEXT.speciality}
             <select
-              aria-label="Speciality"
+              aria-label={UI_TEXT.speciality}
               value={speciality}
               onChange={(event) => setSpeciality(event.target.value)}
             >
-              <option value="all">All specialities</option>
+              <option value="all">{UI_TEXT.allSpecialities}</option>
               {specialities.map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -151,16 +152,16 @@ export function HospitalDirectory() {
             onClick={() => locate()}
           >
             {locating
-              ? "Locating..."
+              ? UI_TEXT.locating
               : position
-                ? "Update my location"
-                : "Use my location"}
+                ? UI_TEXT.updateMyLocation
+                : UI_TEXT.useMyLocation}
           </button>
         </div>
         <div
           className="hospital-proximity"
           role="group"
-          aria-label="Hospital distance filter"
+          aria-label={UI_TEXT.hospitalDistanceFilter}
         >
           {(["all", "nearest", "nearby"] as const).map((value) => (
             <button
@@ -171,10 +172,10 @@ export function HospitalDirectory() {
               onClick={() => changeProximity(value)}
             >
               {value === "all"
-                ? "All hospitals"
+                ? UI_TEXT.allHospitals
                 : value === "nearest"
-                  ? "Nearest 2"
-                  : "Nearby · 10 km"}
+                  ? UI_TEXT.nearest2
+                  : UI_TEXT.nearby10Km}
             </button>
           ))}
         </div>
@@ -184,19 +185,22 @@ export function HospitalDirectory() {
           </p>
         )}
         {data.loading ? (
-          <p role="status">Loading hospitals...</p>
+          <p role="status">{UI_TEXT.loadingHospitals}</p>
         ) : data.error ? (
           <div role="alert">
             <p>{data.error}</p>
             <button className="outline-btn" onClick={data.retry}>
-              Try again
+              {UI_TEXT.tryAgain}
             </button>
           </div>
         ) : (
           <>
             <p className="hospital-result-count" role="status">
-              {filtered.length} hospital{filtered.length === 1 ? "" : "s"} found
-              {position ? " · Sorted by distance" : ""}
+              {filtered.length}
+              {UI_TEXT.hospital}
+              {filtered.length === 1 ? "" : UI_TEXT.pluralSuffix}
+              {UI_TEXT.found}
+              {position ? UI_TEXT.sortedByDistance : ""}
             </p>
             {view === "map" ? (
               <HospitalMap
@@ -216,7 +220,7 @@ export function HospitalDirectory() {
                     <article className="hospital-directory-card" key={id}>
                       <div className="hospital-card-heading">
                         <span className="hospital-building" aria-hidden="true">
-                          ✚
+                          {UI_TEXT.medicalCrossIcon}
                         </span>
                         <div>
                           <Link to={destination} className="hospital-name">
@@ -230,18 +234,19 @@ export function HospitalDirectory() {
                         </div>
                       </div>
                       <p className="hospital-address">
-                        ⌖{" "}
+                        {UI_TEXT.locationIcon}{" "}
                         {[
                           textValue(row, "AddressLine1"),
                           textValue(row, "AddressLine2"),
                           textValue(row, "City"),
                         ]
                           .filter(Boolean)
-                          .join(", ") || "Address not provided"}
+                          .join(", ") || UI_TEXT.addressNotProvided}
                       </p>
                       {distance !== null && (
                         <span className="hospital-distance">
-                          {distance.toFixed(2)} km away
+                          {distance.toFixed(2)}
+                          {UI_TEXT.kmAway}
                         </span>
                       )}
                       <div className="hospital-card-actions">
@@ -249,17 +254,17 @@ export function HospitalDirectory() {
                           className="hospital-primary-link"
                           to={`/hospitalService?hospitalId=${id}`}
                         >
-                          Book Service
+                          {UI_TEXT.bookService}
                         </Link>
                         <Link to={`/hospitalDetails?hospitalId=${id}`}>
-                          Details
+                          {UI_TEXT.details}
                         </Link>
                         {coords && (
                           <Link
                             to={`/hospital-map?hospitalId=${id}${isBooking ? "&bookService=1" : ""}`}
                             state={location.state}
                           >
-                            Map
+                            {UI_TEXT.map}
                           </Link>
                         )}
                         <a
@@ -267,13 +272,13 @@ export function HospitalDirectory() {
                           rel="noreferrer"
                           href={hospitalDirectionsUrl(row)}
                         >
-                          Directions ↗
+                          {UI_TEXT.directions}
                         </a>
                         {textValue(row, "MobileNumber") && (
                           <a
                             href={`tel:${textValue(row, "MobileNumber").replace(/[^+\d]/g, "")}`}
                           >
-                            Call
+                            {UI_TEXT.call2}
                           </a>
                         )}
                       </div>
@@ -284,8 +289,8 @@ export function HospitalDirectory() {
             )}
             {!filtered.length && (
               <div className="hospital-empty">
-                <h2>No hospitals found</h2>
-                <p>Try a different search, speciality or distance filter.</p>
+                <h2>{UI_TEXT.noHospitalsFound}</h2>
+                <p>{UI_TEXT.tryADifferentSearchSpecialityOrDistanceFilter}</p>
                 <button
                   className="outline-btn"
                   onClick={() => {
@@ -294,7 +299,7 @@ export function HospitalDirectory() {
                     setProximity("all");
                   }}
                 >
-                  Clear filters
+                  {UI_TEXT.clearFilters}
                 </button>
               </div>
             )}

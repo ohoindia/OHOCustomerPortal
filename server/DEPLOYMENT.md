@@ -18,7 +18,7 @@ node --version
 npm --version
 aws --version
 sam --version
-aws configure sso --profile oho-dev
+c
 aws sso login --profile oho-dev
 $env:AWS_PROFILE = 'oho-dev'
 aws sts get-caller-identity

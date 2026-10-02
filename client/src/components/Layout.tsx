@@ -1,3 +1,4 @@
+import { UI_TEXT } from "../../../common/content/labels";
 import {
   Home,
   CalendarDays,
@@ -19,8 +20,8 @@ export function Logo({ compact = false }: LogoProps) {
     <div className={`logo brand-lockup ${compact ? "compact" : ""}`}>
       <img src={`${import.meta.env.BASE_URL}oho-brand.png`} alt="" />
       <div>
-        <strong>OHOINDIA</strong>
-        <small>A Hyperlocal Health Fintech for Bharat</small>
+        <strong>{UI_TEXT.ohoindia}</strong>
+        <small>{UI_TEXT.aHyperlocalHealthFintechForBharat}</small>
       </div>
     </div>
   );
@@ -56,11 +57,11 @@ type BottomNavItem = {
 };
 
 const nav: BottomNavItem[] = [
-  { to: "/home", Icon: Home, label: "Home" },
-  { to: "/bookings", Icon: CalendarDays, label: "Bookings" },
-  { to: "/wallet", Icon: WalletCards, label: "Wallet" },
-  { to: "/notifications", Icon: Bell, label: "Notifications" },
-  { to: "/profile", Icon: UserRound, label: "Profile" },
+  { to: "/home", Icon: Home, label: UI_TEXT.home },
+  { to: "/bookings", Icon: CalendarDays, label: UI_TEXT.bookings },
+  { to: "/wallet", Icon: WalletCards, label: UI_TEXT.wallet },
+  { to: "/notifications", Icon: Bell, label: UI_TEXT.notifications },
+  { to: "/profile", Icon: UserRound, label: UI_TEXT.profile },
 ];
 export function BottomNav() {
   return (
@@ -100,15 +101,15 @@ export function AppShell({
 }
 
 export function SearchBar({
-  placeholder = "Search doctors, hospitals, tests...",
+  placeholder = UI_TEXT.searchDoctorsHospitalsTests,
 }: {
   placeholder?: string;
 }) {
   return (
     <label className="search-bar">
-      <span>⌕</span>
+      <span>{UI_TEXT.searchIcon}</span>
       <input placeholder={placeholder} />
-      <span>🎙️</span>
+      <span>{UI_TEXT.microphoneIcon}</span>
     </label>
   );
 }

@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+import { UI_TEXT, UI_MESSAGES } from "../../../../common/content/labels";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { authRequest, remainingSeconds } from "./api";
@@ -53,13 +54,13 @@ export function OTP() {
         { mobileNumber: details.mobileNumber },
       );
       if (!response.status || !response.guid)
-        throw new Error(response.message || "Unable to resend OTP.");
+        throw new Error(response.message || UI_TEXT.unableToResendOtp);
       setGuid(response.guid);
       setTimer(remainingSeconds(response.futureTime));
       setResends((value) => value + 1);
       setOtp("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to resend OTP.");
+      setError(err instanceof Error ? err.message : UI_TEXT.unableToResendOtp);
     } finally {
       setBusy(false);
     }
@@ -70,7 +71,7 @@ export function OTP() {
     if (!details || busy) return;
     setError("");
     if (!verified && !/^\d{6}$/.test(otp)) {
-      setError("Please enter the complete 6-digit OTP.");
+      setError(UI_TEXT.pleaseEnterTheComplete6DigitOtp);
       return;
     }
     if (
@@ -78,7 +79,7 @@ export function OTP() {
       reset &&
       (!/^\d{4}$/.test(password) || password !== confirmation)
     ) {
-      setError("Enter a 4-digit password and matching confirmation.");
+      setError(UI_TEXT.enterA4DigitPasswordAndMatchingConfirmation);
       return;
     }
     setBusy(true);
@@ -91,7 +92,7 @@ export function OTP() {
         });
         if (!result.status)
           throw new Error(
-            result.msg || result.message || "OTP verification failed.",
+            result.msg || result.message || UI_TEXT.otpVerificationFailed,
           );
         setVerified(true);
         if (reset) return;
@@ -104,12 +105,12 @@ export function OTP() {
           otpGenerated: otp,
         });
         if (!result.status)
-          throw new Error(result.message || "Unable to update password.");
+          throw new Error(result.message || UI_TEXT.unableToUpdatePassword);
         clearAuthSession();
         navigate("/login", { replace: true });
       } else {
         const result = await authRequest("add", {
-          cardHolderType: "Primary",
+          cardHolderType: UI_TEXT.primary,
           mobileNumber: details.mobileNumber,
           name: details.name,
           guid,
@@ -119,13 +120,13 @@ export function OTP() {
           throw new Error(
             result.msg ||
               result.message ||
-              "Customer creation failed. Please try again.",
+              UI_TEXT.customerCreationFailedPleaseTryAgain,
           );
         saveAuthSession(result, {
           MemberId: result.data.customerId,
           Name: details.name,
           MobileNumber: details.mobileNumber,
-          MemberTypeId: "Primary",
+          MemberTypeId: UI_TEXT.primary,
         });
         navigate("/home", {
           replace: true,
@@ -140,7 +141,7 @@ export function OTP() {
       setError(
         err instanceof Error
           ? err.message
-          : "Something went wrong. Please try again.",
+          : UI_TEXT.somethingWentWrongPleaseTryAgain,
       );
     } finally {
       setBusy(false);
@@ -149,18 +150,23 @@ export function OTP() {
 
   return (
     <main className="auth-page login-page">
-      <Link to="/login">Back to login</Link>
+      <Link to="/login">{UI_TEXT.backToLogin}</Link>
       <section className="auth-card">
-        <h1>{verified && reset ? "Set New Password" : "Verify OTP"}</h1>
+        <h1>
+          {verified && reset ? UI_TEXT.setNewPassword : UI_TEXT.verifyOtp}
+        </h1>
         <p>
           {verified
-            ? "Your mobile number has been verified."
-            : `Enter the 6-digit OTP sent to +91 ${details.mobileNumber.slice(0, 5)} ${details.mobileNumber.slice(5)}.`}
+            ? UI_TEXT.yourMobileNumberHasBeenVerified
+            : UI_MESSAGES.enterThe6DigitOtpSentTo91(
+                details.mobileNumber.slice(0, 5),
+                details.mobileNumber.slice(5),
+              )}
         </p>
         <form onSubmit={submit} noValidate>
           {verified && reset ? (
             <>
-              <label htmlFor="new-password">New 4-digit password</label>
+              <label htmlFor="new-password">{UI_TEXT.new4DigitPassword}</label>
               <div className="phone-input">
                 <input
                   id="new-password"
@@ -175,7 +181,9 @@ export function OTP() {
                   }
                 />
               </div>
-              <label htmlFor="confirm-password">Confirm password</label>
+              <label htmlFor="confirm-password">
+                {UI_TEXT.confirmPassword}
+              </label>
               <div className="phone-input">
                 <input
                   id="confirm-password"
@@ -194,7 +202,7 @@ export function OTP() {
           ) : (
             !verified && (
               <>
-                <label htmlFor="otp">OTP</label>
+                <label htmlFor="otp">{UI_TEXT.otp}</label>
                 <div className="phone-input">
                   <input
                     id="otp"
@@ -215,10 +223,10 @@ export function OTP() {
                   onClick={() => void resend()}
                 >
                   {timer > 0
-                    ? `Resend OTP in ${timer}s`
+                    ? UI_MESSAGES.resendOtpInS(timer)
                     : resends >= 5
-                      ? "Maximum resend limit reached"
-                      : "Resend OTP"}
+                      ? UI_TEXT.maximumResendLimitReached
+                      : UI_TEXT.resendOtp}
                 </button>
               </>
             )
@@ -230,12 +238,12 @@ export function OTP() {
           )}
           <button className="primary-btn" disabled={busy} type="submit">
             {busy
-              ? "Please wait..."
+              ? UI_TEXT.pleaseWait
               : verified && reset
-                ? "Save Password"
+                ? UI_TEXT.savePassword
                 : verified
-                  ? "Create Account"
-                  : "Verify & Continue"}
+                  ? UI_TEXT.createAccount
+                  : UI_TEXT.verifyContinue}
           </button>
         </form>
       </section>

@@ -1,3 +1,4 @@
+import { UI_TEXT, UI_MESSAGES } from "../../../../common/content/labels";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -40,14 +41,12 @@ export function HospitalMap({
           {
             maxZoom: 19,
             attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              UI_TEXT.copyAHrefHttpsWwwOpenstreetmapOrgCopyrightOpenstreetmap,
           },
         ).addTo(map);
         tiles.on("tileerror", () => {
           if (!cancelled)
-            setMapError(
-              "The map background could not load. You can still select hospital pins or use List view.",
-            );
+            setMapError(UI_TEXT.theMapBackgroundCouldNotLoadYouCanStill);
         });
         tiles.on("tileload", () => {
           if (!cancelled) setMapError("");
@@ -61,7 +60,9 @@ export function HospitalMap({
           const content = document.createElement("div");
           content.className = "hospital-map-popup";
           const title = document.createElement("strong");
-          title.textContent = String(hospital.HospitalName ?? "Hospital");
+          title.textContent = String(
+            hospital.HospitalName ?? UI_TEXT.hospital2,
+          );
           const address = document.createElement("p");
           address.textContent = [hospital.AddressLine1, hospital.City]
             .filter(Boolean)
@@ -69,7 +70,9 @@ export function HospitalMap({
           const details = document.createElement("button");
           details.type = "button";
           details.className = "hospital-popup-action";
-          details.textContent = isBooking ? "Book Service" : "View details";
+          details.textContent = isBooking
+            ? UI_TEXT.bookService
+            : UI_TEXT.viewDetails2;
           details.addEventListener("click", () =>
             navigate(
               `/${isBooking ? "hospitalService" : "hospitalDetails"}?hospitalId=${hospital.HospitalId}`,
@@ -78,12 +81,12 @@ export function HospitalMap({
           const book = document.createElement("button");
           book.type = "button";
           book.className = "hospital-popup-action";
-          book.textContent = "Book Service";
+          book.textContent = UI_TEXT.bookService;
           book.addEventListener("click", () =>
             navigate(`/hospitalService?hospitalId=${hospital.HospitalId}`),
           );
           const directions = document.createElement("a");
-          directions.textContent = "Get directions ↗";
+          directions.textContent = UI_TEXT.getDirections;
           directions.href = hospitalDirectionsUrl(hospital);
           directions.target = "_blank";
           directions.rel = "noreferrer";
@@ -91,10 +94,10 @@ export function HospitalMap({
           if (!isBooking) content.append(book);
           content.append(directions);
           const marker = L.marker(point, {
-            title: String(hospital.HospitalName ?? "Hospital"),
+            title: String(hospital.HospitalName ?? UI_TEXT.hospital2),
             icon: L.divIcon({
               className: "hospital-map-pin",
-              html: '<span aria-hidden="true">+</span>',
+              html: UI_TEXT.spanAriaHiddenTrueSpan,
               iconSize: [30, 38],
               iconAnchor: [15, 38],
             }),
@@ -106,7 +109,9 @@ export function HospitalMap({
             element.setAttribute("role", "button");
             element.setAttribute(
               "aria-label",
-              `Show ${hospital.HospitalName ?? "hospital"} on map`,
+              UI_MESSAGES.showOnMap(
+                hospital.HospitalName ?? UI_TEXT.hospitalFallback,
+              ),
             );
           }
         }
@@ -123,7 +128,7 @@ export function HospitalMap({
             fillOpacity: 1,
           })
             .addTo(map)
-            .bindTooltip("Your location");
+            .bindTooltip(UI_TEXT.yourLocation);
           bounds.extend(point);
         }
         if (bounds.isValid())
@@ -137,9 +142,7 @@ export function HospitalMap({
       })
       .catch(() => {
         if (!cancelled)
-          setMapError(
-            "Unable to load the interactive map. Please use List view or try again.",
-          );
+          setMapError(UI_TEXT.unableToLoadTheInteractiveMapPleaseUseList);
       });
     return () => {
       cancelled = true;
@@ -152,7 +155,7 @@ export function HospitalMap({
         ref={container}
         className="hospital-map-canvas"
         role="region"
-        aria-label="Interactive hospital map"
+        aria-label={UI_TEXT.interactiveHospitalMap}
       />
       {mapError && (
         <p className="hospital-map-message" role="status">
@@ -161,13 +164,13 @@ export function HospitalMap({
       )}
       {!mappedCount && (
         <p role="status">
-          No hospitals with valid map locations match your filters.
+          {UI_TEXT.noHospitalsWithValidMapLocationsMatchYourFilters}
         </p>
       )}
       {hospitals.length > mappedCount && (
         <p className="hospital-map-message">
-          {hospitals.length - mappedCount} hospital(s) have no map location.
-          Find them in List view.
+          {hospitals.length - mappedCount}
+          {UI_TEXT.hospitalSHaveNoMapLocationFindThemIn}
         </p>
       )}
     </div>

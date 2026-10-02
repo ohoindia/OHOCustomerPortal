@@ -1,3 +1,4 @@
+import { UI_TEXT, UI_MESSAGES } from "../../common/content/labels";
 import { useEffect, useSyncExternalStore } from "react";
 import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { getSessionMember } from "./pages/auth/member";
@@ -84,8 +85,8 @@ export default function App() {
       ? member.Name?.trim() || sessionStorage.getItem("FullName")?.trim()
       : "";
     document.title = customerName
-      ? `${customerName} | OHOINDIA CUSTOMER APP`
-      : "OHOINDIA CUSTOMER APP";
+      ? UI_MESSAGES.ohoindiaCustomerApp(customerName)
+      : UI_TEXT.ohoindiaCustomerApp2;
   }, [location, token]);
 
   return (

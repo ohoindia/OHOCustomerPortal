@@ -1,3 +1,9 @@
+import {
+  homeServices,
+  membershipAttentionStatuses,
+  renewalStatuses,
+} from "../../../common/content/options";
+import { UI_TEXT, UI_MESSAGES } from "../../../common/content/labels";
 import { useNavigate } from "react-router-dom";
 import { Logo, AppShell } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
@@ -11,20 +17,13 @@ import {
   expiryStatus,
   cardStatus,
   nextAppointment,
+  appointmentState as getAppointmentState,
+  vaultMembershipStatus as getVaultMembershipStatus,
   type Appointment,
 } from "../services/home";
 import "./home-member.css";
 
-const services = [
-  ["🏥", "Hospitals", "/hospitals"],
-  ["👨🏻‍⚕️", "Doctors", "/doctors"],
-  ["🧪", "Lab Tests", "/lab-tests"],
-  ["💊", "Pharmacy", "/pharmacy"],
-  ["♡", "Wellness", "/packages"],
-  ["🩺", "Health Checkups", "/packages"],
-  ["📦", "Packages", "/packages"],
-  ["•••", "More", "/profile"],
-];
+const services = homeServices;
 export default function Home() {
   const navigate = useNavigate();
   const [sessionMember] = useState(getSessionMember);
@@ -63,33 +62,21 @@ export default function Home() {
   const member = data?.customer ?? sessionMember;
   const card = data?.card ?? null;
   const appointment = appointments ? nextAppointment(appointments) : null;
-  const appointmentState = !(memberId > 0)
-    ? "No upcoming appointments"
-    : appointments === undefined
-      ? "Loading appointment..."
-      : appointments !== null
-        ? "No upcoming appointments"
-        : "Appointments unavailable";
+  const appointmentState = getAppointmentState(memberId, appointments);
   const status = cardStatus(card);
-  const membershipExpiry = expiryStatus(card?.EndDate);
-  const vaultMembershipStatus =
-    membershipExpiry === "Expired"
-      ? "Expired"
-      : membershipExpiry === "Valid" || membershipExpiry === "Expires today"
-        ? "Active"
-        : null;
+  const vaultMembershipStatus = getVaultMembershipStatus(card);
   const profileMessages = data
     ? [
         !member?.DateofBirth || !member?.Age || !member?.Gender
-          ? "Complete your date of birth, age and gender in Profile."
+          ? UI_TEXT.completeYourDateOfBirthAgeAndGenderIn
           : "",
-        data.address === false ? "Add your address in Profile." : "",
+        data.address === false ? UI_TEXT.addYourAddressInProfile : "",
         data.hasMember
           ? data.kyc === undefined
-            ? "KYC verification unavailable."
+            ? UI_TEXT.kycVerificationUnavailable
             : data.kyc
               ? ""
-              : "KYC incomplete: complete Aadhaar, PAN and face verification in Profile."
+              : UI_TEXT.kycIncompleteCompleteAadhaarPanAndFaceVerificationIn
           : "",
       ].filter(Boolean)
     : [];
@@ -97,29 +84,38 @@ export default function Home() {
     ...new Set([
       ...profileMessages,
       ...(data?.errors ?? []),
-      ...(card && ["Expired", "Expires today", "Inactive"].includes(status)
+      ...(card && membershipAttentionStatuses.includes(status)
         ? [
-            `Your membership card is ${status.toLowerCase()}. ${status === "Inactive" ? "Contact support for activation." : "Review renewal options in Packages."}`,
+            UI_MESSAGES.yourMembershipCardIs(
+              status.toLowerCase(),
+              status === UI_TEXT.inactive
+                ? UI_TEXT.contactSupportForActivation
+                : UI_TEXT.reviewRenewalOptionsInPackages,
+            ),
           ]
         : []),
       ...(data?.products ?? [])
         .filter((product) =>
-          ["Expired", "Expires today"].includes(
-            expiryStatus(product.ValidTill),
-          ),
+          renewalStatuses.includes(expiryStatus(product.ValidTill)),
         )
-        .map(
-          (product) =>
-            `${product.ProductName || "Your package"}: ${expiryStatus(product.ValidTill).toLowerCase()}. Review renewal options in Packages.`,
+        .map((product) =>
+          UI_MESSAGES.reviewRenewalOptionsInPackages2(
+            product.ProductName || UI_TEXT.yourPackage,
+            expiryStatus(product.ValidTill).toLowerCase(),
+          ),
         ),
     ]),
   ];
   const freePackages = data?.freeProducts
     .map((item) =>
       [
-        item.ProductName || "Free package",
-        item.MaximumAdult != null ? `${item.MaximumAdult} adults` : "",
-        item.MaximumChild != null ? `${item.MaximumChild} children` : "",
+        item.ProductName || UI_TEXT.freePackage,
+        item.MaximumAdult != null
+          ? UI_MESSAGES.adultCount(item.MaximumAdult)
+          : "",
+        item.MaximumChild != null
+          ? UI_MESSAGES.childCount(item.MaximumChild)
+          : "",
       ]
         .filter(Boolean)
         .join(" · "),
@@ -130,15 +126,17 @@ export default function Home() {
     title: appointment
       ? appointment.ServiceName ||
         appointment.PoliciesType ||
-        "Hospital appointment"
+        UI_TEXT.hospitalAppointment
       : appointmentState,
     subtitle: appointment?.HospitalName || "",
     date: formatHomeDate(appointment?.AppointmentDate),
-    status: appointment?.StatusName || (appointment ? "Booked" : "—"),
-    icon: "👨🏻‍⚕️",
+    status:
+      appointment?.StatusName ||
+      (appointment ? UI_TEXT.booked : UI_TEXT.emptyValue),
+    icon: UI_TEXT.doctorEmoji,
   };
   const name =
-    member?.Name?.trim() || sessionStorage.getItem("FullName") || "Guest";
+    member?.Name?.trim() || sessionStorage.getItem("FullName") || UI_TEXT.guest;
   const initials = name
     .split(/\s+/)
     .slice(0, 2)
@@ -151,7 +149,7 @@ export default function Home() {
         <Logo compact />
         <button
           className="profile-mini"
-          aria-label="View profile"
+          aria-label={UI_TEXT.viewProfile2}
           onClick={() => navigate("/profile")}
         >
           {initials}
@@ -159,7 +157,11 @@ export default function Home() {
       </header>
       <div className="home-top">
         <div>
-          <h1>Hello, {name} 👋</h1>
+          <h1>
+            {UI_TEXT.hello}
+            {name}
+            {UI_TEXT.decoration1F44B}
+          </h1>
         </div>
       </div>
       <section
@@ -167,11 +169,13 @@ export default function Home() {
         aria-labelledby="home-family-vault-title"
       >
         <div className="home-vault-heading">
-          <h2 id="home-family-vault-title">Family Health Account Vault</h2>
-          <span className="home-vault-badge">Liquidity</span>
+          <h2 id="home-family-vault-title">
+            {UI_TEXT.familyHealthAccountVault}
+          </h2>
+          <span className="home-vault-badge">{UI_TEXT.liquidity}</span>
         </div>
-        <strong className="home-vault-value">₹ 37,000</strong>
-        <p>Pre-loaded Health Liquidity</p>
+        <strong className="home-vault-value">{UI_TEXT.value37000}</strong>
+        <p>{UI_TEXT.preLoadedHealthLiquidity}</p>
         <div className="home-vault-pattern" aria-hidden="true">
           <svg
             viewBox="0 0 180 140"
@@ -196,14 +200,16 @@ export default function Home() {
         <div className="home-vault-actions">
           {vaultMembershipStatus && (
             <span
-              className={`home-vault-status${vaultMembershipStatus === "Expired" ? " is-expired" : ""}`}
-              aria-label={`Membership ${vaultMembershipStatus.toLowerCase()}`}
+              className={`home-vault-status${vaultMembershipStatus === UI_TEXT.expired ? " is-expired" : ""}`}
+              aria-label={UI_MESSAGES.membership2(
+                vaultMembershipStatus.toLowerCase(),
+              )}
             >
               {vaultMembershipStatus}
             </span>
           )}
           <button type="button" onClick={() => navigate("/account-details")}>
-            Account Details
+            {UI_TEXT.accountDetails2}
           </button>
         </div>
       </section>
@@ -226,7 +232,7 @@ export default function Home() {
         />
       )}
       <QuickActions memberId={memberId} communityId={communityId} />
-      <SectionTitle title="Quick Services" />
+      <SectionTitle title={UI_TEXT.quickServices} />
       <div className="service-grid">
         {services.map(([icon, label, to]) => (
           <button key={label} onClick={() => navigate(to)}>
@@ -236,8 +242,8 @@ export default function Home() {
         ))}
       </div>
       <SectionTitle
-        title="Upcoming Appointment"
-        action="View All"
+        title={UI_TEXT.upcomingAppointment}
+        action={UI_TEXT.viewAll}
         onClick={() => navigate("/bookings")}
       />
       {appointment ? (
@@ -255,14 +261,16 @@ export default function Home() {
       <section className="offer-banner">
         <div>
           <b>
-            {freePackages ? "Available free packages" : "Today's Health Tip"}
+            {freePackages
+              ? UI_TEXT.availableFreePackages
+              : UI_TEXT.todaySHealthTip}
           </b>
           <p aria-live="polite">
             {freePackages ||
               data?.config.HealthTip ||
               (data
-                ? "Health tips currently unavailable."
-                : "Loading health tips...")}
+                ? UI_TEXT.healthTipsCurrentlyUnavailable
+                : UI_TEXT.loadingHealthTips)}
             {freePackages && data?.config.HealthTip && (
               <>
                 <br />
@@ -272,7 +280,7 @@ export default function Home() {
             {data?.config.OHOCareMobileNumber && (
               <>
                 <br />
-                Support:{" "}
+                {UI_TEXT.support}{" "}
                 <a
                   href={`tel:${data.config.OHOCareMobileNumber.replace(/[^+\d]/g, "")}`}
                 >
@@ -282,7 +290,7 @@ export default function Home() {
             )}
           </p>
         </div>
-        <span>🎁</span>
+        <span>{UI_TEXT.giftEmoji}</span>
       </section>
     </AppShell>
   );
@@ -298,9 +306,12 @@ function ActionNotice({ messages }: { messages: string[] }) {
   return (
     <aside className="home-action-notice" aria-live="polite">
       <div className="home-notice-heading">
-        <strong>Needs your attention</strong>
-        <button aria-label="Dismiss notices" onClick={() => setVisible(false)}>
-          ×
+        <strong>{UI_TEXT.needsYourAttention}</strong>
+        <button
+          aria-label={UI_TEXT.dismissNotices}
+          onClick={() => setVisible(false)}
+        >
+          {UI_TEXT.dismissIcon}
         </button>
       </div>
       <ul>
@@ -309,8 +320,12 @@ function ActionNotice({ messages }: { messages: string[] }) {
         ))}
       </ul>
       <div className="home-notice-actions">
-        <button onClick={() => navigate("/profile")}>Review profile</button>
-        <button onClick={() => navigate("/packages")}>View packages</button>
+        <button onClick={() => navigate("/profile")}>
+          {UI_TEXT.reviewProfile}
+        </button>
+        <button onClick={() => navigate("/packages")}>
+          {UI_TEXT.viewPackages}
+        </button>
       </div>
     </aside>
   );

@@ -1,3 +1,4 @@
+import { UI_TEXT } from "../../../../common/content/labels";
 import { useNavigate } from "react-router-dom";
 import { Logo } from "../../components/Layout";
 
@@ -7,14 +8,15 @@ export function Splash() {
     <main className="auth-page splash" onClick={() => navigate("/login")}>
       <Logo />
       <h2>
-        Your Health.
+        {UI_TEXT.yourHealth}
         <br />
-        Our Priority.
+        {UI_TEXT.ourPriority}
       </h2>
       <div className="hero-illustration">
-        👨‍👩‍👧<span>🛡️</span>
+        {UI_TEXT.familyIcon}
+        <span>{UI_TEXT.shieldIcon}</span>
       </div>
-      <p>Tap anywhere to continue</p>
+      <p>{UI_TEXT.tapAnywhereToContinue}</p>
     </main>
   );
 }

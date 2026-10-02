@@ -1,3 +1,5 @@
+import { bookableCardStatuses } from "../../../../common/content/options";
+import { UI_TEXT, UI_MESSAGES } from "../../../../common/content/labels";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AppShell, PageHeader } from "../../components/Layout";
@@ -25,21 +27,18 @@ export function BookService() {
   const customerId = Number(getSessionMember()?.MemberId || 0);
   return (
     <AppShell className="portal-page">
-      <PageHeader title="Book Service" />
+      <PageHeader title={UI_TEXT.bookService} />
       <div className="portal-content">
         {!customerId ? (
           <>
-            <p>
-              An individual customer membership is required to book this
-              service.
-            </p>
-            <Link to="/support">Contact OHO Care</Link>
+            <p>{UI_TEXT.anIndividualCustomerMembershipIsRequiredToBookThis}</p>
+            <Link to="/support">{UI_TEXT.contactOhoCare}</Link>
           </>
         ) : !Number.isSafeInteger(hospitalId) || hospitalId <= 0 ? (
           <>
-            <p>Select a hospital for your Zero-Cash OPD consultation.</p>
+            <p>{UI_TEXT.selectAHospitalForYourZeroCashOpdConsultation}</p>
             <Link to="/hospitallist" state={{ isFromBookService: true }}>
-              Choose hospital
+              {UI_TEXT.chooseHospital}
             </Link>
           </>
         ) : (
@@ -89,7 +88,7 @@ function ServiceOptions({
       .then(
         ([hospitals, services, members, dependents, cards, serviceTypes]) => {
           if (!hospitals[0] || !members[0])
-            throw new Error("Hospital or customer details could not be found.");
+            throw new Error(UI_TEXT.hospitalOrCustomerDetailsCouldNotBeFound);
           if (!controller.signal.aborted)
             setData({
               hospital: hospitals[0],
@@ -97,7 +96,7 @@ function ServiceOptions({
               serviceTypes,
               patients: [members[0], ...dependents],
               card: cards.returnData.find((card) =>
-                ["Active", "Expires today"].includes(cardStatus(card)),
+                bookableCardStatuses.includes(cardStatus(card)),
               ),
             });
         },
@@ -107,7 +106,7 @@ function ServiceOptions({
           setError(
             err instanceof Error
               ? err.message
-              : "Unable to load booking details.",
+              : UI_TEXT.unableToLoadBookingDetails,
           );
       });
     return () => controller.abort();
@@ -124,45 +123,39 @@ function ServiceOptions({
             setAttempt((value) => value + 1);
           }}
         >
-          Try again
+          {UI_TEXT.tryAgain}
         </button>
       </div>
     );
   if (!data)
-    return <p role="status">Loading hospital services and membership...</p>;
+    return <p role="status">{UI_TEXT.loadingHospitalServicesAndMembership}</p>;
   const freeServices = data.services.filter(
-    (row) => row.PoliciesType === "Free Consultation",
+    (row) => row.PoliciesType === UI_TEXT.freeConsultation,
   );
   return (
     <>
       <h2>{textValue(data.hospital, "HospitalName")}</h2>
       <p>
-        {textValue(data.hospital, "AddressLine1")},{" "}
-        {textValue(data.hospital, "City")}
+        {textValue(data.hospital, "AddressLine1")}
+        {UI_TEXT.comma} {textValue(data.hospital, "City")}
       </p>
       <article className="portal-card">
-        <h2>Zero-Cash OPD</h2>
-        <p>
-          Use an available free-consultation coupon for yourself or an eligible
-          family member.
-        </p>
+        <h2>{UI_TEXT.zeroCashOpd}</h2>
+        <p>{UI_TEXT.useAnAvailableFreeConsultationCouponForYourselfOr}</p>
       </article>
       {!data.card ? (
         <div role="status">
+          <p>{UI_TEXT.anActiveUnexpiredMembershipCardIsRequiredToBook}</p>
+          <Link to="/PurchasedPackages">{UI_TEXT.viewMembership}</Link>
           <p>
-            An active, unexpired membership card is required to book this
-            service.
-          </p>
-          <Link to="/PurchasedPackages">View membership</Link>
-          <p>
-            <Link to="/support">Contact support</Link>
+            <Link to="/support">{UI_TEXT.contactSupport}</Link>
           </p>
         </div>
       ) : !freeServices.length ? (
         <>
-          <p>Free consultation is not available at this hospital.</p>
+          <p>{UI_TEXT.freeConsultationIsNotAvailableAtThisHospital}</p>
           <Link to="/hospitallist" state={{ isFromBookService: true }}>
-            Choose another hospital
+            {UI_TEXT.chooseAnotherHospital}
           </Link>
         </>
       ) : (
@@ -220,7 +213,7 @@ function PatientBooking({
     )
       .then((result) => {
         if (!Number.isFinite(result.availableCoupons))
-          throw new Error("Coupon availability could not be confirmed.");
+          throw new Error(UI_TEXT.couponAvailabilityCouldNotBeConfirmed);
         if (!controller.signal.aborted)
           setCoupon({
             patientId,
@@ -234,7 +227,7 @@ function PatientBooking({
             patientId,
             availableCoupons: 0,
             message:
-              err instanceof Error ? err.message : "Unable to check coupons.",
+              err instanceof Error ? err.message : UI_TEXT.unableToCheckCoupons,
           });
       });
     return () => controller.abort();
@@ -243,11 +236,11 @@ function PatientBooking({
   async function book() {
     if (busy || checking || !coupon?.availableCoupons) return;
     if (!appointmentDate || new Date(appointmentDate).getTime() < Date.now()) {
-      setError("Select a future appointment date and time.");
+      setError(UI_TEXT.selectAFutureAppointmentDateAndTime);
       return;
     }
     if (!serviceTypeId) {
-      setError("Please select a service type.");
+      setError(UI_TEXT.pleaseSelectAServiceType);
       return;
     }
     setBusy(true);
@@ -269,16 +262,14 @@ function PatientBooking({
         },
       });
       if (!result.status || !result.data?.BookingConsultationId)
-        throw new Error(result.message || "Unable to initiate the booking.");
+        throw new Error(result.message || UI_TEXT.unableToInitiateTheBooking);
       navigate(
         `/hospitalConsulationForm?bookingId=${result.data.BookingConsultationId}`,
         { replace: true, state: { bookingInitiated: true } },
       );
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to book. Please try again.",
+        err instanceof Error ? err.message : UI_TEXT.unableToBookPleaseTryAgain,
       );
     } finally {
       setBusy(false);
@@ -287,7 +278,7 @@ function PatientBooking({
   return (
     <>
       <label className="portal-label">
-        Select patient
+        {UI_TEXT.selectPatient}
         <select
           className="book-service-select"
           value={patientId}
@@ -302,7 +293,7 @@ function PatientBooking({
             return (
               <option key={id} value={id}>
                 {textValue(patient, "Name")}
-                {id === customerId ? " (Self)" : ""}
+                {id === customerId ? UI_TEXT.selfSuffix : ""}
               </option>
             );
           })}
@@ -310,10 +301,13 @@ function PatientBooking({
       </label>
       <p role="status">
         {checking
-          ? "Checking free consultation coupons..."
+          ? UI_TEXT.checkingFreeConsultationCoupons
           : coupon?.availableCoupons
-            ? `${coupon.availableCoupons} free consultation coupon${coupon.availableCoupons === 1 ? "" : "s"} available`
-            : coupon?.message || "No coupons available for this patient."}
+            ? UI_MESSAGES.freeConsultationCouponAvailable(
+                coupon.availableCoupons,
+                coupon.availableCoupons === 1 ? "" : UI_TEXT.pluralSuffix,
+              )
+            : coupon?.message || UI_TEXT.noCouponsAvailableForThisPatient}
       </p>
       {!checking && !coupon?.availableCoupons && (
         <button
@@ -324,11 +318,11 @@ function PatientBooking({
             setAttempt((value) => value + 1);
           }}
         >
-          Check again
+          {UI_TEXT.checkAgain}
         </button>
       )}
       <label className="portal-label">
-        Appointment Date &amp; Time *
+        {UI_TEXT.appointmentDateTime}
         <input
           className="book-service-select"
           type="datetime-local"
@@ -340,19 +334,19 @@ function PatientBooking({
         />
       </label>
       <label className="portal-label">
-        Reason to Visit
+        {UI_TEXT.reasonToVisit}
         <textarea
           className="book-service-select"
           rows={3}
           maxLength={1000}
-          placeholder="Enter reason to visit"
+          placeholder={UI_TEXT.enterReasonToVisit}
           value={reason}
           disabled={busy}
           onChange={(event) => setReason(event.target.value)}
         />
       </label>
       <label className="portal-label">
-        Service Type *
+        {UI_TEXT.serviceType}
         <select
           className="book-service-select"
           required
@@ -360,7 +354,7 @@ function PatientBooking({
           disabled={busy}
           onChange={(event) => setServiceTypeId(event.target.value)}
         >
-          <option value="">Select Service</option>
+          <option value="">{UI_TEXT.selectService}</option>
           {serviceTypes.map((service) => (
             <option
               key={Number(service.HospitalServicesId)}
@@ -373,7 +367,7 @@ function PatientBooking({
       </label>
       {!serviceTypes.length && (
         <p role="status">
-          No service types are currently available. Please contact support.
+          {UI_TEXT.noServiceTypesAreCurrentlyAvailablePleaseContactSupport}
         </p>
       )}
       <button
@@ -381,14 +375,11 @@ function PatientBooking({
         disabled={busy || checking || !coupon?.availableCoupons}
         onClick={() => void book()}
       >
-        {busy ? "Initiating booking..." : "Book Free Consultation"}
+        {busy ? UI_TEXT.initiatingBooking : UI_TEXT.bookFreeConsultation}
       </button>
       {error && <p role="alert">{error}</p>}
-      <p>
-        Your booking will be initiated for the hospital to confirm. Your coupon
-        is claimed when the visit is completed.
-      </p>
-      <Link to="/ConsultationList">View my bookings</Link>
+      <p>{UI_TEXT.yourBookingWillBeInitiatedForTheHospitalTo}</p>
+      <Link to="/ConsultationList">{UI_TEXT.viewMyBookings}</Link>
     </>
   );
 }

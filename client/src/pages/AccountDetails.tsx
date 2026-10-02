@@ -1,3 +1,4 @@
+import { UI_TEXT, UI_MESSAGES } from "../../../common/content/labels";
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell, PageHeader } from "../components/Layout";
@@ -14,7 +15,7 @@ import "./home-member.css";
 import "./account-details.css";
 
 const date = (value?: string | null) =>
-  formatHomeDate(value ?? undefined) || "Not provided";
+  formatHomeDate(value ?? undefined) || UI_TEXT.notProvided;
 const money = (value: number) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -28,7 +29,7 @@ function Field({ label, value }: { label: string; value?: ReactNode }) {
       <dt>{label}</dt>
       <dd>
         {value === null || value === undefined || value === ""
-          ? "Not provided"
+          ? UI_TEXT.notProvided
           : value}
       </dd>
     </div>
@@ -76,14 +77,14 @@ export default function AccountDetailsPage() {
     for (const policy of product.Policies ?? []) {
       const people = [
         ...(policy.Dependents ?? []).map((person) => ({
-          name: person.DependentFullName || "Name not provided",
-          relationship: person.DependentRelationship || "Family member",
+          name: person.DependentFullName || UI_TEXT.nameNotProvided,
+          relationship: person.DependentRelationship || UI_TEXT.familyMember,
           dob: person.DependentDateofBirth,
           gender: person.DependentGender,
         })),
         ...(policy.Insurer ?? []).map((person) => ({
-          name: person.InsurerName || "Name not provided",
-          relationship: person.InsurerRelationship || "Covered member",
+          name: person.InsurerName || UI_TEXT.nameNotProvided,
+          relationship: person.InsurerRelationship || UI_TEXT.coveredMember,
           dob: person.InsurerDateofBirth,
           gender: person.InsurerGender,
           mobile: person.InsurerMobileNumber,
@@ -127,16 +128,16 @@ export default function AccountDetailsPage() {
 
   return (
     <AppShell nav={false} className="account-page">
-      <PageHeader title="Account Details" />
+      <PageHeader title={UI_TEXT.accountDetails2} />
       <section className="account-intro">
-        <span>YOUR FAMILY HEALTH ACCOUNT</span>
-        <h2>{member?.Name || "Your account"}</h2>
-        <p>Membership, family coverage and package validity in one place.</p>
+        <span>{UI_TEXT.yourFamilyHealthAccount}</span>
+        <h2>{member?.Name || UI_TEXT.yourAccount}</h2>
+        <p>{UI_TEXT.membershipFamilyCoverageAndPackageValidityInOnePlace}</p>
       </section>
-      {!data && <p role="status">Loading account details...</p>}
+      {!data && <p role="status">{UI_TEXT.loadingAccountDetails}</p>}
       {Boolean(data?.errors.length) && (
         <aside className="account-notice" role="status">
-          <p>Some details could not be loaded.</p>
+          <p>{UI_TEXT.someDetailsCouldNotBeLoaded}</p>
           <ul>
             {data?.errors.map((error) => (
               <li key={error}>{error}</li>
@@ -148,79 +149,91 @@ export default function AccountDetailsPage() {
               setRetry((value) => value + 1);
             }}
           >
-            Try again
+            {UI_TEXT.tryAgain}
           </button>
         </aside>
       )}
       <section className="account-section">
-        <h2>Account holder</h2>
+        <h2>{UI_TEXT.accountHolder}</h2>
         <dl className="account-fields">
-          <Field label="Full name" value={member?.Name} />
-          <Field label="Member ID" value={member?.MemberId || undefined} />
-          <Field label="Mobile number" value={member?.MobileNumber} />
-          <Field label="Email" value={member?.Email} />
-          <Field label="Date of birth" value={date(member?.DateofBirth)} />
-          <Field label="Age" value={member?.Age} />
-          <Field label="Gender" value={member?.Gender} />
-          <Field label="Group" value={data?.groupName} />
-          <Field label="Address" value={address} />
+          <Field label={UI_TEXT.fullName} value={member?.Name} />
           <Field
-            label="KYC verification"
+            label={UI_TEXT.memberId}
+            value={member?.MemberId || undefined}
+          />
+          <Field label={UI_TEXT.mobileNumber} value={member?.MobileNumber} />
+          <Field label={UI_TEXT.email} value={member?.Email} />
+          <Field
+            label={UI_TEXT.dateOfBirth}
+            value={date(member?.DateofBirth)}
+          />
+          <Field label={UI_TEXT.age} value={member?.Age} />
+          <Field label={UI_TEXT.gender} value={member?.Gender} />
+          <Field label={UI_TEXT.group} value={data?.groupName} />
+          <Field label={UI_TEXT.address} value={address} />
+          <Field
+            label={UI_TEXT.kycVerification}
             value={
               !data
-                ? "Loading..."
+                ? UI_TEXT.loading
                 : data.kyc === undefined
-                  ? "Unavailable"
+                  ? UI_TEXT.unavailable
                   : data.kyc
-                    ? "Verified"
-                    : "Incomplete"
+                    ? UI_TEXT.verified
+                    : UI_TEXT.incomplete
             }
           />
           <Field
-            label="Address verification"
+            label={UI_TEXT.addressVerification}
             value={
               !data
-                ? "Loading..."
+                ? UI_TEXT.loading
                 : data.address === undefined
-                  ? "Unavailable"
+                  ? UI_TEXT.unavailable
                   : data.address
-                    ? "Verified"
-                    : "Incomplete"
+                    ? UI_TEXT.verified
+                    : UI_TEXT.incomplete
             }
           />
         </dl>
       </section>
       <section className="account-section">
-        <h2>Membership</h2>
+        <h2>{UI_TEXT.membership}</h2>
         <dl className="account-fields">
           <Field
-            label="Status"
+            label={UI_TEXT.status}
             value={
               !data
-                ? "Loading..."
+                ? UI_TEXT.loading
                 : !data.membershipLoaded && data.hasMember
-                  ? "Unavailable"
+                  ? UI_TEXT.unavailable
                   : cardStatus(data.card)
             }
           />
-          <Field label="Card number" value={data?.card?.OHOCardnumber} />
-          <Field label="Valid from" value={date(data?.card?.StartDate)} />
-          <Field label="Valid until" value={date(data?.card?.EndDate)} />
+          <Field label={UI_TEXT.cardNumber} value={data?.card?.OHOCardnumber} />
+          <Field
+            label={UI_TEXT.validFrom}
+            value={date(data?.card?.StartDate)}
+          />
+          <Field label={UI_TEXT.validUntil} value={date(data?.card?.EndDate)} />
         </dl>
         <MembershipCard data={data} />
       </section>
       <section className="account-section">
-        <h2>Family members</h2>
+        <h2>{UI_TEXT.familyMembers}</h2>
         <p className="account-caption">
-          Account holder and family members listed in your package policies.
+          {UI_TEXT.accountHolderAndFamilyMembersListedInYourPackage}
         </p>
         <article className="account-person">
-          <h3>{member?.Name || "Account holder"}</h3>
+          <h3>{member?.Name || UI_TEXT.accountHolder}</h3>
           <span className="account-status is-active">
-            Self · Account holder
+            {UI_TEXT.selfAccountHolder}
           </span>
           <p>
-            {[member?.Gender, member?.Age != null ? `${member.Age} years` : ""]
+            {[
+              member?.Gender,
+              member?.Age != null ? UI_MESSAGES.ageInYears(member.Age) : "",
+            ]
               .filter(Boolean)
               .join(" · ")}
           </p>
@@ -230,64 +243,72 @@ export default function AccountDetailsPage() {
             <h3>{person.name}</h3>
             <span className="account-status">{person.relationship}</span>
             <dl className="account-fields">
-              <Field label="Date of birth" value={date(person.dob)} />
-              <Field label="Gender" value={person.gender} />
-              {person.mobile && <Field label="Mobile" value={person.mobile} />}
+              <Field label={UI_TEXT.dateOfBirth} value={date(person.dob)} />
+              <Field label={UI_TEXT.gender} value={person.gender} />
+              {person.mobile && (
+                <Field label={UI_TEXT.mobile} value={person.mobile} />
+              )}
             </dl>
             <div className="account-coverage">
-              <h4>Package coverage</h4>
+              <h4>{UI_TEXT.packageCoverage}</h4>
               {[...person.packages.entries()].map(([id, product]) => (
                 <dl className="account-fields" key={id}>
                   <Field
-                    label="Package"
-                    value={product.ProductName || "Package"}
+                    label={UI_TEXT.package}
+                    value={product.ProductName || UI_TEXT.package}
                   />
                   <Field
-                    label="Validity status"
+                    label={UI_TEXT.validityStatus}
                     value={expiryStatus(product.ValidTill, now)}
                   />
-                  <Field label="Issued on" value={date(product.IssuedOn)} />
-                  <Field label="Valid until" value={date(product.ValidTill)} />
+                  <Field
+                    label={UI_TEXT.issuedOn}
+                    value={date(product.IssuedOn)}
+                  />
+                  <Field
+                    label={UI_TEXT.validUntil}
+                    value={date(product.ValidTill)}
+                  />
                 </dl>
               ))}
             </div>
           </article>
         ))}
         {!data ? (
-          <p>Loading family details...</p>
+          <p>{UI_TEXT.loadingFamilyDetails}</p>
         ) : products === null && data.hasMember ? (
-          <p>Family coverage unavailable. Please try again later.</p>
+          <p>{UI_TEXT.familyCoverageUnavailablePleaseTryAgainLater}</p>
         ) : (
           !family.size && (
-            <p>No additional family members listed in your package records.</p>
+            <p>{UI_TEXT.noAdditionalFamilyMembersListedInYourPackageRecords}</p>
           )
         )}
       </section>
       <section className="account-section">
         <div className="account-section-heading">
-          <h2>Packages & validity</h2>
+          <h2>{UI_TEXT.packagesValidity}</h2>
           <button onClick={() => navigate("/packages")}>
-            Explore packages
+            {UI_TEXT.explorePackages}
           </button>
         </div>
         {!data ? (
-          <p>Loading packages...</p>
+          <p>{UI_TEXT.loadingPackages}</p>
         ) : products === null && data.hasMember ? (
-          <p>Packages unavailable. Please try again later.</p>
+          <p>{UI_TEXT.packagesUnavailablePleaseTryAgainLater}</p>
         ) : !products?.length ? (
-          <p>No purchased packages.</p>
+          <p>{UI_TEXT.noPurchasedPackages}</p>
         ) : (
           products.map((product, index) => {
             const expiry = expiryStatus(product.ValidTill, now);
             const status =
-              expiry === "Expired"
+              expiry === UI_TEXT.expired
                 ? expiry
                 : product.IsActive === false
-                  ? "Inactive"
+                  ? UI_TEXT.inactive
                   : Date.parse(product.IssuedOn ?? "") > now.getTime()
-                    ? "Not started"
-                    : expiry === "Valid"
-                      ? "Active"
+                    ? UI_TEXT.notStarted
+                    : expiry === UI_TEXT.valid
+                      ? UI_TEXT.active
                       : expiry;
             return (
               <article
@@ -295,60 +316,78 @@ export default function AccountDetailsPage() {
                 key={product.MemberProductProductsId ?? index}
               >
                 <div className="account-section-heading">
-                  <h3>{product.ProductName || "Package"}</h3>
+                  <h3>{product.ProductName || UI_TEXT.package}</h3>
                   <span
-                    className={`account-status ${status === "Active" ? "is-active" : status === "Expired" ? "is-expired" : ""}`}
+                    className={`account-status ${status === UI_TEXT.active ? "is-active" : status === UI_TEXT.expired ? "is-expired" : ""}`}
                   >
                     {status}
                   </span>
                 </div>
                 {product.ShortDescription && <p>{product.ShortDescription}</p>}
                 <dl className="account-fields">
-                  <Field label="Issued on" value={date(product.IssuedOn)} />
-                  <Field label="Valid until" value={date(product.ValidTill)} />
-                  <Field label="Expiry status" value={expiry} />
+                  <Field
+                    label={UI_TEXT.issuedOn}
+                    value={date(product.IssuedOn)}
+                  />
+                  <Field
+                    label={UI_TEXT.validUntil}
+                    value={date(product.ValidTill)}
+                  />
+                  <Field label={UI_TEXT.expiryStatus} value={expiry} />
                   {product.ProductCategoryName && (
                     <Field
-                      label="Category"
+                      label={UI_TEXT.category}
                       value={product.ProductCategoryName}
                     />
                   )}
                   {product.PaidAmount != null && (
                     <Field
-                      label="Amount paid"
+                      label={UI_TEXT.amountPaid}
                       value={money(product.PaidAmount)}
                     />
                   )}
                   {product.SumAssured != null && product.SumAssured > 0 && (
                     <Field
-                      label="Sum assured"
+                      label={UI_TEXT.sumAssured}
                       value={money(product.SumAssured)}
                     />
                   )}
                   {product.MaximumAdult != null && (
-                    <Field label="Adult limit" value={product.MaximumAdult} />
+                    <Field
+                      label={UI_TEXT.adultLimit}
+                      value={product.MaximumAdult}
+                    />
                   )}
                   {product.MaximumChild != null && (
-                    <Field label="Child limit" value={product.MaximumChild} />
+                    <Field
+                      label={UI_TEXT.childLimit}
+                      value={product.MaximumChild}
+                    />
                   )}
                   {product.MaximumMembers != null && (
                     <Field
-                      label="Member limit"
+                      label={UI_TEXT.memberLimit}
                       value={product.MaximumMembers}
                     />
                   )}
                 </dl>
                 {product.Policies?.map((policy, i) => (
                   <div className="account-policy" key={policy.PoliciesId ?? i}>
-                    <h4>{policy.PoliciesProductName || "Policy"}</h4>
+                    <h4>{policy.PoliciesProductName || UI_TEXT.policy}</h4>
                     {policy.PolicyCOINumber && (
-                      <p>Policy / COI number: {policy.PolicyCOINumber}</p>
+                      <p>
+                        {UI_TEXT.policyCoiNumber}
+                        {policy.PolicyCOINumber}
+                      </p>
                     )}
                     {policy.Nominees?.map((nominee, j) => (
                       <p key={nominee.NomineeId ?? j}>
-                        Nominee: {nominee.NomineeFullName || "Not provided"}
+                        {UI_TEXT.nominee}
+                        {nominee.NomineeFullName || UI_TEXT.notProvided}
                         {nominee.NomineeRelationship
-                          ? ` (${nominee.NomineeRelationship})`
+                          ? UI_MESSAGES.relationshipSuffix(
+                              nominee.NomineeRelationship,
+                            )
                           : ""}
                       </p>
                     ))}
@@ -361,11 +400,12 @@ export default function AccountDetailsPage() {
       </section>
       {data?.config.OHOCareMobileNumber && (
         <section className="account-section">
-          <h2>Need help with your account?</h2>
+          <h2>{UI_TEXT.needHelpWithYourAccount}</h2>
           <a
             href={`tel:${data.config.OHOCareMobileNumber.replace(/[^+\d]/g, "")}`}
           >
-            Call {data.config.OHOCareMobileNumber}
+            {UI_TEXT.call}
+            {data.config.OHOCareMobileNumber}
           </a>
         </section>
       )}

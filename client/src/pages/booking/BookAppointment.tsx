@@ -1,3 +1,8 @@
+import {
+  appointmentDates,
+  appointmentTimeSlots,
+} from "../../../../common/content/options";
+import { UI_TEXT } from "../../../../common/content/labels";
 import { useNavigate } from "react-router-dom";
 import { AppShell, PageHeader, PrimaryButton } from "../../components/Layout";
 import { doctors } from "../../data/mockData";
@@ -7,7 +12,7 @@ export function BookAppointment() {
   const d = doctors[0];
   return (
     <AppShell>
-      <PageHeader title="Book Appointment" />
+      <PageHeader title={UI_TEXT.bookAppointment} />
       <article className="doctor-summary">
         <span>{d.avatar}</span>
         <div>
@@ -16,48 +21,36 @@ export function BookAppointment() {
           <small>{d.hospital}</small>
         </div>
       </article>
-      <h3 className="form-title">Select Date</h3>
+      <h3 className="form-title">{UI_TEXT.selectDate}</h3>
       <div className="date-grid">
-        {[
-          ["Mon", "20"],
-          ["Tue", "21"],
-          ["Wed", "22"],
-          ["Thu", "23"],
-          ["Fri", "24"],
-        ].map((d, i) => (
+        {appointmentDates.map((d, i) => (
           <button className={i === 0 ? "selected" : ""} key={d[1]}>
             <small>{d[0]}</small>
             <b>{d[1]}</b>
-            <small>May</small>
+            <small>{UI_TEXT.may}</small>
           </button>
         ))}
       </div>
-      <h3 className="form-title">Select Time</h3>
+      <h3 className="form-title">{UI_TEXT.selectTime}</h3>
       <div className="time-grid">
-        {[
-          "09:00 AM",
-          "09:30 AM",
-          "10:00 AM",
-          "10:30 AM",
-          "11:00 AM",
-          "11:30 AM",
-        ].map((t, i) => (
+        {appointmentTimeSlots.map((t, i) => (
           <button className={i === 3 ? "selected" : ""} key={t}>
             {t}
           </button>
         ))}
       </div>
-      <h3 className="form-title">Patient Details</h3>
+      <h3 className="form-title">{UI_TEXT.patientDetails}</h3>
       <article className="patient-row">
-        <span>👤</span>
+        <span>{UI_TEXT.personIcon}</span>
         <div>
-          <b>Srikanth Reddy</b>
-          <small>+91 98765 43210</small>
+          <b>{UI_TEXT.srikanthReddy}</b>
+          <small>{UI_TEXT.value919876543210}</small>
         </div>
-        <span>›</span>
+        <span>{UI_TEXT.chevronRight}</span>
       </article>
       <PrimaryButton onClick={() => nav("/payment")}>
-        Proceed to Pay <span>₹800 →</span>
+        {UI_TEXT.proceedToPay}
+        <span>{UI_TEXT.value800}</span>
       </PrimaryButton>
     </AppShell>
   );

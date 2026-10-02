@@ -1,3 +1,8 @@
+import {
+  paymentMethods,
+  paymentMethodIcons,
+} from "../../../../common/content/options";
+import { UI_TEXT } from "../../../../common/content/labels";
 import { useNavigate } from "react-router-dom";
 import { AppShell, PageHeader, PrimaryButton } from "../../components/Layout";
 
@@ -5,27 +10,22 @@ export function Payment() {
   const nav = useNavigate();
   return (
     <AppShell nav={false}>
-      <PageHeader title="Payment" />
+      <PageHeader title={UI_TEXT.payment} />
       <section className="amount-box">
-        <span>Amount to Pay</span>
-        <strong>₹800</strong>
-        <button>View Details</button>
+        <span>{UI_TEXT.amountToPay}</span>
+        <strong>{UI_TEXT.value8002}</strong>
+        <button>{UI_TEXT.viewDetails}</button>
       </section>
-      <h3>Payment Methods</h3>
-      {[
-        "UPI (PhonePe / GPay / Paytm)",
-        "Credit / Debit Card",
-        "Net Banking",
-        "OHO Wallet · Balance ₹2,450",
-      ].map((m, i) => (
+      <h3>{UI_TEXT.paymentMethods}</h3>
+      {paymentMethods.map((m, i) => (
         <label className="payment-row" key={m}>
-          <span>{["◉", "▣", "⌂", "▰"][i]}</span>
+          <span>{paymentMethodIcons[i]}</span>
           <b>{m}</b>
           <input type="radio" name="pay" defaultChecked={i === 3} />
         </label>
       ))}
       <PrimaryButton onClick={() => nav("/order-tracking")}>
-        Pay ₹800
+        {UI_TEXT.pay800}
       </PrimaryButton>
     </AppShell>
   );

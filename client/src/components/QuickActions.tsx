@@ -1,3 +1,4 @@
+import { UI_TEXT } from "../../../common/content/labels";
 import { useNavigate } from "react-router-dom";
 import { DashboardIcon } from "./DashboardIcon";
 
@@ -14,7 +15,7 @@ export function QuickActions({
       className="home-quick-actions"
       aria-labelledby="quick-actions-title"
     >
-      <h2 id="quick-actions-title">Quick Actions</h2>
+      <h2 id="quick-actions-title">{UI_TEXT.quickActions}</h2>
       <div className="home-quick-actions-grid">
         <button
           type="button"
@@ -33,9 +34,9 @@ export function QuickActions({
             <DashboardIcon name="doctor" />
           </span>
           <span>
-            Zero-Cash
+            {UI_TEXT.zeroCash}
             <br />
-            OPD
+            {UI_TEXT.opd}
           </span>
         </button>
         <button type="button" disabled onClick={() => navigate("/payment")}>
@@ -43,9 +44,9 @@ export function QuickActions({
             <DashboardIcon name="qr" />
           </span>
           <span>
-            Scan &amp; Pay
+            {UI_TEXT.scanPay}
             <br />
-            QR
+            {UI_TEXT.qr}
           </span>
         </button>
         <button type="button" onClick={() => navigate("/pharmacy")}>
@@ -53,9 +54,9 @@ export function QuickActions({
             <DashboardIcon name="pharmacy" />
           </span>
           <span>
-            Pharmacy
+            {UI_TEXT.pharmacy}
             <br />
-            Subsidies
+            {UI_TEXT.subsidies}
           </span>
         </button>
       </div>

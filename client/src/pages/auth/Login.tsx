@@ -1,4 +1,5 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { UI_TEXT } from "../../../../common/content/labels";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { authRequest, remainingSeconds } from "./api";
@@ -36,7 +37,7 @@ export function Login() {
     setChecking(false);
     if (digits.length !== 10) return;
     if (!/^[6-9]\d{9}$/.test(digits)) {
-      setError("Mobile number must start with 6, 7, 8, or 9.");
+      setError(UI_TEXT.mobileNumberMustStartWith678Or);
       return;
     }
     setChecking(true);
@@ -52,7 +53,7 @@ export function Login() {
         setError(
           err instanceof Error
             ? err.message
-            : "Error verifying mobile number. Try again.",
+            : UI_TEXT.errorVerifyingMobileNumberTryAgain,
         );
     } finally {
       if (!controller.signal.aborted) setChecking(false);
@@ -62,7 +63,7 @@ export function Login() {
   async function sendOTP(reset = false) {
     if (busy) return;
     if (!reset && !fullName.trim()) {
-      setError("Full Name is required.");
+      setError(UI_TEXT.fullNameIsRequired);
       return;
     }
     setBusy(true);
@@ -74,7 +75,7 @@ export function Login() {
       );
       if (!result.status || !result.guid)
         throw new Error(
-          result.message || "Unable to send OTP. Please try again.",
+          result.message || UI_TEXT.unableToSendOtpPleaseTryAgain,
         );
       navigate("/otp", {
         state: {
@@ -89,7 +90,7 @@ export function Login() {
       setError(
         err instanceof Error
           ? err.message
-          : "Unable to send OTP. Please try again.",
+          : UI_TEXT.unableToSendOtpPleaseTryAgain,
       );
     } finally {
       setBusy(false);
@@ -100,7 +101,7 @@ export function Login() {
     event.preventDefault();
     if (busy || checking) return;
     if (!/^[6-9]\d{9}$/.test(mobileNumber)) {
-      setError("Please enter a valid 10-digit mobile number.");
+      setError(UI_TEXT.pleaseEnterAValid10DigitMobileNumber);
       return;
     }
     if (exists === null) {
@@ -112,7 +113,7 @@ export function Login() {
       return;
     }
     if (!/^\d{4}$/.test(password)) {
-      setError("Please enter a 4-digit password.");
+      setError(UI_TEXT.pleaseEnterA4DigitPassword);
       return;
     }
     setBusy(true);
@@ -130,7 +131,7 @@ export function Login() {
         (Number(member.MemberId) <= 0 &&
           !(Number(member.CommunityCustomerId) > 0))
       )
-        throw new Error(result.message || "Login failed. Please try again.");
+        throw new Error(result.message || UI_TEXT.loginFailedPleaseTryAgain);
       saveAuthSession(result, member);
       navigate("/home", {
         replace: true,
@@ -145,7 +146,7 @@ export function Login() {
       setError(
         err instanceof Error
           ? err.message
-          : "Something went wrong. Please try again.",
+          : UI_TEXT.somethingWentWrongPleaseTryAgain,
       );
     } finally {
       setBusy(false);
@@ -168,37 +169,38 @@ export function Login() {
             height="54"
           />
           <div>
-            <strong>OHOINDIA</strong>
-            <small>A Hyperlocal Health Fintech for Bharat</small>
+            <strong>{UI_TEXT.ohoindia}</strong>
+            <small>{UI_TEXT.aHyperlocalHealthFintechForBharat}</small>
           </div>
         </a>
       </header>
       <section className="login-intro" aria-labelledby="login-intro-title">
-        <span className="login-eyebrow">YOUR FAMILY'S HEALTH ACCOUNT</span>
+        <span className="login-eyebrow">
+          {UI_TEXT.yourFamilySHealthAccount}
+        </span>
         <h2 id="login-intro-title">
-          Everyday care.
+          {UI_TEXT.everydayCare}
           <br />
-          <em>Extraordinary peace of mind.</em>
+          <em>{UI_TEXT.extraordinaryPeaceOfMind}</em>
         </h2>
         <p>
-          Manage your family's routine healthcare, memberships, and appointments
-          in one place.
+          {UI_TEXT.manageYourFamilySRoutineHealthcareMembershipsAndAppointments}
         </p>
         <div className="login-benefits">
           <div>
-            <span aria-hidden="true">01</span>
-            <strong>Your care, connected</strong>
-            <p>Find doctors and hospitals in your network.</p>
+            <span aria-hidden="true">{UI_TEXT.value01}</span>
+            <strong>{UI_TEXT.yourCareConnected}</strong>
+            <p>{UI_TEXT.findDoctorsAndHospitalsInYourNetwork}</p>
           </div>
           <div>
-            <span aria-hidden="true">02</span>
-            <strong>Your benefits, together</strong>
-            <p>Keep your membership and health packages close.</p>
+            <span aria-hidden="true">{UI_TEXT.value02}</span>
+            <strong>{UI_TEXT.yourBenefitsTogether}</strong>
+            <p>{UI_TEXT.keepYourMembershipAndHealthPackagesClose}</p>
           </div>
           <div>
-            <span aria-hidden="true">03</span>
-            <strong>Your family, first</strong>
-            <p>Manage appointments and family health records.</p>
+            <span aria-hidden="true">{UI_TEXT.value03}</span>
+            <strong>{UI_TEXT.yourFamilyFirst}</strong>
+            <p>{UI_TEXT.manageAppointmentsAndFamilyHealthRecords}</p>
           </div>
         </div>
         <a
@@ -207,27 +209,31 @@ export function Login() {
           target="_blank"
           rel="noreferrer"
         >
-          Discover how OHOINDIA works <span aria-hidden="true">↗</span>
+          {UI_TEXT.discoverHowOhoindiaWorks}
+          <span aria-hidden="true">{UI_TEXT.externalLinkIcon}</span>
         </a>
       </section>
       <section className="auth-card">
-        <span className="login-eyebrow">MEMBER ACCESS</span>
+        <span className="login-eyebrow">{UI_TEXT.memberAccess}</span>
         <h1>
-          {exists === false ? "Join the OHO family" : "Welcome to OHOINDIA"}
+          {exists === false
+            ? UI_TEXT.joinTheOhoFamily
+            : UI_TEXT.welcomeToOhoindia}
         </h1>
-        <p>Enter your mobile number to sign in or create an account.</p>
+        <p>{UI_TEXT.enterYourMobileNumberToSignInOrCreate}</p>
         <form onSubmit={submit} noValidate>
           <label htmlFor="mobileNumber">
-            Enter Mobile Number <span aria-hidden="true">*</span>
+            {UI_TEXT.enterMobileNumber}
+            <span aria-hidden="true">{UI_TEXT.requiredMarker}</span>
           </label>
           <div className="phone-input">
-            <b>+91</b>
+            <b>{UI_TEXT.value91}</b>
             <input
               id="mobileNumber"
               type="tel"
               inputMode="numeric"
               autoComplete="tel-national"
-              placeholder="Enter Mobile Number"
+              placeholder={UI_TEXT.enterMobileNumber2}
               maxLength={11}
               value={mobileNumber.replace(/(\d{5})(\d+)/, "$1 $2")}
               disabled={busy}
@@ -235,17 +241,17 @@ export function Login() {
               required
             />
           </div>
-          {checking && <p role="status">Checking mobile number...</p>}
+          {checking && <p role="status">{UI_TEXT.checkingMobileNumber}</p>}
           {exists === true && (
             <>
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">{UI_TEXT.password}</label>
               <div className="phone-input">
                 <input
                   id="password"
                   type={visible ? "text" : "password"}
                   inputMode="numeric"
                   autoComplete="current-password"
-                  placeholder="Enter 4-digit Password"
+                  placeholder={UI_TEXT.enter4DigitPassword}
                   maxLength={4}
                   value={password}
                   disabled={busy}
@@ -258,10 +264,12 @@ export function Login() {
                 <button
                   type="button"
                   className="text-btn"
-                  aria-label={visible ? "Hide password" : "Show password"}
+                  aria-label={
+                    visible ? UI_TEXT.hidePassword : UI_TEXT.showPassword
+                  }
                   onClick={() => setVisible(!visible)}
                 >
-                  {visible ? "Hide" : "Show"}
+                  {visible ? UI_TEXT.hide : UI_TEXT.show}
                 </button>
               </div>
               <button
@@ -270,21 +278,21 @@ export function Login() {
                 disabled={busy}
                 onClick={() => void sendOTP(true)}
               >
-                Forgot your password?
+                {UI_TEXT.forgotYourPassword}
               </button>
             </>
           )}
           {exists === false && (
             <>
               <p className="login-new">
-                New Customer – Please create an account.
+                {UI_TEXT.newCustomerPleaseCreateAnAccount}
               </p>
-              <label htmlFor="fullName">Full Name (as per Aadhar)</label>
+              <label htmlFor="fullName">{UI_TEXT.fullNameAsPerAadhar}</label>
               <div className="phone-input">
                 <input
                   id="fullName"
                   autoComplete="name"
-                  placeholder="Enter Full Name as per Aadhar"
+                  placeholder={UI_TEXT.enterFullNameAsPerAadhar}
                   maxLength={200}
                   value={fullName}
                   disabled={busy}
@@ -308,38 +316,42 @@ export function Login() {
             disabled={busy || checking}
           >
             {busy
-              ? "Please wait..."
+              ? UI_TEXT.pleaseWait
               : exists === true
-                ? "Login"
+                ? UI_TEXT.login
                 : exists === false
-                  ? "Send OTP"
-                  : "Continue"}
+                  ? UI_TEXT.sendOtp
+                  : UI_TEXT.continue}
           </button>
         </form>
         <p className="login-security">
-          Your account connects you to your family's care.
+          {UI_TEXT.yourAccountConnectsYouToYourFamilySCare}
         </p>
       </section>
-      <section className="login-network" aria-label="Hospital service areas">
+      <section
+        className="login-network"
+        aria-label={UI_TEXT.hospitalServiceAreas}
+      >
         <strong>
-          OUR NETWORK-PARTNERED HOSPITAL SERVICES ARE AVAILABLE IN :
+          {UI_TEXT.ourNetworkPartneredHospitalServicesAreAvailableIn}
         </strong>
         <p>
           <strong>
-            Hyderabad, Rangareddy, Medchal–Malkajgiri, Sangareddy, Khammam,
-            Warangal, Siddipet, and Medak
+            {
+              UI_TEXT.hyderabadRangareddyMedchalMalkajgiriSangareddyKhammamWarangalSiddipetAnd
+            }
           </strong>
         </p>
       </section>
       <footer className="login-footer">
-        <span>All rights reserved. &copy; OHOINDIA</span>
-        <span>Powered by OHOINDIA TECHNOLOGY v1.0</span>
+        <span>{UI_TEXT.allRightsReservedOhoindia}</span>
+        <span>{UI_TEXT.poweredByOhoindiaTechnologyV10}</span>
         <a
           href="https://www.ohoindialife.com/privacy"
           target="_blank"
           rel="noreferrer"
         >
-          Privacy Policy
+          {UI_TEXT.privacyPolicy}
         </a>
       </footer>
     </main>

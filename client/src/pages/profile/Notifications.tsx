@@ -1,33 +1,28 @@
+import { sampleNotifications } from "../../../../common/content/options";
+import { UI_TEXT } from "../../../../common/content/labels";
 import { AppShell, PageHeader } from "../../components/Layout";
 
 export function Notifications() {
   return (
     <AppShell>
-      <PageHeader title="Notifications" back={false} />
-      <h4 className="day-label">Today</h4>
-      {[
-        [
-          "📅",
-          "Appointment Confirmed",
-          "Dr. Rajesh Sharma on 20 May, 10:30 AM",
-        ],
-        ["🧪", "Lab Test Reminder", "Your blood test is scheduled tomorrow"],
-      ].map(([i, a, b]) => (
+      <PageHeader title={UI_TEXT.notifications} back={false} />
+      <h4 className="day-label">{UI_TEXT.today}</h4>
+      {sampleNotifications.map(([i, a, b]) => (
         <article className="notification-row" key={a}>
           <span>{i}</span>
           <div>
             <b>{a}</b>
             <p>{b}</p>
           </div>
-          <small>4:05m</small>
+          <small>{UI_TEXT.value405m}</small>
         </article>
       ))}
-      <h4 className="day-label">Yesterday</h4>
+      <h4 className="day-label">{UI_TEXT.yesterday}</h4>
       <article className="notification-row">
-        <span>🎁</span>
+        <span>{UI_TEXT.giftEmoji}</span>
         <div>
-          <b>Offer for You</b>
-          <p>Get 20% off on health packages</p>
+          <b>{UI_TEXT.offerForYou}</b>
+          <p>{UI_TEXT.get20OffOnHealthPackages}</p>
         </div>
       </article>
     </AppShell>

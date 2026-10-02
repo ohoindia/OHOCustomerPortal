@@ -1,3 +1,8 @@
+import {
+  pharmacyCategories,
+  pharmacyCategoryIcons,
+} from "../../../common/content/options";
+import { UI_TEXT } from "../../../common/content/labels";
 import { Heart, Share2 } from "../components/Icons";
 import { useNavigate } from "react-router-dom";
 import {
@@ -19,13 +24,13 @@ import {
 export function Hospitals() {
   return (
     <AppShell>
-      <PageHeader title="Hospitals" right={<Heart size={19} />} />
-      <SearchBar placeholder="Search hospitals..." />
+      <PageHeader title={UI_TEXT.hospitals} right={<Heart size={19} />} />
+      <SearchBar placeholder={UI_TEXT.searchHospitals2} />
       <div className="chips">
-        <Chip active>All</Chip>
-        <Chip>Multi Speciality</Chip>
-        <Chip>Cardiac</Chip>
-        <Chip>Ortho</Chip>
+        <Chip active>{UI_TEXT.all}</Chip>
+        <Chip>{UI_TEXT.multiSpeciality}</Chip>
+        <Chip>{UI_TEXT.cardiac}</Chip>
+        <Chip>{UI_TEXT.ortho}</Chip>
       </div>
       <div className="stack">
         {hospitals.map((h) => (
@@ -40,12 +45,12 @@ export function Doctors() {
   const nav = useNavigate();
   return (
     <AppShell>
-      <PageHeader title="Doctors" />
-      <SearchBar placeholder="Search doctors or specialty..." />
+      <PageHeader title={UI_TEXT.doctors} />
+      <SearchBar placeholder={UI_TEXT.searchDoctorsOrSpecialty} />
       <div className="chips">
-        <Chip active>All</Chip>
-        <Chip>Cardiology</Chip>
-        <Chip>Pediatrics</Chip>
+        <Chip active>{UI_TEXT.all}</Chip>
+        <Chip>{UI_TEXT.cardiology}</Chip>
+        <Chip>{UI_TEXT.pediatrics}</Chip>
       </div>
       <div className="stack">
         {doctors.map((d) => (
@@ -54,17 +59,23 @@ export function Doctors() {
             <div className="card-grow">
               <h3>{d.name}</h3>
               <p>
-                {d.specialty} · {d.experience}
+                {d.specialty}
+                {UI_TEXT.separator}
+                {d.experience}
               </p>
               <p>{d.hospital}</p>
               <div className="rating">
-                ★ {d.rating} ({d.reviews})
+                {UI_TEXT.starPrefix}
+                {d.rating}
+                {UI_TEXT.openParenthesis}
+                {d.reviews}
+                {UI_TEXT.closeParenthesis}
               </div>
               <button
                 className="text-btn"
                 onClick={() => nav(`/doctor/${d.id}`)}
               >
-                View Profile
+                {UI_TEXT.viewProfile}
               </button>
             </div>
           </article>
@@ -79,33 +90,46 @@ export function DoctorProfile() {
   const d = doctors[0];
   return (
     <AppShell>
-      <PageHeader title="Doctor Profile" right={<Share2 size={18} />} />
+      <PageHeader title={UI_TEXT.doctorProfile} right={<Share2 size={18} />} />
       <section className="doctor-profile">
         <div className="doctor-big">{d.avatar}</div>
         <h1>{d.name}</h1>
         <p>{d.degree}</p>
-        <p>♡ {d.experience} Experience</p>
-        <p>⌖ {d.hospital}</p>
+        <p>
+          {UI_TEXT.heartPrefix}
+          {d.experience}
+          {UI_TEXT.experience}
+        </p>
+        <p>
+          {UI_TEXT.locationPrefix}
+          {d.hospital}
+        </p>
         <span className="review-badge">
-          ★ {d.rating} ({d.reviews} Reviews)
+          {UI_TEXT.starPrefix}
+          {d.rating}
+          {UI_TEXT.openParenthesis}
+          {d.reviews}
+          {UI_TEXT.reviews}
         </span>
       </section>
       <div className="tabs">
-        <b>About</b>
-        <span>Experience</span>
-        <span>Reviews</span>
-        <span>Fees</span>
+        <b>{UI_TEXT.about}</b>
+        <span>{UI_TEXT.experience2}</span>
+        <span>{UI_TEXT.reviews2}</span>
+        <span>{UI_TEXT.fees}</span>
       </div>
       <p className="body-copy">
-        Cardiologist with 15+ years of experience in interventional cardiology,
-        angioplasty, heart failure and preventive cardiology.
+        {UI_TEXT.cardiologistWith15YearsOfExperienceInInterventionalCardiology}
       </p>
       <div className="fee">
-        <span>Consultation Fee</span>
-        <b>₹{d.fee}</b>
+        <span>{UI_TEXT.consultationFee}</span>
+        <b>
+          {UI_TEXT.currencySymbol}
+          {d.fee}
+        </b>
       </div>
       <PrimaryButton onClick={() => nav("/book-appointment")}>
-        Book Appointment
+        {UI_TEXT.bookAppointment}
       </PrimaryButton>
     </AppShell>
   );
@@ -114,12 +138,12 @@ export function DoctorProfile() {
 export function Packages() {
   return (
     <AppShell>
-      <PageHeader title="Wellness Packages" />
-      <SearchBar placeholder="Search packages..." />
+      <PageHeader title={UI_TEXT.wellnessPackages} />
+      <SearchBar placeholder={UI_TEXT.searchPackages} />
       <div className="chips">
-        <Chip active>All</Chip>
-        <Chip>Full Body Checkup</Chip>
-        <Chip>Senior Citizen</Chip>
+        <Chip active>{UI_TEXT.all}</Chip>
+        <Chip>{UI_TEXT.fullBodyCheckup}</Chip>
+        <Chip>{UI_TEXT.seniorCitizen}</Chip>
       </div>
       <div className="stack">
         {packages.map((p) => (
@@ -127,12 +151,23 @@ export function Packages() {
             <div className="card-visual">{p.icon}</div>
             <div className="card-grow">
               <h3>{p.name}</h3>
-              <p>{p.tests} Tests</p>
+              <p>
+                {p.tests}
+                {UI_TEXT.tests}
+              </p>
               <b>
-                ₹{p.price} <del>₹{p.oldPrice}</del>
+                {UI_TEXT.currencySymbol}
+                {p.price}{" "}
+                <del>
+                  {UI_TEXT.currencySymbol}
+                  {p.oldPrice}
+                </del>
               </b>
-              <span className="discount">{p.off} OFF</span>
-              <button className="text-btn">Book Now</button>
+              <span className="discount">
+                {p.off}
+                {UI_TEXT.off}
+              </span>
+              <button className="text-btn">{UI_TEXT.bookNow}</button>
             </div>
           </article>
         ))}
@@ -144,28 +179,31 @@ export function Packages() {
 export function LabTests() {
   return (
     <AppShell>
-      <PageHeader title="Lab Tests" />
-      <SearchBar placeholder="Search tests..." />
+      <PageHeader title={UI_TEXT.labTests} />
+      <SearchBar placeholder={UI_TEXT.searchTests} />
       <div className="chips">
-        <Chip active>Popular</Chip>
-        <Chip>Blood Tests</Chip>
-        <Chip>Diabetes</Chip>
-        <Chip>Thyroid</Chip>
+        <Chip active>{UI_TEXT.popular}</Chip>
+        <Chip>{UI_TEXT.bloodTests}</Chip>
+        <Chip>{UI_TEXT.diabetes}</Chip>
+        <Chip>{UI_TEXT.thyroid}</Chip>
       </div>
       <div className="stack">
         {labTests.map((t) => (
           <article className="test-row" key={t.id}>
             <span>{t.name}</span>
-            <b>₹{t.price}</b>
-            <button>Book</button>
+            <b>
+              {UI_TEXT.currencySymbol}
+              {t.price}
+            </b>
+            <button>{UI_TEXT.book}</button>
           </article>
         ))}
       </div>
       <section className="blue-banner">
-        <span>🚐</span>
+        <span>{UI_TEXT.deliveryVanIcon}</span>
         <div>
-          <b>Book Home Collection</b>
-          <p>Free sample pickup at your home</p>
+          <b>{UI_TEXT.bookHomeCollection}</b>
+          <p>{UI_TEXT.freeSamplePickupAtYourHome}</p>
         </div>
       </section>
     </AppShell>
@@ -175,29 +213,27 @@ export function LabTests() {
 export function Pharmacy() {
   return (
     <AppShell>
-      <PageHeader title="Pharmacy" />
-      <SearchBar placeholder="Search medicines..." />
+      <PageHeader title={UI_TEXT.pharmacy} />
+      <SearchBar placeholder={UI_TEXT.searchMedicines} />
       <section className="upload-card">
         <div>
-          <b>Upload Prescription</b>
-          <p>Get medicines at best prices</p>
-          <button>Upload Now</button>
+          <b>{UI_TEXT.uploadPrescription}</b>
+          <p>{UI_TEXT.getMedicinesAtBestPrices}</p>
+          <button>{UI_TEXT.uploadNow}</button>
         </div>
-        <span>📄</span>
+        <span>{UI_TEXT.decoration1F4C4}</span>
       </section>
       <div className="service-grid four">
-        {["All Medicines", "Health Care", "Baby Care", "Devices"].map(
-          (x, i) => (
-            <button key={x}>
-              <span>{["💊", "🧴", "👶", "⌚"][i]}</span>
-              <small>{x}</small>
-            </button>
-          ),
-        )}
+        {pharmacyCategories.map((x, i) => (
+          <button key={x}>
+            <span>{pharmacyCategoryIcons[i]}</span>
+            <small>{x}</small>
+          </button>
+        ))}
       </div>
       <div className="section-title">
-        <h2>Order Again</h2>
-        <button>View All</button>
+        <h2>{UI_TEXT.orderAgain}</h2>
+        <button>{UI_TEXT.viewAll}</button>
       </div>
       {medicines.map((m) => (
         <article className="medicine-row" key={m.id}>
@@ -205,9 +241,12 @@ export function Pharmacy() {
           <div>
             <b>{m.name}</b>
             <small>{m.pack}</small>
-            <strong>₹{m.price}</strong>
+            <strong>
+              {UI_TEXT.currencySymbol}
+              {m.price}
+            </strong>
           </div>
-          <button>Add</button>
+          <button>{UI_TEXT.add}</button>
         </article>
       ))}
     </AppShell>

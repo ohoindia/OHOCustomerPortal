@@ -1,3 +1,4 @@
+import { UI_TEXT } from "../../../../common/content/labels";
 import { useNavigate } from "react-router-dom";
 import { AppShell, PageHeader, SearchBar, Chip } from "../../components/Layout";
 import { doctors } from "../../data/mockData";
@@ -6,12 +7,12 @@ export function Doctors() {
   const nav = useNavigate();
   return (
     <AppShell>
-      <PageHeader title="Doctors" />
-      <SearchBar placeholder="Search doctors or specialty..." />
+      <PageHeader title={UI_TEXT.doctors} />
+      <SearchBar placeholder={UI_TEXT.searchDoctorsOrSpecialty} />
       <div className="chips">
-        <Chip active>All</Chip>
-        <Chip>Cardiology</Chip>
-        <Chip>Pediatrics</Chip>
+        <Chip active>{UI_TEXT.all}</Chip>
+        <Chip>{UI_TEXT.cardiology}</Chip>
+        <Chip>{UI_TEXT.pediatrics}</Chip>
       </div>
       <div className="stack">
         {doctors.map((d) => (
@@ -20,17 +21,23 @@ export function Doctors() {
             <div className="card-grow">
               <h3>{d.name}</h3>
               <p>
-                {d.specialty} · {d.experience}
+                {d.specialty}
+                {UI_TEXT.separator}
+                {d.experience}
               </p>
               <p>{d.hospital}</p>
               <div className="rating">
-                ★ {d.rating} ({d.reviews})
+                {UI_TEXT.starPrefix}
+                {d.rating}
+                {UI_TEXT.openParenthesis}
+                {d.reviews}
+                {UI_TEXT.closeParenthesis}
               </div>
               <button
                 className="text-btn"
                 onClick={() => nav(`/doctor/${d.id}`)}
               >
-                View Profile
+                {UI_TEXT.viewProfile}
               </button>
             </div>
           </article>

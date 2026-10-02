@@ -1,3 +1,20 @@
+import { DISPLAY_FORMAT } from "../../../../common/content/config";
+import { APP_LINKS } from "../../../../common/content/config";
+import {
+  portalServices,
+  customerProfileFields,
+  familyMemberFields,
+  bookingPeriods,
+  appointmentFields,
+  policyFields,
+  insurerFields,
+  dependentFields,
+  nomineeFields,
+  packageValidityFields,
+  hospitalFields,
+  productFields,
+} from "../../../../common/content/options";
+import { UI_TEXT, UI_MESSAGES } from "../../../../common/content/labels";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -24,13 +41,13 @@ function Page({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 function Status({ data }: { data: ReturnType<typeof usePortalData> }) {
-  if (data.loading) return <p role="status">Loading details...</p>;
+  if (data.loading) return <p role="status">{UI_TEXT.loadingDetails}</p>;
   if (data.error)
     return (
       <div role="alert">
         <p>{data.error}</p>
         <button className="outline-btn" onClick={data.retry}>
-          Try again
+          {UI_TEXT.tryAgain}
         </button>
       </div>
     );
@@ -48,39 +65,22 @@ function Fields({
       {fields.map(([key, label]) => (
         <div key={key}>
           <dt>{label}</dt>
-          <dd>{textValue(row, key) || "Not provided"}</dd>
+          <dd>{textValue(row, key) || UI_TEXT.notProvided}</dd>
         </div>
       ))}
     </dl>
   );
 }
 
-const portalLinks = [
-  ["My Membership", "/PurchasedPackages"],
-  ["Health Products", "/products"],
-  ["My Bookings", "/ConsultationList"],
-  ["Hospital Network", "/network"],
-  ["My Profile", "/myprofile"],
-  ["Family Members", "/family-members"],
-  ["Nominee Details", "/NomineeDetails"],
-  ["KYC Verification", "/kyc-verification"],
-  ["Account Management", "/account-management"],
-  ["BMI Calculator", "/BMICalculator"],
-  ["Meditation & Breathing", "/MeditationBreathing"],
-  ["Step Tracker", "/StepTracker"],
-  ["Nutrition Tracking", "/NutritionTracking"],
-  ["Support", "/support"],
-  ["Privacy Policy", "/privacy-policy"],
-  ["About Us", "/aboutus"],
-] as const;
+const portalLinks = portalServices;
 export function PortalMenu() {
   return (
-    <Page title="More Services">
-      <nav className="portal-links" aria-label="Customer services">
+    <Page title={UI_TEXT.moreServices}>
+      <nav className="portal-links" aria-label={UI_TEXT.customerServices}>
         {portalLinks.map(([title, path]) => (
           <Link key={path} to={path}>
             {title}
-            <span aria-hidden="true">›</span>
+            <span aria-hidden="true">{UI_TEXT.chevronRight}</span>
           </Link>
         ))}
       </nav>
@@ -93,34 +93,22 @@ export function CustomerProfile() {
   return id ? (
     <MemberProfile id={id} />
   ) : (
-    <Page title="My Profile">
-      <p>Customer profile details are available for individual memberships.</p>
+    <Page title={UI_TEXT.myProfile}>
+      <p>
+        {UI_TEXT.customerProfileDetailsAreAvailableForIndividualMemberships}
+      </p>
     </Page>
   );
 }
 function MemberProfile({ id }: { id: number }) {
   const data = usePortalData(`api/Customer/GetById/${id}`);
   return (
-    <Page title="My Profile">
+    <Page title={UI_TEXT.myProfile}>
       <Status data={data} />
       {!data.loading && !data.error && (
         <>
-          <Fields
-            row={data.rows[0]}
-            fields={[
-              ["Name", "Name"],
-              ["MobileNumber", "Mobile number"],
-              ["Email", "Email"],
-              ["DateofBirth", "Date of birth"],
-              ["Gender", "Gender"],
-              ["AddressLine1", "Address"],
-              ["AddressLine2", "Address line 2"],
-              ["Village", "Village"],
-              ["City", "City"],
-              ["Pincode", "Pincode"],
-            ]}
-          />
-          <Link to="/kyc-verification">View KYC status</Link>
+          <Fields row={data.rows[0]} fields={customerProfileFields} />
+          <Link to="/kyc-verification">{UI_TEXT.viewKycStatus}</Link>
         </>
       )}
     </Page>
@@ -132,31 +120,23 @@ export function FamilyMembers() {
   return id ? (
     <DependentList id={id} />
   ) : (
-    <Page title="Family Members">
-      <p>No individual customer membership is linked to this account.</p>
+    <Page title={UI_TEXT.familyMembers2}>
+      <p>{UI_TEXT.noIndividualCustomerMembershipIsLinkedToThisAccount}</p>
     </Page>
   );
 }
 function DependentList({ id }: { id: number }) {
   const data = usePortalData(`api/Customer/GetDependentsByCustomerId/${id}`);
   return (
-    <Page title="Family Members">
+    <Page title={UI_TEXT.familyMembers2}>
       <Status data={data} />
       {data.rows.map((row) => (
         <article className="portal-card" key={textValue(row, "CustomerId")}>
-          <Fields
-            row={row}
-            fields={[
-              ["Name", "Name"],
-              ["Relationship", "Relationship"],
-              ["DateofBirth", "Date of birth"],
-              ["Gender", "Gender"],
-            ]}
-          />
+          <Fields row={row} fields={familyMemberFields} />
         </article>
       ))}
       {!data.loading && !data.error && !data.rows.length && (
-        <p>No family members have been added.</p>
+        <p>{UI_TEXT.noFamilyMembersHaveBeenAdded}</p>
       )}
     </Page>
   );
@@ -167,9 +147,9 @@ export function PurchasedPackages() {
   return id ? (
     <SubscriptionDetails id={id} />
   ) : (
-    <Page title="My Membership">
-      <p>No individual customer membership is linked to this account.</p>
-      <Link to="/account-details">View account details</Link>
+    <Page title={UI_TEXT.myMembership}>
+      <p>{UI_TEXT.noIndividualCustomerMembershipIsLinkedToThisAccount}</p>
+      <Link to="/account-details">{UI_TEXT.viewAccountDetails}</Link>
     </Page>
   );
 }
@@ -178,13 +158,13 @@ export function ConsultationList() {
   return id ? (
     <Consultations id={id} />
   ) : (
-    <Page title="My Bookings">
-      <p>No individual customer membership is linked to this account.</p>
+    <Page title={UI_TEXT.myBookings}>
+      <p>{UI_TEXT.noIndividualCustomerMembershipIsLinkedToThisAccount}</p>
     </Page>
   );
 }
 function Consultations({ id }: { id: number }) {
-  const [period, setPeriod] = useState("All");
+  const [period, setPeriod] = useState<string>(UI_TEXT.all);
   const data = usePortalData(
     "api/BookingConsultation/PendingAndSuccessConsultationList",
     { customerId: id },
@@ -196,28 +176,31 @@ function Consultations({ id }: { id: number }) {
         (row) => textValue(row, "BookingConsultationId") === bookingId,
       )
     : data.rows.filter(
-        (row) => period === "All" || bookingPeriod(row) === period,
+        (row) => period === UI_TEXT.all || bookingPeriod(row) === period,
       );
   return (
     <AppShell className="bookings-page">
       <PageHeader
-        title={bookingId ? "Booking details" : "My Bookings"}
+        title={bookingId ? UI_TEXT.bookingDetails : UI_TEXT.myBookings}
       />
       <div className="bookings-content">
         {!bookingId && (
           <section className="bookings-intro">
-            <span className="bookings-eyebrow">YOUR CARE, IN ONE PLACE</span>
+            <span className="bookings-eyebrow">
+              {UI_TEXT.yourCareInOnePlace}
+            </span>
             <h2>
-              Every visit.
+              {UI_TEXT.everyVisit}
               <br />
-              Always within reach.
+              {UI_TEXT.alwaysWithinReach}
             </h2>
-            <p>Keep track of your care and your family's appointments.</p>
+            <p>{UI_TEXT.keepTrackOfYourCareAndYourFamilyS}</p>
             <Link to="/network" className="bookings-new">
-              Find a hospital <span aria-hidden="true">↗</span>
+              {UI_TEXT.findAHospital}
+              <span aria-hidden="true">{UI_TEXT.externalLinkIcon}</span>
             </Link>
             <span className="bookings-intro-art" aria-hidden="true">
-              ✚
+              {UI_TEXT.medicalCrossIcon}
             </span>
           </section>
         )}
@@ -226,9 +209,9 @@ function Consultations({ id }: { id: number }) {
           <div
             className="bookings-filters"
             role="group"
-            aria-label="Filter bookings"
+            aria-label={UI_TEXT.filterBookings}
           >
-            {["All", "Previous", "Upcoming", "Running"].map((tab) => (
+            {bookingPeriods.map((tab) => (
               <button
                 key={tab}
                 aria-pressed={period === tab}
@@ -238,7 +221,8 @@ function Consultations({ id }: { id: number }) {
                 <span>
                   {
                     data.rows.filter(
-                      (row) => tab === "All" || bookingPeriod(row) === tab,
+                      (row) =>
+                        tab === UI_TEXT.all || bookingPeriod(row) === tab,
                     ).length
                   }
                 </span>
@@ -249,10 +233,13 @@ function Consultations({ id }: { id: number }) {
         {!bookingId && !data.loading && !data.error && (
           <div className="bookings-list-heading">
             <h2>
-              {period === "All" ? "All appointments" : `${period} appointments`}
+              {period === UI_TEXT.all
+                ? UI_TEXT.allAppointments
+                : UI_MESSAGES.appointmentPeriod(period)}
             </h2>
             <span>
-              {rows.length} {rows.length === 1 ? "booking" : "bookings"}
+              {rows.length}{" "}
+              {rows.length === 1 ? UI_TEXT.bookingUnit : UI_TEXT.bookingsUnit}
             </span>
           </div>
         )}
@@ -267,21 +254,22 @@ function Consultations({ id }: { id: number }) {
         </div>
         {!data.loading && !data.error && !rows.length && (
           <div className="bookings-empty">
-            <span aria-hidden="true">✚</span>
+            <span aria-hidden="true">{UI_TEXT.medicalCrossIcon}</span>
             <h2>
               {bookingId
-                ? "Booking unavailable"
-                : "A little room for your next visit"}
+                ? UI_TEXT.bookingUnavailable
+                : UI_TEXT.aLittleRoomForYourNextVisit}
             </h2>
             <p>
               {bookingId
-                ? "This consultation was not found in your account."
-                : period === "All"
-                  ? "No bookings found."
-                  : `No ${period.toLowerCase()} bookings found.`}
+                ? UI_TEXT.thisConsultationWasNotFoundInYourAccount
+                : period === UI_TEXT.all
+                  ? UI_TEXT.noBookingsFound
+                  : UI_MESSAGES.noBookingsFound2(period.toLowerCase())}
             </p>
             <Link to="/network">
-              Explore hospitals <span aria-hidden="true">→</span>
+              {UI_TEXT.exploreHospitals}
+              <span aria-hidden="true">{UI_TEXT.forwardArrow}</span>
             </Link>
           </div>
         )}
@@ -302,7 +290,7 @@ function AppointmentCard({
   const parsedDate = dateValue ? new Date(dateValue) : null;
   const date =
     parsedDate && Number.isFinite(parsedDate.getTime()) ? parsedDate : null;
-  const options = { timeZone: "Asia/Kolkata" };
+  const options = { timeZone: DISPLAY_FORMAT.timeZone };
   const booking = textValue(row, "BookingConsultationId");
   return (
     <article className={`appointment-card appointment-${period.toLowerCase()}`}>
@@ -310,7 +298,7 @@ function AppointmentCard({
         <span className="appointment-service">
           {textValue(row, "ServiceName") ||
             textValue(row, "PoliciesType") ||
-            "Hospital consultation"}
+            UI_TEXT.hospitalConsultation}
         </span>
         <span className="appointment-badge">
           <i />
@@ -323,18 +311,18 @@ function AppointmentCard({
           aria-label={
             date
               ? date.toLocaleDateString("en-IN", options)
-              : "Date not scheduled"
+              : UI_TEXT.dateNotScheduled
           }
         >
           <span>
             {date
               ? date.toLocaleDateString("en-IN", { ...options, month: "short" })
-              : "DATE"}
+              : UI_TEXT.dateBadge}
           </span>
           <strong>
             {date
               ? date.toLocaleDateString("en-IN", { ...options, day: "2-digit" })
-              : "—"}
+              : UI_TEXT.emptyValue}
           </strong>
           <small>
             {date
@@ -342,11 +330,13 @@ function AppointmentCard({
                   ...options,
                   weekday: "short",
                 })
-              : "Pending"}
+              : UI_TEXT.pending}
           </small>
         </div>
         <div className="appointment-hospital">
-          <h2>{textValue(row, "HospitalName") || "Hospital appointment"}</h2>
+          <h2>
+            {textValue(row, "HospitalName") || UI_TEXT.hospitalAppointment}
+          </h2>
           <p>
             {date
               ? date.toLocaleDateString("en-IN", {
@@ -355,38 +345,33 @@ function AppointmentCard({
                   month: "long",
                   year: "numeric",
                 })
-              : "Appointment date to be confirmed"}
+              : UI_TEXT.appointmentDateToBeConfirmed}
           </p>
           <span className="appointment-patient">
-            {textValue(row, "Name") || "Patient not provided"}
+            {textValue(row, "Name") || UI_TEXT.patientNotProvided}
           </span>
         </div>
       </div>
       <div className="appointment-footer">
         <div>
-          <small>BOOKING #{booking}</small>
-          <span>{textValue(row, "StatusName") || "Status not provided"}</span>
+          <small>
+            {UI_TEXT.booking}
+            {booking}
+          </small>
+          <span>
+            {textValue(row, "StatusName") || UI_TEXT.statusNotProvided}
+          </span>
         </div>
         {!details && (
           <Link
             to={`/hospitalConsulationForm?bookingId=${encodeURIComponent(booking)}`}
           >
-            View details <span aria-hidden="true">→</span>
+            {UI_TEXT.viewDetails3}
+            <span aria-hidden="true">{UI_TEXT.forwardArrow}</span>
           </Link>
         )}
       </div>
-      {details && (
-        <Fields
-          row={row}
-          fields={[
-            ["BookingDate", "Booked on"],
-            ["AppointmentDate", "Appointment date"],
-            ["ServiceName", "Service"],
-            ["Name", "Patient"],
-            ["StatusName", "Status"],
-          ]}
-        />
-      )}
+      {details && <Fields row={row} fields={appointmentFields} />}
     </article>
   );
 }
@@ -410,10 +395,10 @@ function SubscriptionDetails({ id }: { id: number }) {
     <Page
       title={
         policyId
-          ? "Policy Details"
+          ? UI_TEXT.policyDetails
           : isNominees
-            ? "Nominee Details"
-            : "My Membership"
+            ? UI_TEXT.nomineeDetails
+            : UI_TEXT.myMembership
       }
     >
       <Status data={data} />
@@ -422,69 +407,35 @@ function SubscriptionDetails({ id }: { id: number }) {
         (policyId ? (
           policy ? (
             <>
-              <Fields
-                row={policy}
-                fields={[
-                  ["PoliciesProductName", "Policy"],
-                  ["PolicyCOINumber", "COI number"],
-                ]}
-              />
-              <h2>Insured members</h2>
+              <Fields row={policy} fields={policyFields} />
+              <h2>{UI_TEXT.insuredMembers}</h2>
               {childRows(policy, "Insurer").map((row, i) => (
-                <Fields
-                  key={i}
-                  row={row}
-                  fields={[
-                    ["InsurerName", "Name"],
-                    ["InsurerRelationship", "Relationship"],
-                  ]}
-                />
+                <Fields key={i} row={row} fields={insurerFields} />
               ))}
-              <h2>Dependents</h2>
+              <h2>{UI_TEXT.dependents}</h2>
               {childRows(policy, "Dependents").map((row, i) => (
-                <Fields
-                  key={i}
-                  row={row}
-                  fields={[
-                    ["DependentFullName", "Name"],
-                    ["DependentRelationship", "Relationship"],
-                  ]}
-                />
+                <Fields key={i} row={row} fields={dependentFields} />
               ))}
-              <Link to="/NomineeDetails">View nominees</Link>
+              <Link to="/NomineeDetails">{UI_TEXT.viewNominees}</Link>
             </>
           ) : (
-            <p>This policy was not found in your membership.</p>
+            <p>{UI_TEXT.thisPolicyWasNotFoundInYourMembership}</p>
           )
         ) : isNominees ? (
           uniqueNominees.length ? (
             uniqueNominees.map((row, i) => (
               <article className="portal-card" key={i}>
-                <Fields
-                  row={row}
-                  fields={[
-                    ["NomineeFullName", "Name"],
-                    ["NomineeRelationship", "Relationship"],
-                    ["NomineeDateofBirth", "Date of birth"],
-                  ]}
-                />
+                <Fields row={row} fields={nomineeFields} />
               </article>
             ))
           ) : (
-            <p>No nominees have been added to your policies.</p>
+            <p>{UI_TEXT.noNomineesHaveBeenAddedToYourPolicies}</p>
           )
         ) : products.length ? (
           products.map((row, i) => (
             <article className="portal-card" key={i}>
               <h2>{textValue(row, "ProductName")}</h2>
-              <Fields
-                row={row}
-                fields={[
-                  ["IssuedOn", "Issued on"],
-                  ["ValidTill", "Valid until"],
-                  ["PaidAmount", "Paid amount"],
-                ]}
-              />
+              <Fields row={row} fields={packageValidityFields} />
               <p>{textValue(row, "ShortDescription")}</p>
               {childRows(row, "Policies").map((policy) => (
                 <Link
@@ -492,15 +443,17 @@ function SubscriptionDetails({ id }: { id: number }) {
                   key={textValue(policy, "PoliciesId")}
                   to={`/policies/${textValue(policy, "PoliciesId")}`}
                 >
-                  {textValue(policy, "PoliciesProductName") || "View policy"} ›
+                  {textValue(policy, "PoliciesProductName") ||
+                    UI_TEXT.viewPolicy}
+                  {UI_TEXT.chevronRightSuffix}
                 </Link>
               ))}
             </article>
           ))
         ) : (
-          <p>No purchased packages found.</p>
+          <p>{UI_TEXT.noPurchasedPackagesFound}</p>
         ))}
-      <Link to="/packages">Explore packages</Link>
+      <Link to="/packages">{UI_TEXT.explorePackages}</Link>
     </Page>
   );
 }
@@ -522,9 +475,9 @@ export function HospitalDetails() {
   return Number.isSafeInteger(id) && id > 0 ? (
     <HospitalDetail id={id} />
   ) : (
-    <Page title="Hospital Details">
-      <p>Select a hospital to view its details.</p>
-      <Link to="/network">Find a hospital</Link>
+    <Page title={UI_TEXT.hospitalDetails}>
+      <p>{UI_TEXT.selectAHospitalToViewItsDetails}</p>
+      <Link to="/network">{UI_TEXT.findAHospital2}</Link>
     </Page>
   );
 }
@@ -535,45 +488,42 @@ function HospitalDetail({ id }: { id: number }) {
   );
   const row = data.rows[0];
   return (
-    <Page title="Hospital Details">
+    <Page title={UI_TEXT.hospitalDetails}>
       <Status data={data} />
       {row && (
         <>
           <h2>{textValue(row, "HospitalName")}</h2>
-          <Fields
-            row={row}
-            fields={[
-              ["Specialization", "Speciality"],
-              ["AddressLine1", "Address"],
-              ["AddressLine2", "Address line 2"],
-              ["City", "City"],
-              ["HospitalCode", "Hospital code"],
-            ]}
-          />
+          <Fields row={row} fields={hospitalFields} />
           {textValue(row, "MobileNumber") && (
             <a
               href={`tel:${textValue(row, "MobileNumber").replace(/[^+\d]/g, "")}`}
             >
-              Call hospital
+              {UI_TEXT.callHospital}
             </a>
           )}
           <p>
-            <Link to={`/hospital-map?hospitalId=${id}`}>View on map</Link>
+            <Link to={`/hospital-map?hospitalId=${id}`}>
+              {UI_TEXT.viewOnMap}
+            </Link>
           </p>
-          <h2>Services & Benefits</h2>
+          <h2>{UI_TEXT.servicesBenefits}</h2>
           <Status data={services} />
           {services.rows.map((service, i) => (
             <article className="portal-card" key={i}>
               <h3>
-                {textValue(service, "PoliciesType") || "Hospital benefit"}
+                {textValue(service, "PoliciesType") || UI_TEXT.hospitalBenefit}
               </h3>
               {textValue(service, "DiscountPercentage") && (
-                <p>Discount: {textValue(service, "DiscountPercentage")}%</p>
+                <p>
+                  {UI_TEXT.discount}
+                  {textValue(service, "DiscountPercentage")}
+                  {UI_TEXT.percentSymbol}
+                </p>
               )}
             </article>
           ))}
           {!services.loading && !services.error && !services.rows.length && (
-            <p>No services listed for this hospital.</p>
+            <p>{UI_TEXT.noServicesListedForThisHospital}</p>
           )}
           <Link
             to="/book-appointment"
@@ -582,11 +532,13 @@ function HospitalDetail({ id }: { id: number }) {
               hospitalName: textValue(row, "HospitalName"),
             }}
           >
-            Book an appointment
+            {UI_TEXT.bookAnAppointment}
           </Link>
         </>
       )}
-      {!data.loading && !data.error && !row && <p>Hospital not found.</p>}
+      {!data.loading && !data.error && !row && (
+        <p>{UI_TEXT.hospitalNotFound}</p>
+      )}
     </Page>
   );
 }
@@ -607,34 +559,26 @@ export function ProductDetails() {
   return Number.isSafeInteger(id) && id > 0 ? (
     <ProductDetail id={id} />
   ) : (
-    <Page title="Product Details">
-      <p>Select a package to view its details.</p>
-      <Link to="/products">Browse products</Link>
+    <Page title={UI_TEXT.productDetails}>
+      <p>{UI_TEXT.selectAPackageToViewItsDetails}</p>
+      <Link to="/products">{UI_TEXT.browseProducts}</Link>
     </Page>
   );
 }
 function ProductDetail({ id }: { id: number }) {
   const data = usePortalData(`api/Products/GetById/${id}`);
   return (
-    <Page title="Product Details">
+    <Page title={UI_TEXT.productDetails}>
       <Status data={data} />
       {data.rows[0] && (
         <>
           <h2>{textValue(data.rows[0], "ProductName")}</h2>
           <p>{textValue(data.rows[0], "ShortDescription")}</p>
-          <Fields
-            row={data.rows[0]}
-            fields={[
-              ["SaleAmount", "Price"],
-              ["MaximumAdult", "Adults covered"],
-              ["MaximumChild", "Children covered"],
-              ["SumAssured", "Sum assured"],
-            ]}
-          />
+          <Fields row={data.rows[0]} fields={productFields} />
         </>
       )}
       {!data.loading && !data.error && !data.rows.length && (
-        <p>Product not found.</p>
+        <p>{UI_TEXT.productNotFound}</p>
       )}
     </Page>
   );
@@ -642,7 +586,7 @@ function ProductDetail({ id }: { id: number }) {
 export function Products() {
   const data = usePortalData("api/Products/all", { skip: 0, take: 1000 });
   return (
-    <Page title="Health Products">
+    <Page title={UI_TEXT.healthProducts}>
       <Status data={data} />
       {data.rows.map((row, i) => (
         <Link
@@ -655,7 +599,7 @@ export function Products() {
         </Link>
       ))}
       {!data.loading && !data.error && !data.rows.length && (
-        <p>No products available.</p>
+        <p>{UI_TEXT.noProductsAvailable}</p>
       )}
     </Page>
   );
@@ -666,8 +610,8 @@ export function KycVerification() {
   return id ? (
     <KycStatus id={id} />
   ) : (
-    <Page title="KYC Verification">
-      <p>KYC status is available for individual customer memberships.</p>
+    <Page title={UI_TEXT.kycVerification2}>
+      <p>{UI_TEXT.kycStatusIsAvailableForIndividualCustomerMemberships}</p>
     </Page>
   );
 }
@@ -691,31 +635,36 @@ function KycStatus({ id }: { id: number }) {
           )
         : { status: false };
       setStatus(
-        `Aadhaar: ${aadhaarStatus.status ? "Verified" : "Incomplete"}. PAN: ${pan.status ? "Verified" : "Incomplete"}.`,
+        UI_MESSAGES.aadhaarPan(
+          aadhaarStatus.status ? UI_TEXT.verified : UI_TEXT.incomplete,
+          pan.status ? UI_TEXT.verified : UI_TEXT.incomplete,
+        ),
       );
     } catch (error) {
       setStatus(
         error instanceof Error
           ? error.message
-          : "Verification status unavailable.",
+          : UI_TEXT.verificationStatusUnavailable,
       );
     } finally {
       setBusy(false);
     }
   }
   return (
-    <Page title="KYC Verification">
+    <Page title={UI_TEXT.kycVerification2}>
       <Status data={data} />
-      <p>Check the verification status linked to your membership.</p>
+      <p>{UI_TEXT.checkTheVerificationStatusLinkedToYourMembership}</p>
       <button
         className="primary-btn"
         disabled={busy || data.loading || !!data.error}
         onClick={() => void check()}
       >
-        {busy ? "Checking..." : "Check verification status"}
+        {busy ? UI_TEXT.checking : UI_TEXT.checkVerificationStatus}
       </button>
       <p role="status">{status}</p>
-      <Link to="/support">Contact support for verification assistance</Link>
+      <Link to="/support">
+        {UI_TEXT.contactSupportForVerificationAssistance}
+      </Link>
     </Page>
   );
 }
@@ -730,10 +679,10 @@ export function AccountManagement() {
     try {
       const mobileNumber = getSessionMember()?.MobileNumber;
       if (!mobileNumber)
-        throw new Error("No mobile number is linked to this account.");
+        throw new Error(UI_TEXT.noMobileNumberIsLinkedToThisAccount);
       const result = await authRequest("toSetNewPassword", { mobileNumber });
       if (!result.status || !result.guid)
-        throw new Error(result.message || "Unable to send OTP.");
+        throw new Error(result.message || UI_TEXT.unableToSendOtp);
       navigate("/otp", {
         state: {
           mobileNumber,
@@ -744,25 +693,22 @@ export function AccountManagement() {
       });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Unable to reset password.",
+        err instanceof Error ? err.message : UI_TEXT.unableToResetPassword,
       );
     } finally {
       setBusy(false);
     }
   }
   return (
-    <Page title="Account Management">
-      <Link to="/myprofile">View personal details</Link>
-      <p>
-        Reset your four-digit password using an OTP sent to your registered
-        mobile number.
-      </p>
+    <Page title={UI_TEXT.accountManagement}>
+      <Link to="/myprofile">{UI_TEXT.viewPersonalDetails}</Link>
+      <p>{UI_TEXT.resetYourFourDigitPasswordUsingAnOtpSent}</p>
       <button
         className="primary-btn"
         disabled={busy}
         onClick={() => void reset()}
       >
-        {busy ? "Sending OTP..." : "Reset password"}
+        {busy ? UI_TEXT.sendingOtp : UI_TEXT.resetPassword}
       </button>
       {error && <p role="alert">{error}</p>}
     </Page>
@@ -776,58 +722,54 @@ export function Support() {
     "ConfigValue",
   );
   return (
-    <Page title="Help & Support">
+    <Page title={UI_TEXT.helpSupport}>
       <Status data={data} />
-      <p>
-        Contact OHO Care for help with membership, bookings or verification.
-      </p>
+      <p>{UI_TEXT.contactOhoCareForHelpWithMembershipBookingsOr}</p>
       {number ? (
         <a
           className="portal-list-link"
           href={`tel:${number.replace(/[^+\d]/g, "")}`}
         >
-          Call OHO Care: {number}
+          {UI_TEXT.callOhoCare}
+          {number}
         </a>
       ) : (
         !data.loading &&
-        !data.error && <p>Support contact is currently unavailable.</p>
+        !data.error && <p>{UI_TEXT.supportContactIsCurrentlyUnavailable}</p>
       )}
     </Page>
   );
 }
 export function PrivacyPolicy() {
   return (
-    <Page title="Privacy Policy & Terms">
-      <p>Read OHOINDIA’s privacy policy and terms of service.</p>
+    <Page title={UI_TEXT.privacyPolicyTerms}>
+      <p>{UI_TEXT.readOhoindiaSPrivacyPolicyAndTermsOfService}</p>
       <a
         className="portal-list-link"
         target="_blank"
         rel="noreferrer"
-        href="https://www.ohoindialife.in/privacypolicy"
+        href={APP_LINKS.privacyPolicy}
       >
-        Read Privacy Policy ↗
+        {UI_TEXT.readPrivacyPolicy}
       </a>
       <a
         className="portal-list-link"
         target="_blank"
         rel="noreferrer"
-        href="https://www.ohoindialife.in/termsandconditions"
+        href={APP_LINKS.termsAndConditions}
       >
-        Read Terms & Conditions ↗
+        {UI_TEXT.readTermsConditions}
       </a>
     </Page>
   );
 }
 export function AboutUs() {
   return (
-    <Page title="About Us">
+    <Page title={UI_TEXT.aboutUs}>
       <Logo />
-      <p>A Hyperlocal Health Fintech for Bharat</p>
-      <p>
-        Access your family’s health benefits, memberships and hospital network
-        with OHOINDIA.
-      </p>
-      <Link to="/support">Contact OHO Care</Link>
+      <p>{UI_TEXT.aHyperlocalHealthFintechForBharat}</p>
+      <p>{UI_TEXT.accessYourFamilySHealthBenefitsMembershipsAndHospital}</p>
+      <Link to="/support">{UI_TEXT.contactOhoCare}</Link>
     </Page>
   );
 }

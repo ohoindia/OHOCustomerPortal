@@ -1,3 +1,4 @@
+import { UI_TEXT } from "../../../../common/content/labels";
 import { useNavigate } from "react-router-dom";
 import { Share2 } from "../../components/Icons";
 import { AppShell, PageHeader, PrimaryButton } from "../../components/Layout";
@@ -8,33 +9,46 @@ export function DoctorProfile() {
   const d = doctors[0];
   return (
     <AppShell>
-      <PageHeader title="Doctor Profile" right={<Share2 size={18} />} />
+      <PageHeader title={UI_TEXT.doctorProfile} right={<Share2 size={18} />} />
       <section className="doctor-profile">
         <div className="doctor-big">{d.avatar}</div>
         <h1>{d.name}</h1>
         <p>{d.degree}</p>
-        <p>♡ {d.experience} Experience</p>
-        <p>⌖ {d.hospital}</p>
+        <p>
+          {UI_TEXT.heartPrefix}
+          {d.experience}
+          {UI_TEXT.experience}
+        </p>
+        <p>
+          {UI_TEXT.locationPrefix}
+          {d.hospital}
+        </p>
         <span className="review-badge">
-          ★ {d.rating} ({d.reviews} Reviews)
+          {UI_TEXT.starPrefix}
+          {d.rating}
+          {UI_TEXT.openParenthesis}
+          {d.reviews}
+          {UI_TEXT.reviews}
         </span>
       </section>
       <div className="tabs">
-        <b>About</b>
-        <span>Experience</span>
-        <span>Reviews</span>
-        <span>Fees</span>
+        <b>{UI_TEXT.about}</b>
+        <span>{UI_TEXT.experience2}</span>
+        <span>{UI_TEXT.reviews2}</span>
+        <span>{UI_TEXT.fees}</span>
       </div>
       <p className="body-copy">
-        Cardiologist with 15+ years of experience in interventional cardiology,
-        angioplasty, heart failure and preventive cardiology.
+        {UI_TEXT.cardiologistWith15YearsOfExperienceInInterventionalCardiology}
       </p>
       <div className="fee">
-        <span>Consultation Fee</span>
-        <b>₹{d.fee}</b>
+        <span>{UI_TEXT.consultationFee}</span>
+        <b>
+          {UI_TEXT.currencySymbol}
+          {d.fee}
+        </b>
       </div>
       <PrimaryButton onClick={() => nav("/book-appointment")}>
-        Book Appointment
+        {UI_TEXT.bookAppointment}
       </PrimaryButton>
     </AppShell>
   );

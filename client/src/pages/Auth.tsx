@@ -1,3 +1,5 @@
+import { otpKeypad } from "../../../common/content/options";
+import { UI_TEXT } from "../../../common/content/labels";
 import { useNavigate } from "react-router-dom";
 import { Logo, PrimaryButton } from "../components/Layout";
 
@@ -7,14 +9,15 @@ export function Splash() {
     <main className="auth-page splash" onClick={() => navigate("/login")}>
       <Logo />
       <h2>
-        Your Health.
+        {UI_TEXT.yourHealth}
         <br />
-        Our Priority.
+        {UI_TEXT.ourPriority}
       </h2>
       <div className="hero-illustration">
-        👨‍👩‍👧<span>🛡️</span>
+        {UI_TEXT.familyIcon}
+        <span>{UI_TEXT.shieldIcon}</span>
       </div>
-      <p>Tap anywhere to continue</p>
+      <p>{UI_TEXT.tapAnywhereToContinue}</p>
     </main>
   );
 }
@@ -25,20 +28,26 @@ export function Login() {
     <main className="auth-page">
       <Logo compact />
       <section className="auth-card">
-        <h1>Welcome Back!</h1>
-        <p>Please login to continue</p>
+        <h1>{UI_TEXT.welcomeBack}</h1>
+        <p>{UI_TEXT.pleaseLoginToContinue}</p>
         <label className="phone-input">
-          <span>☎</span>
-          <b>+91</b>
-          <input placeholder="Enter Mobile Number" defaultValue="9876543210" />
+          <span>{UI_TEXT.phoneIcon}</span>
+          <b>{UI_TEXT.value91}</b>
+          <input
+            placeholder={UI_TEXT.enterMobileNumber2}
+            defaultValue="9876543210"
+          />
         </label>
-        <PrimaryButton onClick={() => navigate("/otp")}>Continue</PrimaryButton>
-        <div className="divider">or</div>
-        <button className="social-btn">🌈 Continue with Google</button>
-        <button className="social-btn">● Continue with Apple</button>
+        <PrimaryButton onClick={() => navigate("/otp")}>
+          {UI_TEXT.continue}
+        </PrimaryButton>
+        <div className="divider">{UI_TEXT.or}</div>
+        <button className="social-btn">{UI_TEXT.continueWithGoogle}</button>
+        <button className="social-btn">{UI_TEXT.continueWithApple}</button>
       </section>
       <p>
-        New to OHO? <b>Sign Up</b>
+        {UI_TEXT.newToOho}
+        <b>{UI_TEXT.signUp}</b>
       </p>
     </main>
   );
@@ -50,11 +59,11 @@ export function OTP() {
   return (
     <main className="auth-page otp-page">
       <section className="auth-card wide">
-        <h1>Verify OTP</h1>
+        <h1>{UI_TEXT.verifyOtp}</h1>
         <p>
-          We have sent a 6 digit OTP to
+          {UI_TEXT.weHaveSentA6DigitOtpTo}
           <br />
-          <b>+91 98765 43210</b>
+          <b>{UI_TEXT.value919876543210}</b>
         </p>
         <div className="otp-boxes">
           {digits.map((d, i) => (
@@ -62,15 +71,16 @@ export function OTP() {
           ))}
         </div>
         <p>
-          Resend OTP in <b>00:25</b>
+          {UI_TEXT.resendOtpIn}
+          <b>{UI_TEXT.value0025}</b>
         </p>
         <div className="keypad">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"].map((n, i) => (
+          {otpKeypad.map((n, i) => (
             <button key={i}>{n}</button>
           ))}
         </div>
         <PrimaryButton onClick={() => navigate("/home")}>
-          Verify & Continue
+          {UI_TEXT.verifyContinue}
         </PrimaryButton>
       </section>
     </main>

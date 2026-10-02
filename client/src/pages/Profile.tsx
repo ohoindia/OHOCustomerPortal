@@ -1,3 +1,10 @@
+import {
+  sampleFamilyMembers,
+  sampleHealthRecords,
+  sampleNotifications,
+  membershipBenefits,
+} from "../../../common/content/options";
+import { UI_TEXT } from "../../../common/content/labels";
 import { useNavigate } from "react-router-dom";
 import { Settings } from "../components/Icons";
 import { AppShell, PageHeader } from "../components/Layout";
@@ -8,44 +15,48 @@ export function Profile() {
   return (
     <AppShell>
       <section className="profile-hero">
-        <div className="profile-photo">SR</div>
+        <div className="profile-photo">{UI_TEXT.sr}</div>
         <div>
-          <h2>Srikanth Reddy</h2>
-          <p>+91 98765 43210</p>
+          <h2>{UI_TEXT.srikanthReddy}</h2>
+          <p>{UI_TEXT.value919876543210}</p>
         </div>
         <Settings />
       </section>
       <div className="menu-list">
         <MenuRow
-          icon="👨‍👩‍👧"
-          title="My Family"
-          subtitle="Manage family members"
+          icon={UI_TEXT.familyIcon}
+          title={UI_TEXT.myFamily}
+          subtitle={UI_TEXT.manageFamilyMembers}
           onClick={() => nav("/family")}
         />
         <MenuRow
-          icon="📋"
-          title="My Health Records"
-          subtitle="View reports & prescriptions"
+          icon={UI_TEXT.recordsEmoji}
+          title={UI_TEXT.myHealthRecords}
+          subtitle={UI_TEXT.viewReportsPrescriptions}
           onClick={() => nav("/records")}
         />
         <MenuRow
-          icon="🏅"
-          title="Membership"
-          subtitle="Gold Wellness Card"
+          icon={UI_TEXT.medalEmoji}
+          title={UI_TEXT.membership}
+          subtitle={UI_TEXT.goldWellnessCard}
           onClick={() => nav("/membership")}
         />
         <MenuRow
-          icon="👛"
-          title="Wallet & Rewards"
-          subtitle="Cashback, offers & coupons"
+          icon={UI_TEXT.purseEmoji}
+          title={UI_TEXT.walletRewards}
+          subtitle={UI_TEXT.cashbackOffersCoupons}
           onClick={() => nav("/wallet")}
         />
         <MenuRow
-          icon="💳"
-          title="Payment Methods"
-          subtitle="Cards, UPI & wallets"
+          icon={UI_TEXT.paymentCardEmoji}
+          title={UI_TEXT.paymentMethods}
+          subtitle={UI_TEXT.cardsUpiWallets}
         />
-        <MenuRow icon="🎧" title="Support" subtitle="Help & support" />
+        <MenuRow
+          icon={UI_TEXT.supportEmoji}
+          title={UI_TEXT.support2}
+          subtitle={UI_TEXT.helpSupport2}
+        />
       </div>
     </AppShell>
   );
@@ -54,24 +65,20 @@ export function Profile() {
 export function Family() {
   return (
     <AppShell nav={false}>
-      <PageHeader title="My Family" />
+      <PageHeader title={UI_TEXT.myFamily} />
       <div className="stack">
-        {[
-          ["Srikanth Reddy", "Self", "👨🏻"],
-          ["Sujatha Reddy", "Wife", "👩🏻"],
-          ["Chinnu Reddy", "Daughter", "👧🏻"],
-        ].map(([n, r, a]) => (
+        {sampleFamilyMembers.map(([n, r, a]) => (
           <article className="family-row" key={n}>
             <span>{a}</span>
             <div>
               <b>{n}</b>
               <small>{r}</small>
             </div>
-            <span>›</span>
+            <span>{UI_TEXT.chevronRight}</span>
           </article>
         ))}
       </div>
-      <button className="outline-btn">+ Add Family Member</button>
+      <button className="outline-btn">{UI_TEXT.addFamilyMember}</button>
     </AppShell>
   );
 }
@@ -79,24 +86,19 @@ export function Family() {
 export function Records() {
   return (
     <AppShell nav={false}>
-      <PageHeader title="Health Records" />
+      <PageHeader title={UI_TEXT.healthRecords} />
       <div className="tabs">
-        <b>Reports</b>
-        <span>Prescriptions</span>
+        <b>{UI_TEXT.reports}</b>
+        <span>{UI_TEXT.prescriptions}</span>
       </div>
-      {[
-        ["Blood Test Report", "20 May 2026"],
-        ["X-Ray Chest", "15 Apr 2026"],
-        ["ECG Report", "10 Mar 2026"],
-        ["MRI Scan", "05 Feb 2026"],
-      ].map(([a, b]) => (
+      {sampleHealthRecords.map(([a, b]) => (
         <article className="record-row" key={a}>
-          <span>📄</span>
+          <span>{UI_TEXT.decoration1F4C4}</span>
           <div>
             <b>{a}</b>
             <small>{b}</small>
           </div>
-          <span>›</span>
+          <span>{UI_TEXT.chevronRight}</span>
         </article>
       ))}
     </AppShell>
@@ -106,31 +108,31 @@ export function Records() {
 export function Wallet() {
   return (
     <AppShell>
-      <PageHeader title="Wallet & Rewards" back={false} />
+      <PageHeader title={UI_TEXT.walletRewards} back={false} />
       <section className="wallet-card">
-        <span>Total Balance</span>
-        <strong>₹2,450</strong>
-        <b>👛</b>
+        <span>{UI_TEXT.totalBalance}</span>
+        <strong>{UI_TEXT.value2450}</strong>
+        <b>{UI_TEXT.purseEmoji}</b>
       </section>
       <div className="wallet-stats">
         <article>
-          <span>Cashback</span>
-          <b>₹850</b>
+          <span>{UI_TEXT.cashback}</span>
+          <b>{UI_TEXT.value850}</b>
         </article>
         <article>
-          <span>OHO Coins</span>
-          <b>🪙 1,600</b>
+          <span>{UI_TEXT.ohoCoins}</span>
+          <b>{UI_TEXT.value1600}</b>
         </article>
       </div>
       <MenuRow
-        icon="↔"
-        title="Transaction History"
-        subtitle="View recent transactions"
+        icon={UI_TEXT.transferIcon}
+        title={UI_TEXT.transactionHistory}
+        subtitle={UI_TEXT.viewRecentTransactions}
       />
       <MenuRow
-        icon="🎁"
-        title="Redeem Coins"
-        subtitle="Use coins for rewards"
+        icon={UI_TEXT.giftEmoji}
+        title={UI_TEXT.redeemCoins}
+        subtitle={UI_TEXT.useCoinsForRewards}
       />
     </AppShell>
   );
@@ -139,31 +141,24 @@ export function Wallet() {
 export function Notifications() {
   return (
     <AppShell>
-      <PageHeader title="Notifications" back={false} />
-      <h4 className="day-label">Today</h4>
-      {[
-        [
-          "📅",
-          "Appointment Confirmed",
-          "Dr. Rajesh Sharma on 20 May, 10:30 AM",
-        ],
-        ["🧪", "Lab Test Reminder", "Your blood test is scheduled tomorrow"],
-      ].map(([i, a, b]) => (
+      <PageHeader title={UI_TEXT.notifications} back={false} />
+      <h4 className="day-label">{UI_TEXT.today}</h4>
+      {sampleNotifications.map(([i, a, b]) => (
         <article className="notification-row" key={a}>
           <span>{i}</span>
           <div>
             <b>{a}</b>
             <p>{b}</p>
           </div>
-          <small>4:05m</small>
+          <small>{UI_TEXT.value405m}</small>
         </article>
       ))}
-      <h4 className="day-label">Yesterday</h4>
+      <h4 className="day-label">{UI_TEXT.yesterday}</h4>
       <article className="notification-row">
-        <span>🎁</span>
+        <span>{UI_TEXT.giftEmoji}</span>
         <div>
-          <b>Offer for You</b>
-          <p>Get 20% off on health packages</p>
+          <b>{UI_TEXT.offerForYou}</b>
+          <p>{UI_TEXT.get20OffOnHealthPackages}</p>
         </div>
       </article>
     </AppShell>
@@ -173,28 +168,24 @@ export function Notifications() {
 export function Membership() {
   return (
     <AppShell nav={false}>
-      <PageHeader title="Membership" />
+      <PageHeader title={UI_TEXT.membership} />
       <section className="membership-detail">
         <LogoMini />
-        <span>GOLD</span>
-        <h2>OHO Gold Wellness Card</h2>
-        <p>Card No: 2804 0001 5854</p>
-        <p>Valid till 20-Dec-2026</p>
+        <span>{UI_TEXT.gold}</span>
+        <h2>{UI_TEXT.ohoGoldWellnessCard}</h2>
+        <p>{UI_TEXT.cardNo280400015854}</p>
+        <p>{UI_TEXT.validTill20Dec2026}</p>
       </section>
-      <h3>Membership Benefits</h3>
-      {[
-        "Discounts at partner hospitals",
-        "Free annual health check",
-        "Priority appointment booking",
-        "OHO Coins on every purchase",
-      ].map((x) => (
+      <h3>{UI_TEXT.membershipBenefits}</h3>
+      {membershipBenefits.map((x) => (
         <div className="benefit" key={x}>
-          ✓ {x}
+          {UI_TEXT.checkmarkPrefix}
+          {x}
         </div>
       ))}
     </AppShell>
   );
 }
 function LogoMini() {
-  return <div className="logo-mini">OHO</div>;
+  return <div className="logo-mini">{UI_TEXT.oho}</div>;
 }

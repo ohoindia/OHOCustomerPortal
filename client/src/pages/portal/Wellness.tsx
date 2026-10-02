@@ -1,3 +1,5 @@
+import { DISPLAY_FORMAT } from "../../../../common/content/config";
+import { UI_TEXT, UI_MESSAGES } from "../../../../common/content/labels";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { AppShell, PageHeader } from "../../components/Layout";
@@ -16,11 +18,11 @@ export function BMICalculator() {
   }
   return (
     <AppShell className="portal-page">
-      <PageHeader title="BMI Calculator" />
+      <PageHeader title={UI_TEXT.bmiCalculator} />
       <div className="portal-content">
         <form onSubmit={calculate}>
           <label className="portal-label">
-            Height (cm)
+            {UI_TEXT.heightCm}
             <input
               type="number"
               min="1"
@@ -35,7 +37,7 @@ export function BMICalculator() {
             />
           </label>
           <label className="portal-label">
-            Weight (kg)
+            {UI_TEXT.weightKg}
             <input
               type="number"
               min="1"
@@ -49,11 +51,12 @@ export function BMICalculator() {
               }}
             />
           </label>
-          <button className="primary-btn">Calculate BMI</button>
+          <button className="primary-btn">{UI_TEXT.calculateBmi}</button>
         </form>
         {result && (
           <p role="status">
-            Your BMI: <strong>{result}</strong>
+            {UI_TEXT.yourBmi}
+            <strong>{result}</strong>
           </p>
         )}
       </div>
@@ -73,23 +76,29 @@ export function MeditationBreathing() {
     return () => window.clearInterval(timer);
   }, [running]);
   const phase =
-    seconds % 12 < 4 ? "Breathe in" : seconds % 12 < 8 ? "Hold" : "Breathe out";
+    seconds % 12 < 4
+      ? UI_TEXT.breatheIn
+      : seconds % 12 < 8
+        ? UI_TEXT.hold
+        : UI_TEXT.breatheOut;
   return (
     <AppShell className="portal-page">
-      <PageHeader title="Meditation & Breathing" />
+      <PageHeader title={UI_TEXT.meditationBreathing} />
       <div className="portal-content">
-        <p>Follow the breathing timer at a comfortable pace.</p>
+        <p>{UI_TEXT.followTheBreathingTimerAtAComfortablePace}</p>
         <div className="portal-card" aria-live="polite">
-          <h2>{running ? phase : "Ready when you are"}</h2>
+          <h2>{running ? phase : UI_TEXT.readyWhenYouAre}</h2>
           <p>
-            {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
+            {Math.floor(seconds / 60)}
+            {UI_TEXT.colon}
+            {String(seconds % 60).padStart(2, "0")}
           </p>
         </div>
         <button
           className="primary-btn"
           onClick={() => setRunning((value) => !value)}
         >
-          {running ? "Pause" : "Start"}
+          {running ? UI_TEXT.pause : UI_TEXT.start}
         </button>
         <button
           className="outline-btn"
@@ -98,7 +107,7 @@ export function MeditationBreathing() {
             setSeconds(0);
           }}
         >
-          Reset
+          {UI_TEXT.reset}
         </button>
       </div>
     </AppShell>
@@ -106,8 +115,8 @@ export function MeditationBreathing() {
 }
 
 function today() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
+  return new Intl.DateTimeFormat(DISPLAY_FORMAT.dayKeyLocale, {
+    timeZone: DISPLAY_FORMAT.timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -146,9 +155,7 @@ export function DailyTracker({ kind }: { kind: "steps" | "nutrition" }) {
       setEntries(next);
       setError("");
     } catch {
-      setError(
-        "Unable to save on this device. Check your browser storage settings.",
-      );
+      setError(UI_TEXT.unableToSaveOnThisDeviceCheckYourBrowser);
     }
   }
   function add(event: FormEvent) {
@@ -158,7 +165,7 @@ export function DailyTracker({ kind }: { kind: "steps" | "nutrition" }) {
       ...entries,
       {
         id: crypto.randomUUID(),
-        label: isSteps ? label.trim() || "Walk" : label.trim(),
+        label: isSteps ? label.trim() || UI_TEXT.walk : label.trim(),
         amount: Number(amount),
       },
     ]);
@@ -167,21 +174,25 @@ export function DailyTracker({ kind }: { kind: "steps" | "nutrition" }) {
   }
   return (
     <AppShell className="portal-page">
-      <PageHeader title={isSteps ? "Step Tracker" : "Nutrition Tracking"} />
+      <PageHeader
+        title={isSteps ? UI_TEXT.stepTracker : UI_TEXT.nutritionTracking}
+      />
       <div className="portal-content">
         <p>
-          Record today’s {isSteps ? "steps" : "meals"}. Entries are saved on
-          this device.
+          {UI_TEXT.recordTodayS}
+          {isSteps ? UI_TEXT.stepUnit : UI_TEXT.meals}
+          {UI_TEXT.entriesAreSavedOnThisDevice}
         </p>
         <div className="portal-card">
           <h2>
-            {total.toLocaleString()} {isSteps ? "steps" : "kcal"}
+            {total.toLocaleString()}{" "}
+            {isSteps ? UI_TEXT.stepUnit : UI_TEXT.calorieUnit}
           </h2>
           <p>{today()}</p>
         </div>
         <form onSubmit={add}>
           <label className="portal-label">
-            {isSteps ? "Activity (optional)" : "Meal"}
+            {isSteps ? UI_TEXT.activityOptional : UI_TEXT.meal}
             <input
               required={!isSteps}
               maxLength={100}
@@ -190,7 +201,7 @@ export function DailyTracker({ kind }: { kind: "steps" | "nutrition" }) {
             />
           </label>
           <label className="portal-label">
-            {isSteps ? "Steps" : "Calories (kcal)"}
+            {isSteps ? UI_TEXT.steps : UI_TEXT.caloriesKcal}
             <input
               type="number"
               min="1"
@@ -202,7 +213,8 @@ export function DailyTracker({ kind }: { kind: "steps" | "nutrition" }) {
             />
           </label>
           <button className="primary-btn">
-            Add {isSteps ? "steps" : "meal"}
+            {UI_TEXT.add2}
+            {isSteps ? UI_TEXT.stepUnit : UI_TEXT.mealUnit}
           </button>
         </form>
         {error && <p role="alert">{error}</p>}
@@ -210,16 +222,17 @@ export function DailyTracker({ kind }: { kind: "steps" | "nutrition" }) {
           <article className="portal-card" key={row.id}>
             <strong>{row.label}</strong>
             <p>
-              {row.amount.toLocaleString()} {isSteps ? "steps" : "kcal"}
+              {row.amount.toLocaleString()}{" "}
+              {isSteps ? UI_TEXT.stepUnit : UI_TEXT.calorieUnit}
             </p>
             <button
               className="text-btn"
-              aria-label={`Remove ${row.label}`}
+              aria-label={UI_MESSAGES.remove(row.label)}
               onClick={() =>
                 save(entries.filter((entry) => entry.id !== row.id))
               }
             >
-              Remove
+              {UI_TEXT.remove2}
             </button>
           </article>
         ))}

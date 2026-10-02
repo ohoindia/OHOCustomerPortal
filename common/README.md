@@ -14,6 +14,11 @@ This folder contains plain TypeScript used by the web app and the future React N
 - `controllers/catalog.controller.ts`: configuration values and product catalog.
 - `controllers/home.controller.ts`: combines the controllers into dashboard data, including partial failures and community fallback.
 - `utils/`: shared date, expiry, appointment, package, and OTP timer helpers.
+- `utils/membership.ts`: shared membership display labels (`MEMBERSHIP_LABELS`) and state selection (`membershipState`). Web and mobile can call `membershipState(dashboard)` or `membershipState(null)` while loading.
+- `content/labels.ts`: `UI_TEXT` contains display text across authentication, home, account details, booking, discovery, profile, portal, and wellness screens. `UI_MESSAGES` formats messages containing dynamic values. Repeated labels share one value; capitalization and intentional spacing are preserved.
+- `content/options.ts`: reusable service menus, booking filters, form choices, field labels, membership benefits, and sample display collections. Menu paths identify the existing web destinations; mobile maps them to its own navigation.
+- `content/config.ts`: shared legal links, date locales, and India time zone.
+- `data/mockData.ts`: typed sample hospitals, doctors, packages, tests, medicines, and bookings. These are demo values, separate from API results.
 - `index.ts`: public exports.
 
 ## Using the same controllers in mobile
@@ -43,6 +48,29 @@ const dashboard = await homeController.loadHomeData(7, 0, 0, signal);
 ```
 
 React Native uses its own screens, navigation, and session storage around these controllers. It can use its native `fetch`; no web code needs to be imported. Configure the mobile bundler to include this sibling folder when scaffolding the mobile app.
+
+## Using shared display values in mobile
+
+```typescript
+import {
+  UI_TEXT,
+  UI_MESSAGES,
+  membershipState,
+  membershipBadge,
+  appointmentState,
+  cardStatus,
+  bookingPeriods,
+} from "../../common";
+
+const title = UI_TEXT.myBookings;
+const membershipLabel = membershipState(dashboard);
+const badge = membershipBadge(cardStatus(dashboard.card));
+const appointmentLabel = appointmentState(memberId, appointments);
+const otpLabel = UI_MESSAGES.resendOtpInS(secondsRemaining);
+const filters = bookingPeriods;
+```
+
+Components keep their layout, CSS classes, DOM IDs, event handlers, storage, and platform-specific APIs. Add or edit reusable display values in `common/content/` so web and mobile stay consistent.
 
 For authenticated requests, pass `getAccessToken: () => secureTokenStorage.getToken()` to `createApiRequest`; async storage is supported. Pass an `onUnauthorized` callback to clear the rejected session and return to login on HTTP 401. Save the `JwtToken` and `expiresAt` returned by login or registration in the app's secure storage. Auth requests remain anonymous. See [JWT configuration and behavior](../server/AUTHENTICATION.md).
 

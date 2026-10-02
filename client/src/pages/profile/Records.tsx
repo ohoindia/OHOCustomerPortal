@@ -1,26 +1,23 @@
+import { sampleHealthRecords } from "../../../../common/content/options";
+import { UI_TEXT } from "../../../../common/content/labels";
 import { AppShell, PageHeader } from "../../components/Layout";
 
 export function Records() {
   return (
     <AppShell nav={false}>
-      <PageHeader title="Health Records" />
+      <PageHeader title={UI_TEXT.healthRecords} />
       <div className="tabs">
-        <b>Reports</b>
-        <span>Prescriptions</span>
+        <b>{UI_TEXT.reports}</b>
+        <span>{UI_TEXT.prescriptions}</span>
       </div>
-      {[
-        ["Blood Test Report", "20 May 2026"],
-        ["X-Ray Chest", "15 Apr 2026"],
-        ["ECG Report", "10 Mar 2026"],
-        ["MRI Scan", "05 Feb 2026"],
-      ].map(([a, b]) => (
+      {sampleHealthRecords.map(([a, b]) => (
         <article className="record-row" key={a}>
-          <span>📄</span>
+          <span>{UI_TEXT.decoration1F4C4}</span>
           <div>
             <b>{a}</b>
             <small>{b}</small>
           </div>
-          <span>›</span>
+          <span>{UI_TEXT.chevronRight}</span>
         </article>
       ))}
     </AppShell>

@@ -1,30 +1,33 @@
+import {
+  pharmacyCategories,
+  pharmacyCategoryIcons,
+} from "../../../../common/content/options";
+import { UI_TEXT } from "../../../../common/content/labels";
 import { AppShell, PageHeader } from "../../components/Layout";
 
 export function Pharmacy() {
   return (
     <AppShell>
-      <PageHeader title="Pharmacy" />
+      <PageHeader title={UI_TEXT.pharmacy} />
       <section className="upload-card">
         <div>
-          <b>Upload Prescription</b>
-          <p>Get medicines at best prices</p>
-          <button>Upload Now</button>
+          <b>{UI_TEXT.uploadPrescription}</b>
+          <p>{UI_TEXT.getMedicinesAtBestPrices}</p>
+          <button>{UI_TEXT.uploadNow}</button>
         </div>
-        <span>📄</span>
+        <span>{UI_TEXT.decoration1F4C4}</span>
       </section>
       <div className="service-grid four">
-        {["All Medicines", "Health Care", "Baby Care", "Devices"].map(
-          (x, i) => (
-            <button key={x}>
-              <span>{["💊", "🧴", "👶", "⌚"][i]}</span>
-              <small>{x}</small>
-            </button>
-          ),
-        )}
+        {pharmacyCategories.map((x, i) => (
+          <button key={x}>
+            <span>{pharmacyCategoryIcons[i]}</span>
+            <small>{x}</small>
+          </button>
+        ))}
       </div>
       <div className="section-title">
-        <h2>Order Again</h2>
-        <button>View All</button>
+        <h2>{UI_TEXT.orderAgain}</h2>
+        <button>{UI_TEXT.viewAll}</button>
       </div>
     </AppShell>
   );

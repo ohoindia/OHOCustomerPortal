@@ -1,19 +1,15 @@
+import { sampleOrderTimeline } from "../../../../common/content/options";
+import { UI_TEXT } from "../../../../common/content/labels";
 import { AppShell, PageHeader } from "../../components/Layout";
 
 export function OrderTracking() {
   return (
     <AppShell nav={false}>
-      <PageHeader title="Order Tracking" />
+      <PageHeader title={UI_TEXT.orderTracking} />
       <div className="timeline">
-        {[
-          ["Order Placed", "20 May 2026, 10:00 AM"],
-          ["Confirmed", "20 May 2026, 10:05 AM"],
-          ["Packed", "20 May 2026, 11:30 AM"],
-          ["Out for Delivery", "20 May 2026, 04:00 PM"],
-          ["Delivered", "20 May 2026, 06:15 PM"],
-        ].map(([a, b]) => (
+        {sampleOrderTimeline.map(([a, b]) => (
           <div className="timeline-row" key={a}>
-            <span>✓</span>
+            <span>{UI_TEXT.checkmark}</span>
             <div>
               <b>{a}</b>
               <small>{b}</small>

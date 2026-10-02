@@ -1,9 +1,12 @@
+import { UI_TEXT } from "../../../common/content/labels";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   type loadHomeData,
   formatHomeDate,
   cardStatus,
+  membershipState as getMembershipState,
+  membershipBadge,
 } from "../services/home";
 
 type AccountDetailsProps = {
@@ -14,34 +17,22 @@ export default function AccountDetails({ data }: AccountDetailsProps) {
   const navigate = useNavigate();
   const [cardFlipped, setCardFlipped] = useState(false);
   const card = data?.card ?? null;
-  const membershipState = !data
-    ? "Loading membership..."
-    : !data.hasMember
-      ? "No membership card"
-      : !data.membershipLoaded
-        ? "Membership unavailable"
-        : card
-          ? "OHO Membership Card"
-          : "No membership card";
+  const membershipState = getMembershipState(data);
   const expiry = formatHomeDate(card?.EndDate);
   const status = cardStatus(card);
-  const cardBadge =
-    status === "Expires today"
-      ? "TODAY"
-      : status === "Expiry not provided"
-        ? "UNKNOWN"
-        : status === "Not started"
-          ? "PENDING"
-          : status.toUpperCase();
+  const cardBadge = membershipBadge(status);
 
   return (
-    <section id="home-account-details" aria-label="Account details">
-      <section className="oho-membership" aria-label="OHOINDIA membership card">
+    <section id="home-account-details" aria-label={UI_TEXT.accountDetails}>
+      <section
+        className="oho-membership"
+        aria-label={UI_TEXT.ohoindiaMembershipCard}
+      >
         <div
           className={`oho-card-flipper${cardFlipped ? " is-flipped" : ""}`}
           role="button"
           tabIndex={0}
-          aria-label="Show back of OHOINDIA membership card"
+          aria-label={UI_TEXT.showBackOfOhoindiaMembershipCard}
           aria-pressed={cardFlipped}
           onPointerEnter={(event) => {
             if (event.pointerType === "mouse") setCardFlipped(true);
@@ -66,9 +57,14 @@ export default function AccountDetails({ data }: AccountDetailsProps) {
               <img
                 className="oho-card-artwork"
                 src="/oho-card-front.jpg"
-                alt="OHOINDIA Privilege Family Care. Healthcare, Wellness, Happiness. Not transferable."
+                alt={
+                  UI_TEXT.ohoindiaPrivilegeFamilyCareHealthcareWellnessHappinessNotTransferable
+                }
               />
-              <div className="oho-card-number" aria-label="Membership number">
+              <div
+                className="oho-card-number"
+                aria-label={UI_TEXT.membershipNumber}
+              >
                 {card?.OHOCardnumber
                   ? String(card.OHOCardnumber)
                       .replace(/\s/g, "")
@@ -79,11 +75,13 @@ export default function AccountDetails({ data }: AccountDetailsProps) {
               {card && (
                 <div className="oho-card-validity">
                   <span>
-                    {status === "Expired" ? "Validity · Expired" : "Validity"}
+                    {status === UI_TEXT.expired
+                      ? UI_TEXT.validityExpired
+                      : UI_TEXT.validity}
                   </span>
                   <strong>
-                    {formatHomeDate(card.StartDate) || "Not provided"} to{" "}
-                    {expiry || "Not provided"}
+                    {formatHomeDate(card.StartDate) || UI_TEXT.notProvided}
+                    {UI_TEXT.to} {expiry || UI_TEXT.notProvided}
                   </strong>
                 </div>
               )}
@@ -95,7 +93,9 @@ export default function AccountDetails({ data }: AccountDetailsProps) {
               <img
                 className="oho-card-artwork"
                 src="/oho-card-back.png"
-                alt="OHOINDIA card back: consultations, discounts, diagnostics, health camps and insurance. Call or WhatsApp +91 7032 107 108 or +91 7671 997 108. Terms and conditions apply; insurance is provided by partners. This card is company property."
+                alt={
+                  UI_TEXT.ohoindiaCardBackConsultationsDiscountsDiagnosticsHealthCampsAnd
+                }
               />
             </div>
           </div>
@@ -110,7 +110,9 @@ export default function AccountDetails({ data }: AccountDetailsProps) {
           {data?.groupName && (
             <span className="oho-card-group">{data.groupName}</span>
           )}
-          <button onClick={() => navigate("/membership")}>View Benefits</button>
+          <button onClick={() => navigate("/membership")}>
+            {UI_TEXT.viewBenefits}
+          </button>
         </div>
       </section>
     </section>

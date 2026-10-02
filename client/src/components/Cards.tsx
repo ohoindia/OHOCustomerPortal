@@ -1,3 +1,4 @@
+import { UI_TEXT } from "../../../common/content/labels";
 import { Star, ChevronRight } from "./Icons";
 import { useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
@@ -34,10 +35,13 @@ export function HospitalCard({ hospital }: HospitalCardProps) {
         <h3>{hospital.name}</h3>
         <p>{hospital.area}</p>
         <div className="rating">
-          <Star size={13} /> {hospital.rating} ({hospital.reviews})
+          <Star size={13} /> {hospital.rating}
+          {UI_TEXT.openParenthesis}
+          {hospital.reviews}
+          {UI_TEXT.closeParenthesis}
         </div>
         <button className="text-btn" onClick={() => navigate("/doctor/1")}>
-          Book Now
+          {UI_TEXT.bookNow}
         </button>
       </div>
       <span className="distance">{hospital.distance}</span>
@@ -60,7 +64,7 @@ export function BookingCard({ item, onViewDetails }: BookingCardProps) {
         <p>{item.subtitle}</p>
         <p className="strong">{item.date}</p>
         <button className="text-btn" onClick={onViewDetails}>
-          View Details
+          {UI_TEXT.viewDetails}
         </button>
       </div>
     </article>

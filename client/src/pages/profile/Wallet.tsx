@@ -1,34 +1,35 @@
+import { UI_TEXT } from "../../../../common/content/labels";
 import { AppShell, PageHeader } from "../../components/Layout";
 import { MenuRow } from "../../components/Cards";
 
 export function Wallet() {
   return (
     <AppShell>
-      <PageHeader title="Wallet & Rewards" back={false} />
+      <PageHeader title={UI_TEXT.walletRewards} back={false} />
       <section className="wallet-card">
-        <span>Total Balance</span>
-        <strong>₹2,450</strong>
-        <b>👛</b>
+        <span>{UI_TEXT.totalBalance}</span>
+        <strong>{UI_TEXT.value2450}</strong>
+        <b>{UI_TEXT.purseEmoji}</b>
       </section>
       <div className="wallet-stats">
         <article>
-          <span>Cashback</span>
-          <b>₹850</b>
+          <span>{UI_TEXT.cashback}</span>
+          <b>{UI_TEXT.value850}</b>
         </article>
         <article>
-          <span>OHO Coins</span>
-          <b>🪙 1,600</b>
+          <span>{UI_TEXT.ohoCoins}</span>
+          <b>{UI_TEXT.value1600}</b>
         </article>
       </div>
       <MenuRow
-        icon="↔"
-        title="Transaction History"
-        subtitle="View recent transactions"
+        icon={UI_TEXT.transferIcon}
+        title={UI_TEXT.transactionHistory}
+        subtitle={UI_TEXT.viewRecentTransactions}
       />
       <MenuRow
-        icon="🎁"
-        title="Redeem Coins"
-        subtitle="Use coins for rewards"
+        icon={UI_TEXT.giftEmoji}
+        title={UI_TEXT.redeemCoins}
+        subtitle={UI_TEXT.useCoinsForRewards}
       />
     </AppShell>
   );

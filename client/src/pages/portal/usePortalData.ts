@@ -1,3 +1,4 @@
+import { UI_TEXT } from "../../../../common/content/labels";
 import { useEffect, useState } from "react";
 import { apiRequest } from "../../services/api";
 
@@ -20,7 +21,7 @@ export function usePortalData(path: string, body?: Record<string, unknown>) {
     })
       .then((rows) => {
         if (!Array.isArray(rows))
-          throw new Error("The service returned an unexpected response.");
+          throw new Error(UI_TEXT.theServiceReturnedAnUnexpectedResponse);
         if (!controller.signal.aborted)
           setState({ key, rows, loading: false, error: "" });
       })
@@ -33,7 +34,7 @@ export function usePortalData(path: string, body?: Record<string, unknown>) {
             error:
               error instanceof Error
                 ? error.message
-                : "Unable to load details.",
+                : UI_TEXT.unableToLoadDetails,
           });
       });
     return () => controller.abort();

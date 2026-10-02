@@ -1,3 +1,4 @@
+import { UI_TEXT } from "../../../../common/content/labels";
 import type { AuthResponse, Member } from "../../../../common/models/customer";
 
 const sessionKeys = [
@@ -39,7 +40,7 @@ export function saveAuthSession(response: AuthResponse, member: Member) {
     !Number.isFinite(Date.parse(response.expiresAt ?? "")) ||
     Date.parse(response.expiresAt!) <= Date.now()
   ) {
-    throw new Error("Login did not return a valid session. Please try again.");
+    throw new Error(UI_TEXT.loginDidNotReturnAValidSessionPleaseTry);
   }
   sessionStorage.setItem("accessToken", response.JwtToken);
   sessionStorage.setItem("tokenExpiresAt", response.expiresAt!);
