@@ -10,15 +10,32 @@ export function configureApp(app: INestApplication, shutdownHooks = true) {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.disable("x-powered-by");
   // Trust only explicitly listed proxy IPs/subnets, never arbitrary forwarded headers.
-  const trustedProxies = process.env.TRUSTED_PROXIES?.split(",").map((value) => value.trim()).filter(Boolean);
-  expressApp.set("trust proxy", trustedProxies?.length ? trustedProxies : false);
-  app.use(helmet({
-    contentSecurityPolicy: { directives: { upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null } },
-    strictTransportSecurity: process.env.NODE_ENV === "production" ? { maxAge: 31536000 } : false,
-  }));
+  const trustedProxies = process.env.TRUSTED_PROXIES?.split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  expressApp.set(
+    "trust proxy",
+    trustedProxies?.length ? trustedProxies : false,
+  );
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          upgradeInsecureRequests:
+            process.env.NODE_ENV === "production" ? [] : null,
+        },
+      },
+      strictTransportSecurity:
+        process.env.NODE_ENV === "production" ? { maxAge: 31536000 } : false,
+    }),
+  );
   const expressNestApp = app as NestExpressApplication;
   expressNestApp.useBodyParser("json", { limit: "32kb" });
-  expressNestApp.useBodyParser("urlencoded", { limit: "32kb", extended: false, parameterLimit: 100 });
+  expressNestApp.useBodyParser("urlencoded", {
+    limit: "32kb",
+    extended: false,
+    parameterLimit: 100,
+  });
   app.use(
     (
       _request: unknown,
@@ -40,7 +57,10 @@ export function configureApp(app: INestApplication, shutdownHooks = true) {
         return;
       }
       config
-        .get("CORS_ORIGINS", process.env.NODE_ENV === "production" ? "" : "http://localhost:5173")
+        .get(
+          "CORS_ORIGINS",
+          process.env.NODE_ENV === "production" ? "" : "http://localhost:5173",
+        )
         .then((value) => {
           const allowed = value.split(",").map((item) => item.trim());
           callback(null, allowed.includes(origin));
@@ -49,7 +69,12 @@ export function configureApp(app: INestApplication, shutdownHooks = true) {
     },
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Authorization", "Content-Type"],
-    exposedHeaders: ["Retry-After", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
+    exposedHeaders: [
+      "Retry-After",
+      "X-RateLimit-Limit",
+      "X-RateLimit-Remaining",
+      "X-RateLimit-Reset",
+    ],
     credentials: false,
   });
   app.useGlobalPipes(

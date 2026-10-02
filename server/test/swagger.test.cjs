@@ -65,8 +65,5 @@ test("OpenAPI documents routes, inherited DTO fields and JWT security accurately
   assert.equal(schemas.PaginationDto.required?.length ?? 0, 0);
   assert.ok(schemas.AuthResponseDto.properties.JwtToken);
   // Publishing the docs does not bypass API authentication.
-  assert.equal(
-    (await fetch(`${base}/api/Customer/GetById/12`)).status,
-    401,
-  );
+  assert.equal((await fetch(`${base}/api/Customer/GetById/12`)).status, 401);
 });

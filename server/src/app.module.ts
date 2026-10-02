@@ -42,12 +42,18 @@ class HealthController {
     ThrottlerModule.forRoot([
       { name: "default", ttl: 60000, limit: 120 },
       {
-        name: "auth", ttl: 300000, limit: 60,
-        skipIf: (context) => context.getClass().name !== "CustomerAuthController",
+        name: "auth",
+        ttl: 300000,
+        limit: 60,
+        skipIf: (context) =>
+          context.getClass().name !== "CustomerAuthController",
       },
       {
-        name: "sensitive", ttl: 60000, limit: 10,
-        skipIf: (context) => context.getClass().name !== "CustomerAuthController",
+        name: "sensitive",
+        ttl: 60000,
+        limit: 10,
+        skipIf: (context) =>
+          context.getClass().name !== "CustomerAuthController",
       },
     ]),
     DatabaseModule,

@@ -15,10 +15,7 @@ test("shared transport uses one API base for customer and catalog requests, seri
   const signal = new AbortController().signal;
   await request("/api/Customer/GetById/7", { signal });
   await request("api/Products/all", { body: { skip: 0, take: 0 } });
-  assert.equal(
-    calls[0].url,
-    "https://customer.test/api/Customer/GetById/7",
-  );
+  assert.equal(calls[0].url, "https://customer.test/api/Customer/GetById/7");
   assert.equal(calls[0].method, "GET");
   assert.equal(calls[0].body, undefined);
   assert.equal(calls[0].signal, signal);
@@ -31,7 +28,10 @@ test("shared transport uses one API base for customer and catalog requests, seri
 
 test("shared transport reports configuration and HTTP failures and preserves abort errors", async () => {
   const { createApiRequest } = loadModule("../../common/api/transport.ts");
-  await assert.rejects(createApiRequest({})("api/Products/all"), /not configured/);
+  await assert.rejects(
+    createApiRequest({})("api/Products/all"),
+    /not configured/,
+  );
   const failed = createApiRequest({
     apiBaseUrl: "https://test",
     fetch: async () => ({ ok: false, status: 503 }),

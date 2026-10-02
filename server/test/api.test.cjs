@@ -145,11 +145,7 @@ test("health and every home API return the JSON contracts consumed by React", as
       undefined,
       (b) => b[0].Products[0].ProductName === "Package",
     ],
-    [
-      "api/Customer/AddressExistsOrNot/12",
-      undefined,
-      (b) => b.status === true,
-    ],
+    ["api/Customer/AddressExistsOrNot/12", undefined, (b) => b.status === true],
     [
       "api/Customer/KYCVerifiedOrNot",
       { customerId: 12, aadhaarNumber: "123456789012" },
@@ -688,13 +684,8 @@ test("community password login cannot grant access to a customer with a differen
       403,
     );
     assert.equal(
-      (
-        await request(
-          "api/CommunityCustomers/GetById/4",
-          undefined,
-          token,
-        )
-      ).status,
+      (await request("api/CommunityCustomers/GetById/4", undefined, token))
+        .status,
       200,
     );
     assert.equal(

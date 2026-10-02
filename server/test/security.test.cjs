@@ -8,21 +8,32 @@ const { DatabaseService } = require("../dist/database/database.service");
 
 async function withApp(work) {
   const module = await Test.createTestingModule({ imports: [AppModule] })
-    .overrideProvider(DatabaseService).useValue({ async rows() { return []; } }).compile();
+    .overrideProvider(DatabaseService)
+    .useValue({
+      async rows() {
+        return [];
+      },
+    })
+    .compile();
   const app = module.createNestApplication({ logger: false });
   try {
     configureApp(app, false);
     await app.listen(0, "127.0.0.1");
     await work(await app.getUrl());
-  } finally { await app.close(); }
+  } finally {
+    await app.close();
+  }
 }
 
 test("shared IP budget spans routes and ignores spoofed forwarding headers", async () => {
   await withApp(async (base) => {
     for (let i = 0; i < 120; i++) {
-      const response = await fetch(`${base}/${i % 2 ? "api/Customer/GetById/12" : "health"}`, {
-        headers: { "X-Forwarded-For": `198.51.100.${i + 1}` },
-      });
+      const response = await fetch(
+        `${base}/${i % 2 ? "api/Customer/GetById/12" : "health"}`,
+        {
+          headers: { "X-Forwarded-For": `198.51.100.${i + 1}` },
+        },
+      );
       assert.equal(response.status, i % 2 ? 401 : 200);
       await response.arrayBuffer();
     }
@@ -37,7 +48,9 @@ test("login attempts have a tighter budget before authentication or business SQL
   await withApp(async (base) => {
     for (let i = 0; i < 11; i++) {
       const response = await fetch(`${base}/api/Customer/memberlogin`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
       });
       assert.equal(response.status, i < 10 ? 400 : 429);
       await response.arrayBuffer();
@@ -59,7 +72,9 @@ test("security headers, body size limits, malformed JSON and prototype keys", as
       ['{"__proto__":{"polluted":true}}', 400],
     ]) {
       const response = await fetch(`${base}/api/Customer/memberlogin`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
       });
       assert.equal(response.status, status);
       await response.arrayBuffer();
@@ -78,9 +93,14 @@ test("production disables documentation and has no default browser origin", asyn
         assert.equal(response.status, 404);
         await response.arrayBuffer();
       }
-      const response = await fetch(`${base}/health`, { headers: { Origin: "http://localhost:5173" } });
+      const response = await fetch(`${base}/health`, {
+        headers: { Origin: "http://localhost:5173" },
+      });
       assert.equal(response.headers.get("access-control-allow-origin"), null);
-      assert.match(response.headers.get("strict-transport-security"), /max-age=31536000/);
+      assert.match(
+        response.headers.get("strict-transport-security"),
+        /max-age=31536000/,
+      );
       await response.arrayBuffer();
     });
   } finally {

@@ -14,17 +14,14 @@ export function createAuthController(apiRequest: ApiRequest) {
     body: Record<string, unknown>,
     signal?: AbortSignal,
   ): Promise<AuthResponse> {
-    const data = await apiRequest<AuthResponse>(
-      `api/Customer/${action}`,
-      {
-        body,
-        signal,
-        authentication: false,
-        configurationError:
-          "Login service is not configured. Please contact support.",
-        requestError: "Unable to contact the login service. Please try again.",
-      },
-    );
+    const data = await apiRequest<AuthResponse>(`api/Customer/${action}`, {
+      body,
+      signal,
+      authentication: false,
+      configurationError:
+        "Login service is not configured. Please contact support.",
+      requestError: "Unable to contact the login service. Please try again.",
+    });
     if (typeof data?.status !== "boolean")
       throw new Error(
         "Unexpected response from the login service. Please try again.",

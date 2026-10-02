@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Logo, AppShell } from "../components/Layout";
+import AccountDetails from "../components/AccountDetails";
 import { BookingCard } from "../components/Cards";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { getSessionMember } from "./auth/member";
 import {
@@ -9,7 +10,6 @@ import {
   formatHomeDate,
   expiryStatus,
   cardStatus,
-  latestActivePackage,
 } from "../services/home";
 import "./home-member.css";
 
@@ -26,8 +26,7 @@ const services = [
 export default function Home() {
   const navigate = useNavigate();
   const [sessionMember] = useState(getSessionMember);
-  const [cardFlipped, setCardFlipped] = useState(false);
-  const packageDetailsRef = useRef<HTMLDetailsElement>(null);
+  const [accountDetailsVisible, setAccountDetailsVisible] = useState(false);
   const [data, setData] = useState<Awaited<
     ReturnType<typeof loadHomeData>
   > | null>(null);
@@ -54,22 +53,6 @@ export default function Home() {
   const member = data?.customer ?? sessionMember;
   const card = data?.card ?? null;
   const appointment = data?.appointment;
-  const activePackage = latestActivePackage(data?.products ?? []);
-  const expiredPackages = (data?.products ?? []).filter(
-    (product) => expiryStatus(product.ValidTill) === "Expired",
-  );
-  const remainingPackages = (data?.products ?? []).filter(
-    (product) => expiryStatus(product.ValidTill) !== "Expired",
-  );
-  const membershipState = !data
-    ? "Loading membership..."
-    : !data.hasMember
-      ? "No membership card"
-      : !data.membershipLoaded
-        ? "Membership unavailable"
-        : card
-          ? "OHO Membership Card"
-          : "No membership card";
   const appointmentState = !data
     ? "Loading appointment..."
     : !data.hasMember
@@ -77,16 +60,14 @@ export default function Home() {
       : data.appointmentsLoaded
         ? "No upcoming appointments"
         : "Appointments unavailable";
-  const expiry = formatHomeDate(card?.EndDate);
   const status = cardStatus(card);
-  const cardBadge =
-    status === "Expires today"
-      ? "TODAY"
-      : status === "Expiry not provided"
-        ? "UNKNOWN"
-        : status === "Not started"
-          ? "PENDING"
-          : status.toUpperCase();
+  const membershipExpiry = expiryStatus(card?.EndDate);
+  const vaultMembershipStatus =
+    membershipExpiry === "Expired"
+      ? "Expired"
+      : membershipExpiry === "Valid" || membershipExpiry === "Expires today"
+        ? "Active"
+        : null;
   const profileMessages = data
     ? [
         !member?.DateofBirth || !member?.Age || !member?.Gender
@@ -148,9 +129,6 @@ export default function Home() {
   };
   const name =
     member?.Name?.trim() || sessionStorage.getItem("FullName") || "Guest";
-  const location = [member?.Village, member?.City]
-    .filter((value, index, values) => value && values.indexOf(value) === index)
-    .join(", ");
   const initials = name
     .split(/\s+/)
     .slice(0, 2)
@@ -159,12 +137,8 @@ export default function Home() {
     .toUpperCase();
   return (
     <AppShell>
-      <header className="home-brand"><Logo compact /><span className="home-account-label">Member account</span></header>
-      <div className="home-top">
-        <div>
-          <small>⌖ {location || "Location not provided"}</small>
-          <h1>Hello, {name} 👋</h1>
-        </div>
+      <header className="home-brand">
+        <Logo compact />
         <button
           className="profile-mini"
           aria-label="View profile"
@@ -172,8 +146,16 @@ export default function Home() {
         >
           {initials}
         </button>
+      </header>
+      <div className="home-top">
+        <div>
+          <h1>Hello, {name} 👋</h1>
+        </div>
       </div>
-      <section className="home-family-vault" aria-labelledby="home-family-vault-title">
+      <section
+        className="home-family-vault"
+        aria-labelledby="home-family-vault-title"
+      >
         <div className="home-vault-heading">
           <h2 id="home-family-vault-title">Family Health Account Vault</h2>
           <span className="home-vault-badge">Liquidity</span>
@@ -181,26 +163,40 @@ export default function Home() {
         <strong className="home-vault-value">₹37,000</strong>
         <p>Pre-loaded Health Liquidity</p>
         <div className="home-vault-pattern" aria-hidden="true">
-          <svg viewBox="0 0 180 140" fill="none" stroke="currentColor" strokeWidth="5">
+          <svg
+            viewBox="0 0 180 140"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="5"
+          >
             <path d="M20 25h20m-10-10v20M125 95h24m-12-12v24M65 75h22m-11-11v22" />
             <rect x="55" y="54" width="42" height="42" rx="7" />
             <path d="M68 54v-8h16v8M105 27h12l7-12 10 26 7-14h15M30 112h18m-9-9v18" />
-            <rect x="117" y="76" width="40" height="40" rx="7" transform="rotate(-12 137 96)" />
+            <rect
+              x="117"
+              y="76"
+              width="40"
+              height="40"
+              rx="7"
+              transform="rotate(-12 137 96)"
+            />
             <circle cx="158" cy="53" r="12" />
           </svg>
         </div>
         <div className="home-vault-actions">
+          {vaultMembershipStatus && (
+            <span
+              className={`home-vault-status${vaultMembershipStatus === "Expired" ? " is-expired" : ""}`}
+              aria-label={`Membership ${vaultMembershipStatus.toLowerCase()}`}
+            >
+              {vaultMembershipStatus}
+            </span>
+          )}
           <button
             type="button"
-            aria-controls="home-package-details"
-            onClick={() => {
-              const details = packageDetailsRef.current;
-              if (details) {
-                details.open = true;
-                details.scrollIntoView({ block: "start" });
-                details.querySelector("summary")?.focus();
-              }
-            }}
+            aria-controls="home-account-details"
+            aria-expanded={accountDetailsVisible}
+            onClick={() => setAccountDetailsVisible((visible) => !visible)}
           >
             Account Details
           </button>
@@ -208,186 +204,17 @@ export default function Home() {
       </section>
       <section className="home-welcome" aria-labelledby="home-welcome-title">
         <span>CARE FOR THE WHOLE FAMILY</span>
-        <h2 id="home-welcome-title">Your health. Your account.<br />All in one place.</h2>
+        <h2 id="home-welcome-title">
+          Your health. Your account.
+          <br />
+          All in one place.
+        </h2>
         <p>Access your benefits and find care close to home.</p>
-        <button onClick={() => navigate("/hospitals")}>Explore your care network <span aria-hidden="true">→</span></button>
+        <button onClick={() => navigate("/hospitals")}>
+          Explore your care network <span aria-hidden="true">→</span>
+        </button>
       </section>
-      <section className="oho-membership" aria-label="OHOINDIA membership card">
-        <div
-          className={`oho-card-flipper${cardFlipped ? " is-flipped" : ""}`}
-          role="button"
-          tabIndex={0}
-          aria-label="Show back of OHOINDIA membership card"
-          aria-pressed={cardFlipped}
-          onPointerEnter={(event) => {
-            if (event.pointerType === "mouse") setCardFlipped(true);
-          }}
-          onPointerLeave={(event) => {
-            if (event.pointerType === "mouse") setCardFlipped(false);
-          }}
-          onClick={() => setCardFlipped((value) => !value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              setCardFlipped((value) => !value);
-            } else if (event.key === "Escape") setCardFlipped(false);
-          }}
-          onBlur={() => setCardFlipped(false)}
-        >
-          <div className="oho-card-rotation">
-            <div
-              className="oho-card-face oho-card-front"
-              aria-hidden={cardFlipped}
-            >
-              <img
-                className="oho-card-artwork"
-                src="/oho-card-front.jpg"
-                alt="OHOINDIA Privilege Family Care. Healthcare, Wellness, Happiness. Not transferable."
-              />
-              <div className="oho-card-number" aria-label="Membership number">
-                {card?.OHOCardnumber
-                  ? String(card.OHOCardnumber)
-                      .replace(/\s/g, "")
-                      .match(/.{1,4}/g)
-                      ?.join(" ")
-                  : membershipState}
-              </div>
-              {card && (
-                <div className="oho-card-validity">
-                  <span>
-                    {status === "Expired" ? "Validity · Expired" : "Validity"}
-                  </span>
-                  <strong>
-                    {formatHomeDate(card.StartDate) || "Not provided"} to{" "}
-                    {expiry || "Not provided"}
-                  </strong>
-                </div>
-              )}
-            </div>
-            <div
-              className="oho-card-face oho-card-back"
-              aria-hidden={!cardFlipped}
-            >
-              <img
-                className="oho-card-artwork"
-                src="/oho-card-back.png"
-                alt="OHOINDIA card back: consultations, discounts, diagnostics, health camps and insurance. Call or WhatsApp +91 7032 107 108 or +91 7671 997 108. Terms and conditions apply; insurance is provided by partners. This card is company property."
-              />
-            </div>
-          </div>
-        </div>
-        <div className="oho-card-footer">
-          <span
-            className="oho-card-status"
-            title={card ? status : membershipState}
-          >
-            {card ? cardBadge : membershipState}
-          </span>
-          {data?.groupName && (
-            <span className="oho-card-group">{data.groupName}</span>
-          )}
-          <button onClick={() => navigate("/membership")}>View Benefits</button>
-        </div>
-      </section>
-      <details className="home-package-details" id="home-package-details" ref={packageDetailsRef}>
-        <summary>
-          My Packages
-          {Boolean(data?.products?.length) && (
-            <span>{data?.products?.length}</span>
-          )}
-          {activePackage ? (
-            <span className="home-featured-package">
-              <span className="home-package-name">
-                <span aria-hidden="true">♥</span>
-                {activePackage.ProductName || "Package"}
-              </span>
-              <span className="home-package-active">Active</span>
-              <small>
-                {formatHomeDate(activePackage.ValidTill)
-                  ? `Valid till ${formatHomeDate(activePackage.ValidTill)}`
-                  : "Expiry not provided"}
-              </small>
-            </span>
-          ) : (
-            <small className="home-package-status">
-              {!data
-                ? "Loading packages..."
-                : data.products === null && data.hasMember
-                  ? "Packages unavailable"
-                  : "No Active packages"}
-            </small>
-          )}
-        </summary>
-        <table className="home-benefits-table">
-          <thead>
-            <tr>
-              <th scope="col">Asset Category</th>
-              <th scope="col">Benefit Description</th>
-              <th scope="col">Maximum Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Service Credit Vault</th>
-              <td>24 Managed Zero Cash Consultation Credits</td>
-              <td>₹12,000</td>
-            </tr>
-            <tr>
-              <th scope="row">Smart Savings Wallet</th>
-              <td>Up to 30% Savings on Pharmacy, Labs, and Hospital Bills.</td>
-              <td>₹25,000</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <th scope="row">TOTAL VALUE</th>
-              <td>TOTAL MANAGED HEALTH LIQUIDITY</td>
-              <td>₹37,000</td>
-            </tr>
-          </tfoot>
-        </table>
-        {remainingPackages.map((product, index) => (
-          <div
-            className="home-package-row"
-            key={product.MemberProductProductsId ?? index}
-          >
-            <strong>{product.ProductName || "Package"}</strong>
-            <span>
-              {expiryStatus(product.ValidTill)}
-              {formatHomeDate(product.ValidTill) &&
-                ` · ${formatHomeDate(product.ValidTill)}`}
-            </span>
-            {formatHomeDate(product.IssuedOn) && (
-              <small>Issued {formatHomeDate(product.IssuedOn)}</small>
-            )}
-          </div>
-        ))}
-        {expiredPackages.length > 0 && (
-          <section
-            className="home-expired-packages"
-            aria-label="Expired packages"
-          >
-            <h3>
-              Expired packages <span>{expiredPackages.length}</span>
-            </h3>
-            {expiredPackages.map((product, index) => (
-              <div
-                className="home-package-row"
-                key={product.MemberProductProductsId ?? index}
-              >
-                <strong>{product.ProductName || "Package"}</strong>
-                <span>Expired on {formatHomeDate(product.ValidTill)}</span>
-                {formatHomeDate(product.IssuedOn) && (
-                  <small>Issued {formatHomeDate(product.IssuedOn)}</small>
-                )}
-              </div>
-            ))}
-          </section>
-        )}
-        {data?.products?.length === 0 && (
-          <p className="home-package-empty">No purchased packages</p>
-        )}
-      </details>
+      <AccountDetails data={data} visible={accountDetailsVisible} />
       {actionMessages.length > 0 && (
         <ActionNotice
           key={actionMessages.join("|")}

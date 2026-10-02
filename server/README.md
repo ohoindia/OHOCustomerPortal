@@ -53,8 +53,8 @@ npm --prefix server run start:prod
 
 Source references below are relative to `C:\code\app\ohoindia\OHOBackEnd`. Customer routes use `OHO.Lambda.API/Controllers/CustomerController.cs` and `OHO.Database.Repositaries/CustomerRepo.cs`, rather than the older Member APIs.
 
-| Module        | Method and route                                                        | .NET logic / data source                                                                 |
-| ------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Module        | Method and route                                                  | .NET logic / data source                                                                 |
+| ------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | customer-auth | POST `/api/Customer/mobileNoValid`                                | Customer lookup, with the community fallback used by memberlogin                         |
 | customer-auth | POST `/api/Customer/checkingMobileno`                             | Registration/profile checks, daily OTP limit, resend cooldown, MobileOTPHistory          |
 | customer-auth | POST `/api/Customer/toSetNewPassword`                             | Registered customer check, OTP generation and SMS delivery                               |
@@ -71,8 +71,8 @@ Source references below are relative to `C:\code\app\ohoindia\OHOBackEnd`. Custo
 | consultations | POST `/api/BookingConsultation/PendingAndSuccessConsultationList` | BookingConsultationRepo, service/status/policy joins, optional coupon filter             |
 | communities   | GET `/api/CommunityCustomers/GetById/:id`                         | CommunityCustomersController, customer association by mobile                             |
 | communities   | GET `/api/Group/GetById/:id`                                      | GroupController, GroupRepo.FetchGroupIdData                                              |
-| catalog       | POST `/api/ConfigValues/all`                                                | OHO.APILambda ConfigValuesController, ConfigValues public columns                        |
-| catalog       | POST `/api/Products/all`                                                    | OHO.APILambda ProductsController, GetDataRepo.SelectQry, ProductsDetails view            |
+| catalog       | POST `/api/ConfigValues/all`                                      | OHO.APILambda ConfigValuesController, ConfigValues public columns                        |
+| catalog       | POST `/api/Products/all`                                          | OHO.APILambda ProductsController, GetDataRepo.SelectQry, ProductsDetails view            |
 
 All customer and catalog endpoints use the `/api/...` prefix. Configure frontend base URLs without the `/api` suffix; the shared controllers include it in request paths. Pagination accepts `{ "skip": 0, "take": 0 }`; `take: 0` retains the legacy unlimited result behavior.
 

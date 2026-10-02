@@ -924,29 +924,119 @@ input::placeholder {
 }
 
 /* OHO India website branding, shared by all customer screens. */
-h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif; letter-spacing: -0.025em; }
-body { background: radial-gradient(ellipse at top left, #e0f2fe, transparent 55%), #f4f8fc; }
-.phone-shell { background: #f8fafc; box-shadow: 0 16px 60px rgb(20 35 68 / 10%); }
-.brand-lockup { display: flex; align-items: center; gap: 10px; text-align: left; }
-.brand-lockup img { width: 54px; height: 54px; object-fit: contain; }
-.brand-lockup strong { display: block; color: var(--brand); font-size: 23px; letter-spacing: -0.04em; }
-.brand-lockup small { display: block; margin-top: 3px; color: var(--brand-strong); font-size: 10px; letter-spacing: 0; }
-.logo.brand-lockup { justify-content: center; }
-.logo.compact.brand-lockup strong { font-size: 23px; }
-.primary-btn { background: #030e37; border-radius: 999px; min-height: 48px; box-shadow: 0 5px 14px rgb(20 35 68 / 12%); }
-.primary-btn:hover:not(:disabled) { background: #142344; }
-.bottom-nav { border-top-color: var(--line); box-shadow: 0 -4px 18px rgb(20 35 68 / 4%); }
-.bottom-nav a.active { color: var(--brand-strong); background: #f0f9ff; }
-.bottom-nav a { font-size: 11px; }
-.section-title h2 { font-size: 16px; }
-.section-title button, .text-btn { color: #007ca8; font-size: 12px; }
-.list-card, .home-package-details { box-shadow: 0 3px 12px rgb(20 35 68 / 3%); }
-.service-grid { gap: 10px; }
-.service-grid button { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 13px 3px; }
-.service-grid button:hover { border-color: var(--brand); background: #f0f9ff; }
-.service-grid span { background: var(--soft); color: #007ca8; }
-.service-grid small { font-size: 11px; line-height: 1.5; font-weight: 500; }
-.offer-banner { background: linear-gradient(120deg, #142344, #030e37); color: #fff; line-height: 1.6; }
-.offer-banner p { font-size: 12px; }
-.offer-banner a { color: #a5e6ff; }
-@media (min-width: 768px) { body { background: radial-gradient(ellipse at top left, #e0f2fe, transparent 55%), #f4f8fc; } }
+h1,
+h2,
+h3,
+.logo {
+  font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+body {
+  background:
+    radial-gradient(ellipse at top left, #e0f2fe, transparent 55%), #f4f8fc;
+}
+.phone-shell {
+  background: #f8fafc;
+  box-shadow: 0 16px 60px rgb(20 35 68 / 10%);
+}
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+.brand-lockup img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+.brand-lockup strong {
+  display: block;
+  color: var(--brand);
+  font-size: 23px;
+  letter-spacing: -0.04em;
+}
+.brand-lockup small {
+  display: block;
+  margin-top: 3px;
+  color: var(--brand-strong);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+.logo.brand-lockup {
+  justify-content: center;
+}
+.logo.compact.brand-lockup strong {
+  font-size: 23px;
+}
+.primary-btn {
+  background: #030e37;
+  border-radius: 999px;
+  min-height: 48px;
+  box-shadow: 0 5px 14px rgb(20 35 68 / 12%);
+}
+.primary-btn:hover:not(:disabled) {
+  background: #142344;
+}
+.bottom-nav {
+  border-top-color: var(--line);
+  box-shadow: 0 -4px 18px rgb(20 35 68 / 4%);
+}
+.bottom-nav a.active {
+  color: var(--brand-strong);
+  background: #f0f9ff;
+}
+.bottom-nav a {
+  font-size: 11px;
+}
+.section-title h2 {
+  font-size: 16px;
+}
+.section-title button,
+.text-btn {
+  color: #007ca8;
+  font-size: 12px;
+}
+.list-card,
+.home-package-details {
+  box-shadow: 0 3px 12px rgb(20 35 68 / 3%);
+}
+.service-grid {
+  gap: 10px;
+}
+.service-grid button {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 13px 3px;
+}
+.service-grid button:hover {
+  border-color: var(--brand);
+  background: #f0f9ff;
+}
+.service-grid span {
+  background: var(--soft);
+  color: #007ca8;
+}
+.service-grid small {
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.offer-banner {
+  background: linear-gradient(120deg, #142344, #030e37);
+  color: #fff;
+  line-height: 1.6;
+}
+.offer-banner p {
+  font-size: 12px;
+}
+.offer-banner a {
+  color: #a5e6ff;
+}
+@media (min-width: 768px) {
+  body {
+    background:
+      radial-gradient(ellipse at top left, #e0f2fe, transparent 55%), #f4f8fc;
+  }
+}
