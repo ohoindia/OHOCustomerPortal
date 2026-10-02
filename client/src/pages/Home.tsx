@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Logo, AppShell } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
+import { QuickActions } from "../components/QuickActions";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { getSessionMember } from "./auth/member";
@@ -9,6 +10,8 @@ import {
   formatHomeDate,
   expiryStatus,
   cardStatus,
+  nextAppointment,
+  type Appointment,
 } from "../services/home";
 import "./home-member.css";
 
@@ -31,6 +34,9 @@ export default function Home() {
   const memberId = Number(
     sessionMember?.MemberId || sessionStorage.getItem("memberId"),
   );
+  const [appointments, setAppointments] = useState<
+    Appointment[] | null | undefined
+  >();
   const communityId = Number(
     sessionMember?.communityCustomerId ||
       sessionStorage.getItem("communityCustomerId"),
@@ -42,7 +48,13 @@ export default function Home() {
   useEffect(() => {
     const controller = new AbortController();
     const { signal } = controller;
-    void loadHomeData(memberId, communityId, groupId, signal).then((result) => {
+    void loadHomeData(
+      memberId,
+      communityId,
+      groupId,
+      signal,
+      setAppointments,
+    ).then((result) => {
       if (!signal.aborted) setData(result);
     });
     return () => controller.abort();
@@ -50,12 +62,12 @@ export default function Home() {
 
   const member = data?.customer ?? sessionMember;
   const card = data?.card ?? null;
-  const appointment = data?.appointment;
-  const appointmentState = !data
-    ? "Loading appointment..."
-    : !data.hasMember
-      ? "No upcoming appointments"
-      : data.appointmentsLoaded
+  const appointment = appointments ? nextAppointment(appointments) : null;
+  const appointmentState = !(memberId > 0)
+    ? "No upcoming appointments"
+    : appointments === undefined
+      ? "Loading appointment..."
+      : appointments !== null
         ? "No upcoming appointments"
         : "Appointments unavailable";
   const status = cardStatus(card);
@@ -158,7 +170,7 @@ export default function Home() {
           <h2 id="home-family-vault-title">Family Health Account Vault</h2>
           <span className="home-vault-badge">Liquidity</span>
         </div>
-        <strong className="home-vault-value">₹37,000</strong>
+        <strong className="home-vault-value">₹ 37,000</strong>
         <p>Pre-loaded Health Liquidity</p>
         <div className="home-vault-pattern" aria-hidden="true">
           <svg
@@ -195,7 +207,7 @@ export default function Home() {
           </button>
         </div>
       </section>
-      <section className="home-welcome" aria-labelledby="home-welcome-title">
+      {/* <section className="home-welcome" aria-labelledby="home-welcome-title">
         <span>CARE FOR THE WHOLE FAMILY</span>
         <h2 id="home-welcome-title">
           Your health. Your account.
@@ -206,13 +218,14 @@ export default function Home() {
         <button onClick={() => navigate("/hospitals")}>
           Explore your care network <span aria-hidden="true">→</span>
         </button>
-      </section>
+      </section> */}
       {actionMessages.length > 0 && (
         <ActionNotice
           key={actionMessages.join("|")}
           messages={actionMessages}
         />
       )}
+      <QuickActions memberId={memberId} communityId={communityId} />
       <SectionTitle title="Quick Services" />
       <div className="service-grid">
         {services.map(([icon, label, to]) => (
@@ -227,7 +240,18 @@ export default function Home() {
         action="View All"
         onClick={() => navigate("/bookings")}
       />
-      <BookingCard item={booking} />
+      {appointment ? (
+        <BookingCard
+          item={booking}
+          onViewDetails={() =>
+            navigate(
+              `/hospitalConsulationForm?bookingId=${appointment.BookingConsultationId}`,
+            )
+          }
+        />
+      ) : (
+        <p role="status">{appointmentState}</p>
+      )}
       <section className="offer-banner">
         <div>
           <b>

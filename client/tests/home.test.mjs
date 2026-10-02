@@ -180,3 +180,48 @@ test("upcoming appointments exclude past and cancelled bookings and sort earlies
     4,
   );
 });
+
+test("upcoming bookings do not require a claimed coupon", () => {
+  const { nextAppointment } = service();
+  for (const claimed of [false, undefined, 0, 1, true]) {
+    const booking = {
+      BookingConsultationId: 7,
+      AppointmentDate: "2026-09-18",
+      StatusName: "Pending",
+      IsCouponClaimed: claimed,
+    };
+    assert.equal(
+      nextAppointment([booking], new Date(2026, 8, 17, 12)),
+      booking,
+    );
+  }
+});
+
+test("appointments publish before unrelated dashboard requests finish", async () => {
+  let releaseConfig;
+  const config = new Promise((resolve) => {
+    releaseConfig = resolve;
+  });
+  let publish;
+  const published = new Promise((resolve) => {
+    publish = resolve;
+  });
+  const bookings = [
+    {
+      BookingConsultationId: 7,
+      AppointmentDate: "2099-01-01",
+      IsCouponClaimed: false,
+    },
+  ];
+  const { loadHomeData } = service(async (path) => {
+    if (path.includes("ConsultationList")) return bookings;
+    if (path === "api/ConfigValues/all") return config;
+    if (path.includes("GetMemberCard")) return { status: false };
+    if (path.includes("VerifiedOrNot")) return { status: false };
+    return [];
+  });
+  const loading = loadHomeData(7, 0, 0, new AbortController().signal, publish);
+  assert.equal(await published, bookings);
+  releaseConfig([]);
+  assert.equal((await loading).appointment.BookingConsultationId, 7);
+});

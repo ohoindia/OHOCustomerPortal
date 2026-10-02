@@ -53,28 +53,33 @@ npm --prefix server run start:prod
 
 Source references below are relative to `C:\code\app\ohoindia\OHOBackEnd`. Customer routes use `OHO.Lambda.API/Controllers/CustomerController.cs` and `OHO.Database.Repositaries/CustomerRepo.cs`, rather than the older Member APIs.
 
-| Module        | Method and route                                                  | .NET logic / data source                                                                 |
-| ------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| customer-auth | POST `/api/Customer/mobileNoValid`                                | Customer lookup, with the community fallback used by memberlogin                         |
-| customer-auth | POST `/api/Customer/checkingMobileno`                             | Registration/profile checks, daily OTP limit, resend cooldown, MobileOTPHistory          |
-| customer-auth | POST `/api/Customer/toSetNewPassword`                             | Registered customer check, OTP generation and SMS delivery                               |
-| customer-auth | POST `/api/Customer/OTPValidation`                                | MobileNumber + GUID + OTPGenerated + expiry check                                        |
-| customer-auth | POST `/api/Customer/memberlogin`                                  | Customer and CommunityCustomers password checks, CommunityGroup lookup, UserLogin record |
-| customer-auth | POST `/api/Customer/add`                                          | Duplicate check, OHOCODE sequence, Primary account defaults, onboarding notification     |
-| customer-auth | POST `/api/Customer/updatePassword`                               | Password update and IsProfileCompleted flag                                              |
-| customers     | GET `/api/Customer/GetById/:id`                                   | Customer table and explicit public field mapping                                         |
-| customers     | GET `/api/Customer/GetMemberProducts/:id`                         | View_Subscription, CustomerController.TransformData                                      |
-| customers     | GET `/api/Customer/AddressExistsOrNot/:id`                        | AddressLine1 check                                                                       |
-| customers     | POST `/api/Customer/KYCVerifiedOrNot`                             | Latest VALID/success AadhaarOTPVerificationData, linking missing CustomerId              |
-| customers     | POST `/api/Customer/PANVerifiedOrNot`                             | Valid PANVerification record and PANDocument                                             |
-| cards         | GET `/api/OHOCards/GetMemberCardByMemberId/:id`                   | OHOCardsController, OHOCardsRepo.GetMemberCardDetails                                    |
-| consultations | POST `/api/BookingConsultation/PendingAndSuccessConsultationList` | BookingConsultationRepo, service/status/policy joins, optional coupon filter             |
-| communities   | GET `/api/CommunityCustomers/GetById/:id`                         | CommunityCustomersController, customer association by mobile                             |
-| communities   | GET `/api/Group/GetById/:id`                                      | GroupController, GroupRepo.FetchGroupIdData                                              |
-| catalog       | POST `/api/ConfigValues/all`                                      | OHO.APILambda ConfigValuesController, ConfigValues public columns                        |
-| catalog       | POST `/api/Products/all`                                          | OHO.APILambda ProductsController, GetDataRepo.SelectQry, ProductsDetails view            |
+| Module        | Method and route                                                  | .NET logic / data source                                                                                     |
+| ------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| customer-auth | POST `/api/Customer/mobileNoValid`                                | Customer lookup, with the community fallback used by memberlogin                                             |
+| customer-auth | POST `/api/Customer/checkingMobileno`                             | Registration/profile checks, daily OTP limit, resend cooldown, MobileOTPHistory                              |
+| customer-auth | POST `/api/Customer/toSetNewPassword`                             | Registered customer check, OTP generation and SMS delivery                                                   |
+| customer-auth | POST `/api/Customer/OTPValidation`                                | MobileNumber + GUID + OTPGenerated + expiry check                                                            |
+| customer-auth | POST `/api/Customer/memberlogin`                                  | Customer and CommunityCustomers password checks, CommunityGroup lookup, UserLogin record                     |
+| customer-auth | POST `/api/Customer/add`                                          | Duplicate check, OHOCODE sequence, Primary account defaults, onboarding notification                         |
+| customer-auth | POST `/api/Customer/updatePassword`                               | Password update and IsProfileCompleted flag                                                                  |
+| customers     | GET `/api/Customer/GetById/:id`                                   | Customer table and explicit public field mapping                                                             |
+| customers     | GET `/api/Customer/GetMemberProducts/:id`                         | View_Subscription, CustomerController.TransformData                                                          |
+| customers     | GET `/api/Customer/AddressExistsOrNot/:id`                        | AddressLine1 check                                                                                           |
+| customers     | POST `/api/Customer/KYCVerifiedOrNot`                             | Latest VALID/success AadhaarOTPVerificationData, linking missing CustomerId                                  |
+| customers     | POST `/api/Customer/PANVerifiedOrNot`                             | Valid PANVerification record and PANDocument                                                                 |
+| cards         | GET `/api/OHOCards/GetMemberCardByMemberId/:id`                   | OHOCardsController, OHOCardsRepo.GetMemberCardDetails                                                        |
+| consultations | POST `/api/BookingConsultation/PendingAndSuccessConsultationList` | BookingConsultationRepo, service/status/policy joins, optional coupon filter                                 |
+| consultations | POST `/api/BookingConsultation/checkAvailableCoupons`             | Free consultation availability from Subscription/Products/ComboProducts, claimed visits and RequestedCoupons |
+| consultations | POST `/api/BookingConsultation/checkIndividualCoupons`            | Same eligibility check for self or an owned dependent at the selected hospital                               |
+| consultations | POST `/api/BookingConsultation/bookAppointment/add`               | Initiate a free consultation and write BookingConsultationActivity in one transaction                        |
+| communities   | GET `/api/CommunityCustomers/GetById/:id`                         | CommunityCustomersController, customer association by mobile                                                 |
+| communities   | GET `/api/Group/GetById/:id`                                      | GroupController, GroupRepo.FetchGroupIdData                                                                  |
+| catalog       | POST `/api/ConfigValues/all`                                      | OHO.APILambda ConfigValuesController, ConfigValues public columns                                            |
+| catalog       | POST `/api/Products/all`                                          | OHO.APILambda ProductsController, GetDataRepo.SelectQry, ProductsDetails view                                |
 
 All customer and catalog endpoints use the `/api/...` prefix. Configure frontend base URLs without the `/api` suffix; the shared controllers include it in request paths. Pagination accepts `{ "skip": 0, "take": 0 }`; `take: 0` retains the legacy unlimited result behavior.
+
+Book Service coupon requests accept `{ "customerId": 12, "hospitalId": 5, "dependentCustomerId": null }`. Booking requests also include `hospitalPoliciesId`. The server checks account ownership, membership-card validity, hospital free-consultation provision, coupon availability and already-initiated bookings for that patient today. Patient details, hospital details, card number and Initiated status come from the database. Family booking requests use an advisory lock and transaction; a successful initiation returns `data.BookingConsultationId`. It does not mark the coupon as claimed before the visit.
 
 The SMS adapter follows `OHO.Lambda.API/Commands/SendOTPCommand.cs`. Optional `onboardingSMSQueue` / `ONBOARDING_SMS_QUEUE_URL` is read from the configuration tables and accepts a queue name or HTTPS URL. It uses AWS's default credential chain and the legacy camelCase `SendWebhookMSG` payload and message type attribute. Delivery failures after registration are logged for separate retry; there is no durable retry/outbox in this app. This registration UI collects no email, so it does not enqueue onboarding email. The legacy password audit queue is not implemented.
 

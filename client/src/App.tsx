@@ -18,6 +18,7 @@ import { Packages } from "./pages/discovery/Packages";
 import { LabTests } from "./pages/discovery/LabTests";
 import { Pharmacy } from "./pages/discovery/Pharmacy";
 import { BookAppointment } from "./pages/booking/BookAppointment";
+import { BookService } from "./pages/booking/BookService";
 import { Bookings } from "./pages/booking/Bookings";
 import { Payment } from "./pages/booking/Payment";
 import { OrderTracking } from "./pages/booking/OrderTracking";
@@ -27,6 +28,27 @@ import { Records } from "./pages/profile/Records";
 import { Wallet } from "./pages/profile/Wallet";
 import { Notifications } from "./pages/profile/Notifications";
 import { Membership } from "./pages/profile/Membership";
+import {
+  PortalMenu,
+  CustomerProfile,
+  FamilyMembers,
+  PurchasedPackages,
+  ConsultationList,
+  HospitalNetwork,
+  HospitalDetails,
+  Products,
+  ProductDetails,
+  KycVerification,
+  AccountManagement,
+  Support,
+  PrivacyPolicy,
+  AboutUs,
+} from "./pages/portal/PortalPages";
+import {
+  BMICalculator,
+  MeditationBreathing,
+  DailyTracker,
+} from "./pages/portal/Wellness";
 
 function DefaultRoute() {
   return <Navigate to={getSessionMember() ? "/home" : "/login"} replace />;
@@ -91,6 +113,42 @@ export default function App() {
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/membership" element={<Membership />} />
+        <Route path="/menu" element={<PortalMenu />} />
+        <Route path="/myprofile" element={<CustomerProfile />} />
+        <Route path="/family-members" element={<FamilyMembers />} />
+        <Route path="/PurchasedPackages" element={<PurchasedPackages />} />
+        <Route path="/CustomerProductDetails" element={<PurchasedPackages />} />
+        <Route path="/policies/:policyId" element={<PurchasedPackages />} />
+        <Route path="/NomineeDetails" element={<PurchasedPackages />} />
+        <Route path="/network" element={<HospitalNetwork />} />
+        <Route path="/hospitallist" element={<HospitalNetwork />} />
+        <Route path="/hospitalDetails" element={<HospitalDetails />} />
+        <Route path="/hospitalService" element={<BookService />} />
+        <Route path="/book-service" element={<BookService />} />
+        <Route path="/hospitalCode" element={<HospitalDetails />} />
+        <Route path="/hospital-map" element={<HospitalNetwork />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/healthproducts" element={<Products />} />
+        <Route path="/product-details" element={<ProductDetails />} />
+        <Route path="/kyc-verification" element={<KycVerification />} />
+        <Route path="/account-management" element={<AccountManagement />} />
+        <Route path="/resetpassword" element={<AccountManagement />} />
+        <Route path="/support" element={<Support />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/BMICalculator" element={<BMICalculator />} />
+        <Route path="/MeditationBreathing" element={<MeditationBreathing />} />
+        <Route
+          path="/StepTracker"
+          element={<DailyTracker key="steps" kind="steps" />}
+        />
+        <Route
+          path="/NutritionTracking"
+          element={<DailyTracker key="nutrition" kind="nutrition" />}
+        />
+        <Route path="/dashboard" element={<Home />} />
+        <Route path="/ConsultationList" element={<ConsultationList />} />
+        <Route path="/hospitalConsulationForm" element={<ConsultationList />} />
       </Route>
       <Route path="*" element={<DefaultRoute />} />
     </Routes>

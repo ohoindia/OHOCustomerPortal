@@ -1,0 +1,79 @@
+.portal-content {
+  padding: 16px;
+}
+.portal-content h2 {
+  font-size: 18px;
+}
+.portal-links {
+  display: grid;
+  gap: 8px;
+}
+.portal-links a,
+.portal-list-link {
+  display: block;
+  color: var(--primary, #008bb5);
+  text-decoration: none;
+  padding: 14px;
+  border: 1px solid #dce8ee;
+  border-radius: 12px;
+  background: white;
+}
+.portal-links a {
+  display: flex;
+  justify-content: space-between;
+}
+.portal-card {
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid #dce8ee;
+  border-radius: 12px;
+  background: white;
+}
+.portal-fields {
+  margin: 12px 0;
+}
+.portal-fields div {
+  padding: 8px 0;
+  border-bottom: 1px solid #eef3f6;
+}
+.portal-fields dt {
+  color: #617180;
+  font-size: 12px;
+}
+.portal-fields dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+.portal-label {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.portal-label input {
+  padding: 12px;
+  border: 1px solid #c8d8e2;
+  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.portal-content .primary-btn {
+  width: 100%;
+}
+.book-service-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c8d8e2;
+  border-radius: 10px;
+  background: white;
+  color: #142344;
+  font: inherit;
+}
+.portal-content button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.portal-content a:focus-visible,
+.portal-content button:focus-visible {
+  outline: 3px solid #008bb5;
+  outline-offset: 3px;
+}

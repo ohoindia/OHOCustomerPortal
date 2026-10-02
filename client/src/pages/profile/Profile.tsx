@@ -47,6 +47,12 @@ export function Profile() {
           subtitle="Cards, UPI & wallets"
         />
         <MenuRow icon="🎧" title="Support" subtitle="Help & support" />
+        <MenuRow
+          icon="•••"
+          title="More Services"
+          subtitle="Membership, KYC, hospital network & wellness"
+          onClick={() => nav("/menu")}
+        />
       </div>
       <MenuRow
         icon="↪"

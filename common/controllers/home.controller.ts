@@ -1,4 +1,4 @@
-import type { Verification } from "../models/customer";
+import type { Appointment, Verification } from "../models/customer";
 import type { ApiRequest } from "../api/transport";
 import { nextAppointment } from "../utils/home";
 import { createCustomerController } from "./customer.controller";
@@ -25,6 +25,7 @@ export function createHomeController(apiRequest: ApiRequest) {
     communityId: number,
     groupId: number,
     signal: AbortSignal,
+    onAppointmentsLoaded?: (appointments: Appointment[] | null) => void,
   ) {
     const errors: string[] = [];
     async function read<T>(
@@ -88,7 +89,10 @@ export function createHomeController(apiRequest: ApiRequest) {
             "Appointments",
             fetchAppointments(memberId, signal),
             Array.isArray,
-          )
+          ).then((value) => {
+            if (!signal.aborted) onAppointmentsLoaded?.(value);
+            return value;
+          })
         : null,
       hasMember
         ? read(

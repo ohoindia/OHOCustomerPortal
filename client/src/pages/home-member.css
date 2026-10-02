@@ -1,6 +1,64 @@
 .home-top > div {
   min-width: 0;
 }
+
+.home-quick-actions {
+  margin: 24px 0;
+}
+.home-quick-actions h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+  font-weight: 700;
+}
+.home-quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.home-quick-actions-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 135px;
+  padding: 14px 5px;
+  border: 1px solid #eef1f5;
+  border-radius: 18px;
+  background: #fff;
+  color: #142344;
+  box-shadow: 0 4px 12px rgb(15 55 70 / 9%);
+  font-size: clamp(12px, 3.5vw, 15px);
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: center;
+}
+.home-quick-actions-grid .quick-action-qr {
+  background: linear-gradient(135deg, #ecf9ff, #d6effc);
+}
+.quick-action-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e4f5fb;
+  color: #18374c;
+}
+.quick-action-icon svg {
+  width: 30px;
+  height: 30px;
+}
+.quick-action-qr .quick-action-icon {
+  background: #cceaf6;
+}
+.home-quick-actions-grid button:hover {
+  border-color: #a0d7ed;
+}
+.home-quick-actions-grid button:focus-visible {
+  outline: 3px solid #0094c6;
+  outline-offset: 3px;
+}
 .home-top h1 {
   overflow-wrap: anywhere;
 }

@@ -47,9 +47,10 @@ export function HospitalCard({ hospital }: HospitalCardProps) {
 
 type BookingCardProps = {
   item: Booking;
+  onViewDetails?: () => void;
 };
 
-export function BookingCard({ item }: BookingCardProps) {
+export function BookingCard({ item, onViewDetails }: BookingCardProps) {
   return (
     <article className="list-card booking-card">
       <div className="card-visual avatar">{item.icon}</div>
@@ -58,7 +59,9 @@ export function BookingCard({ item }: BookingCardProps) {
         <h3>{item.title}</h3>
         <p>{item.subtitle}</p>
         <p className="strong">{item.date}</p>
-        <button className="text-btn">View Details</button>
+        <button className="text-btn" onClick={onViewDetails}>
+          View Details
+        </button>
       </div>
     </article>
   );

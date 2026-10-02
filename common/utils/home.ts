@@ -19,7 +19,6 @@ export function nextAppointment(appointments: Appointment[], now = new Date()) {
   return appointments
     .filter(
       (item) =>
-        item.IsCouponClaimed === true &&
         !/cancel|complet|reject/i.test(item.StatusName ?? "") &&
         Date.parse(item.AppointmentDate ?? "") >= today.getTime(),
     )

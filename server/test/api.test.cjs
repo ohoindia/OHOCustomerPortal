@@ -129,6 +129,51 @@ async function request(path, body, token = accessToken) {
   return { status: response.status, body: await response.json() };
 }
 
+test("portal APIs use only /api and require authentication and customer ownership", async () => {
+  const cases = [
+    ["api/Customer/GetDependentsByCustomerId/12", undefined],
+    ["api/Hospital/all", { skip: 0, take: 10 }],
+    ["api/Hospital/GetById/1", undefined],
+    ["api/HospitalPoliciesProvision/GetByHospitalId/1", undefined],
+    ["api/Products/GetById/1", undefined],
+  ];
+  for (const [path, body] of cases) {
+    assert.equal((await request(path, body, null)).status, 401, path);
+    const response = await request(path, body);
+    assert.equal(response.status, 200, path);
+    assert.ok(Array.isArray(response.body), path);
+  }
+  const family = await request("api/Customer/GetDependentsByCustomerId/12");
+  assert.ok(
+    family.body.every(
+      (row) => !("Password" in row) && !("RegisteredWithOTP" in row),
+    ),
+  );
+  assert.equal(
+    (await request("api/Customer/GetDependentsByCustomerId/13")).status,
+    403,
+  );
+  assert.equal((await request("api/Hospital/GetById/0")).status, 400);
+  assert.equal((await request("api/Hospital/all", { take: -1 })).status, 400);
+  assert.equal((await request("api/Hospital/all", { take: 1001 })).status, 400);
+  assert.equal((await request("lambdaAPI/Hospital/GetById/1")).status, 404);
+  assert.equal((await request("apiLambda/Hospital/GetById/1")).status, 404);
+  assert.ok(
+    calls.some(
+      ({ sql, values }) =>
+        sql.includes("RelatedCustomerId = ?") && values[0] === 12,
+    ),
+  );
+  assert.ok(
+    calls.some(
+      ({ sql, values }) =>
+        sql.includes("hpp.HospitalId = ?") &&
+        sql.includes("hp.PoliciesType") &&
+        values[0] === 1,
+    ),
+  );
+});
+
 test("health and every home API return the JSON contracts consumed by React", async () => {
   const cases = [
     ["health", undefined, (b) => b.status === true],
@@ -617,6 +662,31 @@ test("JWT protection denies anonymous access to every customer data endpoint", a
   );
 });
 
+test("booking endpoints require authentication and reject forged or malformed booking fields", async () => {
+  for (const path of [
+    "api/BookingConsultation/checkAvailableCoupons",
+    "api/BookingConsultation/checkIndividualCoupons",
+    "api/BookingConsultation/bookAppointment/add",
+  ]) {
+    const body = { customerId: 12, hospitalId: 5 };
+    if (path.endsWith("/add"))
+      Object.assign(body, {
+        hospitalPoliciesId: 7,
+        appointmentDate: "2099-01-02T10:30:00Z",
+        serviceTypeId: 2,
+      });
+    assert.equal((await request(path, body, null)).status, 401);
+    assert.equal(
+      (await request(path, { ...body, hospitalId: -1 })).status,
+      400,
+    );
+    assert.equal(
+      (await request(path, { ...body, name: "Forged patient name" })).status,
+      400,
+    );
+  }
+});
+
 test("ownership checks reject other customer, community and group IDs", async () => {
   for (const [path, body] of [
     ["api/Customer/GetById/99"],
@@ -630,6 +700,24 @@ test("ownership checks reject other customer, community and group IDs", async ()
       { customerId: 99, aadhaarNumber: "123456789012" },
     ],
     ["api/Customer/PANVerifiedOrNot", { CustomerId: 99 }],
+    [
+      "api/BookingConsultation/checkAvailableCoupons",
+      { customerId: 99, hospitalId: 5 },
+    ],
+    [
+      "api/BookingConsultation/checkIndividualCoupons",
+      { customerId: 99, hospitalId: 5 },
+    ],
+    [
+      "api/BookingConsultation/bookAppointment/add",
+      {
+        customerId: 99,
+        hospitalId: 5,
+        hospitalPoliciesId: 7,
+        appointmentDate: "2099-01-02T10:30:00Z",
+        serviceTypeId: 2,
+      },
+    ],
     [
       "api/BookingConsultation/PendingAndSuccessConsultationList",
       { CustomerId: 99 },

@@ -12,6 +12,8 @@ import { SessionClaims } from "../auth/session.service";
 import { Body, Controller, HttpCode, Post } from "@nestjs/common";
 import { AppointmentDto } from "../common/dto";
 import { ConsultationsService } from "./consultations.service";
+import { BookServiceService } from "./book-service.service";
+import { BookServiceDto, CouponDto } from "./booking.dto";
 @ApiTags("Consultations")
 @ApiBadRequestResponse({ description: "Malformed or invalid request." })
 @ApiBearerAuth("jwt")
@@ -23,7 +25,37 @@ import { ConsultationsService } from "./consultations.service";
 })
 @Controller("api/BookingConsultation")
 export class ConsultationsController {
-  constructor(private readonly service: ConsultationsService) {}
+  constructor(
+    private readonly service: ConsultationsService,
+    private readonly booking: BookServiceService,
+  ) {}
+  @Post("checkAvailableCoupons")
+  @HttpCode(200)
+  @ApiOperation({
+    summary: "Check free consultation coupon availability for your patient",
+  })
+  coupons(@Body() dto: CouponDto, @CurrentSession() session: SessionClaims) {
+    requireOwner(session, "customerId", dto.customerId);
+    return this.booking.coupons(dto);
+  }
+  @Post("checkIndividualCoupons")
+  @HttpCode(200)
+  individualCoupons(
+    @Body() dto: CouponDto,
+    @CurrentSession() session: SessionClaims,
+  ) {
+    requireOwner(session, "customerId", dto.customerId);
+    return this.booking.coupons(dto);
+  }
+  @Post("bookAppointment/add")
+  @HttpCode(200)
+  @ApiOperation({
+    summary: "Initiate a free consultation booking for your patient",
+  })
+  book(@Body() dto: BookServiceDto, @CurrentSession() session: SessionClaims) {
+    requireOwner(session, "customerId", dto.customerId);
+    return this.booking.book(dto);
+  }
   @Post("PendingAndSuccessConsultationList")
   @HttpCode(200)
   @ApiOperation({ summary: "Read your pending and successful consultations" })
