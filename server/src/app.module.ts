@@ -2,7 +2,8 @@ import { ApiTags, ApiOperation, ApiOkResponse } from "@nestjs/swagger";
 import { Controller, Get, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
-import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { ThrottlerModule } from "@nestjs/throttler";
+import { ApiThrottlerGuard } from "./common/api-throttler.guard";
 import { DatabaseModule } from "./database/database.module";
 import { CustomerAuthModule } from "./customer-auth/customer-auth.module";
 import { CustomersModule } from "./customers/customers.module";
@@ -38,7 +39,17 @@ class HealthController {
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+    ThrottlerModule.forRoot([
+      { name: "default", ttl: 60000, limit: 120 },
+      {
+        name: "auth", ttl: 300000, limit: 60,
+        skipIf: (context) => context.getClass().name !== "CustomerAuthController",
+      },
+      {
+        name: "sensitive", ttl: 60000, limit: 10,
+        skipIf: (context) => context.getClass().name !== "CustomerAuthController",
+      },
+    ]),
     DatabaseModule,
     RuntimeConfigModule,
     AuthModule,
@@ -51,7 +62,7 @@ class HealthController {
   ],
   controllers: [HealthController],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: ApiThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })

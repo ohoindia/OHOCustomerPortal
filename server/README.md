@@ -92,6 +92,9 @@ The SMS adapter follows `OHO.Lambda.API/Commands/SendOTPCommand.cs`. Optional `o
 
 ## Validation and live dependencies
 
+See [API security](SECURITY.md) for rate limits, production settings, proxy trust,
+and remaining deployment and legacy credential requirements.
+
 `npm test` builds the app and runs HTTP contract and service tests using mocked database and notification providers. Tests cover home routes, DTO aliases, malformed inputs, credential omission, registration, reset OTP proof checks, OTP cooldown/daily limits, SMS failure ordering, joined subscription grouping, and lock release after commit/rollback. Tests send no SMS and write no customer data.
 
 Live SQL, schema/view availability, provider credentials and SQS delivery must be checked against a configured test environment. No database schema, view definitions or credentials are copied from the .NET project, and no live database or SMS calls were made during implementation.

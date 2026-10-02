@@ -8,8 +8,10 @@ export class LegacyBodyPipe implements PipeTransform {
     if (!value || typeof value !== "object" || Array.isArray(value)) {
       throw new BadRequestException("A JSON object is required.");
     }
-    const result: Record<string, unknown> = {};
+    const result: Record<string, unknown> = Object.create(null);
     for (const [key, item] of Object.entries(value)) {
+      if (["__proto__", "constructor", "prototype"].includes(key.toLowerCase()))
+        throw new BadRequestException("Invalid field.");
       const normalized =
         key === "GUID"
           ? "guid"
