@@ -3,19 +3,31 @@ import { Settings } from "../../components/Icons";
 import { AppShell } from "../../components/Layout";
 import { MenuRow } from "../../components/Cards";
 import { clearSession } from "../auth/logout";
+import { getSessionMember } from "../auth/member";
+import { textValue, usePortalData } from "../portal/usePortalData";
 
 export function Profile() {
   const nav = useNavigate();
+  const member = getSessionMember();
+  const name = member?.Name?.trim() || "My Profile";
+  const initials = name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("");
   return (
     <AppShell>
       <section className="profile-hero">
-        <div className="profile-photo">SR</div>
+        <div className="profile-photo">{initials}</div>
         <div>
-          <h2>Srikanth Reddy</h2>
-          <p>+91 98765 43210</p>
+          <h2>{name}</h2>
+          <p>{member?.MobileNumber || "Mobile number not provided"}</p>
         </div>
         <Settings />
       </section>
+      {Number(member?.MemberId) > 0 && (
+        <ProfileFamily id={Number(member?.MemberId)} />
+      )}
       <div className="menu-list">
         <MenuRow
           icon="👨‍👩‍👧"
@@ -64,5 +76,42 @@ export function Profile() {
         }}
       />
     </AppShell>
+  );
+}
+
+function ProfileFamily({ id }: { id: number }) {
+  const data = usePortalData(`api/Customer/GetDependentsByCustomerId/${id}`);
+  return (
+    <section aria-labelledby="profile-family-title">
+      <h2 id="profile-family-title">Family details</h2>
+      {data.loading && <p role="status">Loading family details...</p>}
+      {data.error && (
+        <div role="alert">
+          <p>{data.error}</p>
+          <button className="outline-btn" onClick={data.retry}>
+            Try again
+          </button>
+        </div>
+      )}
+      {data.rows.map((row) => (
+        <article className="family-row" key={textValue(row, "CustomerId")}>
+          <div>
+            <b>{textValue(row, "Name") || "Name not provided"}</b>
+            <small>{textValue(row, "Relationship") || "Family member"}</small>
+            <small>
+              {[
+                textValue(row, "Gender"),
+                textValue(row, "DateofBirth").split("T")[0],
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </small>
+          </div>
+        </article>
+      ))}
+      {!data.loading && !data.error && !data.rows.length && (
+        <p>No family members have been added.</p>
+      )}
+    </section>
   );
 }

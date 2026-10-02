@@ -9,6 +9,8 @@ import { childRows, textValue, usePortalData } from "./usePortalData";
 import type { PortalRow } from "./usePortalData";
 import "./portal.css";
 import { HospitalDirectory } from "../discovery/HospitalDirectory";
+import { bookingPeriod } from "../../../../common/utils/bookings";
+import "../booking/bookings.css";
 
 function customerId() {
   return Number(getSessionMember()?.MemberId || 0);
@@ -146,7 +148,7 @@ function DependentList({ id }: { id: number }) {
             row={row}
             fields={[
               ["Name", "Name"],
-              ["MemberTypeId", "Relationship"],
+              ["Relationship", "Relationship"],
               ["DateofBirth", "Date of birth"],
               ["Gender", "Gender"],
             ]}
@@ -182,6 +184,7 @@ export function ConsultationList() {
   );
 }
 function Consultations({ id }: { id: number }) {
+  const [period, setPeriod] = useState("All");
   const data = usePortalData(
     "api/BookingConsultation/PendingAndSuccessConsultationList",
     { customerId: id },
@@ -192,43 +195,199 @@ function Consultations({ id }: { id: number }) {
     ? data.rows.filter(
         (row) => textValue(row, "BookingConsultationId") === bookingId,
       )
-    : data.rows;
+    : data.rows.filter(
+        (row) => period === "All" || bookingPeriod(row) === period,
+      );
   return (
-    <Page title={bookingId ? "Consultation Details" : "My Bookings"}>
-      <Status data={data} />
-      {rows.map((row) => (
-        <article
-          className="portal-card"
-          key={textValue(row, "BookingConsultationId")}
-        >
-          <h2>{textValue(row, "HospitalName") || "Hospital appointment"}</h2>
-          <Fields
-            row={row}
-            fields={[
-              ["ServiceName", "Service"],
-              ["AppointmentDate", "Appointment date"],
-              ["StatusName", "Status"],
-              ["Name", "Patient"],
-            ]}
-          />
-          {!bookingId && (
-            <Link
-              to={`/hospitalConsulationForm?bookingId=${textValue(row, "BookingConsultationId")}`}
-            >
-              View details
+    <AppShell className="bookings-page">
+      <PageHeader
+        title={bookingId ? "Booking details" : "My Bookings"}
+      />
+      <div className="bookings-content">
+        {!bookingId && (
+          <section className="bookings-intro">
+            <span className="bookings-eyebrow">YOUR CARE, IN ONE PLACE</span>
+            <h2>
+              Every visit.
+              <br />
+              Always within reach.
+            </h2>
+            <p>Keep track of your care and your family's appointments.</p>
+            <Link to="/network" className="bookings-new">
+              Find a hospital <span aria-hidden="true">↗</span>
             </Link>
-          )}
-        </article>
-      ))}
-      {!data.loading && !data.error && !rows.length && (
-        <p>
-          {bookingId
-            ? "This consultation was not found in your account."
-            : "No consultations found."}
-        </p>
+            <span className="bookings-intro-art" aria-hidden="true">
+              ✚
+            </span>
+          </section>
+        )}
+        <Status data={data} />
+        {!bookingId && (
+          <div
+            className="bookings-filters"
+            role="group"
+            aria-label="Filter bookings"
+          >
+            {["All", "Previous", "Upcoming", "Running"].map((tab) => (
+              <button
+                key={tab}
+                aria-pressed={period === tab}
+                onClick={() => setPeriod(tab)}
+              >
+                {tab}{" "}
+                <span>
+                  {
+                    data.rows.filter(
+                      (row) => tab === "All" || bookingPeriod(row) === tab,
+                    ).length
+                  }
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+        {!bookingId && !data.loading && !data.error && (
+          <div className="bookings-list-heading">
+            <h2>
+              {period === "All" ? "All appointments" : `${period} appointments`}
+            </h2>
+            <span>
+              {rows.length} {rows.length === 1 ? "booking" : "bookings"}
+            </span>
+          </div>
+        )}
+        <div className="bookings-list">
+          {rows.map((row) => (
+            <AppointmentCard
+              row={row}
+              details={Boolean(bookingId)}
+              key={textValue(row, "BookingConsultationId")}
+            />
+          ))}
+        </div>
+        {!data.loading && !data.error && !rows.length && (
+          <div className="bookings-empty">
+            <span aria-hidden="true">✚</span>
+            <h2>
+              {bookingId
+                ? "Booking unavailable"
+                : "A little room for your next visit"}
+            </h2>
+            <p>
+              {bookingId
+                ? "This consultation was not found in your account."
+                : period === "All"
+                  ? "No bookings found."
+                  : `No ${period.toLowerCase()} bookings found.`}
+            </p>
+            <Link to="/network">
+              Explore hospitals <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        )}
+      </div>
+    </AppShell>
+  );
+}
+
+function AppointmentCard({
+  row,
+  details,
+}: {
+  row: PortalRow;
+  details: boolean;
+}) {
+  const period = bookingPeriod(row);
+  const dateValue = textValue(row, "AppointmentDate");
+  const parsedDate = dateValue ? new Date(dateValue) : null;
+  const date =
+    parsedDate && Number.isFinite(parsedDate.getTime()) ? parsedDate : null;
+  const options = { timeZone: "Asia/Kolkata" };
+  const booking = textValue(row, "BookingConsultationId");
+  return (
+    <article className={`appointment-card appointment-${period.toLowerCase()}`}>
+      <div className="appointment-top">
+        <span className="appointment-service">
+          {textValue(row, "ServiceName") ||
+            textValue(row, "PoliciesType") ||
+            "Hospital consultation"}
+        </span>
+        <span className="appointment-badge">
+          <i />
+          {period}
+        </span>
+      </div>
+      <div className="appointment-main">
+        <div
+          className="appointment-date"
+          aria-label={
+            date
+              ? date.toLocaleDateString("en-IN", options)
+              : "Date not scheduled"
+          }
+        >
+          <span>
+            {date
+              ? date.toLocaleDateString("en-IN", { ...options, month: "short" })
+              : "DATE"}
+          </span>
+          <strong>
+            {date
+              ? date.toLocaleDateString("en-IN", { ...options, day: "2-digit" })
+              : "—"}
+          </strong>
+          <small>
+            {date
+              ? date.toLocaleDateString("en-IN", {
+                  ...options,
+                  weekday: "short",
+                })
+              : "Pending"}
+          </small>
+        </div>
+        <div className="appointment-hospital">
+          <h2>{textValue(row, "HospitalName") || "Hospital appointment"}</h2>
+          <p>
+            {date
+              ? date.toLocaleDateString("en-IN", {
+                  ...options,
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
+              : "Appointment date to be confirmed"}
+          </p>
+          <span className="appointment-patient">
+            {textValue(row, "Name") || "Patient not provided"}
+          </span>
+        </div>
+      </div>
+      <div className="appointment-footer">
+        <div>
+          <small>BOOKING #{booking}</small>
+          <span>{textValue(row, "StatusName") || "Status not provided"}</span>
+        </div>
+        {!details && (
+          <Link
+            to={`/hospitalConsulationForm?bookingId=${encodeURIComponent(booking)}`}
+          >
+            View details <span aria-hidden="true">→</span>
+          </Link>
+        )}
+      </div>
+      {details && (
+        <Fields
+          row={row}
+          fields={[
+            ["BookingDate", "Booked on"],
+            ["AppointmentDate", "Appointment date"],
+            ["ServiceName", "Service"],
+            ["Name", "Patient"],
+            ["StatusName", "Status"],
+          ]}
+        />
       )}
-      <Link to="/network">Find a hospital</Link>
-    </Page>
+    </article>
   );
 }
 function SubscriptionDetails({ id }: { id: number }) {

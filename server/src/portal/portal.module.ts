@@ -29,7 +29,11 @@ export class PortalService {
       await this.db.rows("SELECT * FROM Customer WHERE RelatedCustomerId = ?", [
         validId(customerId),
       ])
-    ).map((row) => ({ ...toMember(row), CustomerId: row.CustomerId }));
+    ).map((row) => ({
+      ...toMember(row),
+      CustomerId: row.CustomerId,
+      Relationship: row.Relationship ?? null,
+    }));
   }
 
   hospitals(dto: PaginationDto) {

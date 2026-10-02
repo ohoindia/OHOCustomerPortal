@@ -77,3 +77,11 @@
   outline: 3px solid #008bb5;
   outline-offset: 3px;
 }
+.booking-tabs {
+  flex-wrap: wrap;
+}
+.booking-tabs button[aria-pressed="true"] {
+  background: #075985;
+  color: white;
+  border-color: #075985;
+}
