@@ -7,6 +7,85 @@
 .home-top .profile-mini {
   flex-shrink: 0;
 }
+.home-family-vault {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid #ffffff45;
+  border-radius: 20px;
+  background: linear-gradient(125deg, #05a8d4, #087eaf 60%, #08648f);
+  color: #fff;
+  box-shadow: 0 8px 20px rgb(0 112 158 / 16%);
+}
+.home-vault-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.home-vault-heading h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+.home-vault-badge {
+  padding: 5px 12px;
+  border: 1px solid #f6d9ae;
+  border-radius: 999px;
+  background: #fff0d5;
+  color: #976323;
+  font-size: 12px;
+  font-weight: 600;
+}
+.home-vault-value {
+  display: block;
+  margin-top: 14px;
+  font-size: clamp(36px, 10vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.home-family-vault p {
+  margin: 10px 0 24px;
+  color: #d2f1fb;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.home-vault-pattern {
+  position: absolute;
+  z-index: -1;
+  right: -8px;
+  bottom: 40px;
+  width: 190px;
+  color: #9ae8ff;
+  opacity: 0.13;
+  pointer-events: none;
+}
+.home-vault-pattern svg { display: block; width: 100%; }
+.home-vault-actions { display: flex; justify-content: flex-end; }
+.home-vault-actions button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid #a5dbea;
+  border-radius: 10px;
+  background: #ffffff08;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.home-vault-actions button:hover { background: #ffffff20; }
+.home-vault-actions button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+@media (max-width: 380px) {
+  .home-family-vault { padding: 20px; }
+  .home-vault-heading h2 { font-size: 16px; }
+  .home-family-vault p { font-size: 14px; }
+}
 .dashboard-member {
   margin-top: 14px;
   padding: 14px;

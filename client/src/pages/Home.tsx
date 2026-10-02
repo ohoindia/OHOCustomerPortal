@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Logo, AppShell } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { getSessionMember } from "./auth/member";
 import {
@@ -27,6 +27,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [sessionMember] = useState(getSessionMember);
   const [cardFlipped, setCardFlipped] = useState(false);
+  const packageDetailsRef = useRef<HTMLDetailsElement>(null);
   const [data, setData] = useState<Awaited<
     ReturnType<typeof loadHomeData>
   > | null>(null);
@@ -172,6 +173,39 @@ export default function Home() {
           {initials}
         </button>
       </div>
+      <section className="home-family-vault" aria-labelledby="home-family-vault-title">
+        <div className="home-vault-heading">
+          <h2 id="home-family-vault-title">Family Health Account Vault</h2>
+          <span className="home-vault-badge">Liquidity</span>
+        </div>
+        <strong className="home-vault-value">₹37,000</strong>
+        <p>Pre-loaded Health Liquidity</p>
+        <div className="home-vault-pattern" aria-hidden="true">
+          <svg viewBox="0 0 180 140" fill="none" stroke="currentColor" strokeWidth="5">
+            <path d="M20 25h20m-10-10v20M125 95h24m-12-12v24M65 75h22m-11-11v22" />
+            <rect x="55" y="54" width="42" height="42" rx="7" />
+            <path d="M68 54v-8h16v8M105 27h12l7-12 10 26 7-14h15M30 112h18m-9-9v18" />
+            <rect x="117" y="76" width="40" height="40" rx="7" transform="rotate(-12 137 96)" />
+            <circle cx="158" cy="53" r="12" />
+          </svg>
+        </div>
+        <div className="home-vault-actions">
+          <button
+            type="button"
+            aria-controls="home-package-details"
+            onClick={() => {
+              const details = packageDetailsRef.current;
+              if (details) {
+                details.open = true;
+                details.scrollIntoView({ block: "start" });
+                details.querySelector("summary")?.focus();
+              }
+            }}
+          >
+            Account Details
+          </button>
+        </div>
+      </section>
       <section className="home-welcome" aria-labelledby="home-welcome-title">
         <span>CARE FOR THE WHOLE FAMILY</span>
         <h2 id="home-welcome-title">Your health. Your account.<br />All in one place.</h2>
@@ -255,7 +289,7 @@ export default function Home() {
           <button onClick={() => navigate("/membership")}>View Benefits</button>
         </div>
       </section>
-      <details className="home-package-details">
+      <details className="home-package-details" id="home-package-details" ref={packageDetailsRef}>
         <summary>
           My Packages
           {Boolean(data?.products?.length) && (
