@@ -39,7 +39,14 @@ export function PageHeader({ title, right, back = true }: PageHeaderProps) {
     <header className="page-header">
       <div className="header-slot">
         {back && (
-          <button className="icon-btn" onClick={() => navigate(-1)}>
+          <button
+            className="icon-btn"
+            aria-label="Go back"
+            onClick={() => {
+              if ((window.history.state?.idx ?? 0) > 0) navigate(-1);
+              else navigate("/home", { replace: true });
+            }}
+          >
             <ArrowLeft size={20} />
           </button>
         )}

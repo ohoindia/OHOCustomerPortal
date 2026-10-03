@@ -32,4 +32,12 @@ const install = spawnSync(
 );
 if (install.error) throw install.error;
 if (install.status !== 0) process.exit(install.status ?? 1);
+// Lambda disables require(ESM), even when the local Node runtime enables it.
+const startupCheck = spawnSync(
+  process.execPath,
+  ["--no-experimental-require-module", "-e", 'require("./dist/lambda.js")'],
+  { cwd: artifact, stdio: "inherit" },
+);
+if (startupCheck.error) throw startupCheck.error;
+if (startupCheck.status !== 0) process.exit(startupCheck.status ?? 1);
 console.log(`Lambda artifact ready: ${artifact}`);

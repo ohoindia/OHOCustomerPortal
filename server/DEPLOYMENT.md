@@ -80,8 +80,8 @@ sam deploy --guided --template-file template.yaml --stack-name oho-customer-api-
 
 During the prompts:
 
-1. Enter your VPC subnet/security group IDs, or leave both empty as described above.
-2. Enter the optional onboarding queue ARN, or leave it empty.
+1. Enter your VPC subnet/security group IDs, or, for a public database, press Enter without typing anything at each prompt showing `[]`. Do not type `""`: guided input treats those quotes as literal characters.
+2. Enter the optional onboarding queue ARN, or press Enter without typing anything at its `[]` prompt if unused.
 3. Allow SAM to create the execution role; keep CloudFormation rollback enabled.
 4. Save settings to `samconfig.toml` for subsequent deployments. This file is ignored by Git.
 5. Review and confirm the CloudFormation changes.
@@ -156,14 +156,26 @@ sam logs --name CustomerApiFunction --stack-name oho-customer-api-dev --region a
 ```
 
 - **Handler/module not found:** confirm `build/lambda/dist/lambda.js` and production `node_modules` exist, then package and redeploy.
+- **`ERR_REQUIRE_ESM` at startup:** this server compiles to CommonJS and pins `@nestjs/jwt` to the compatible `11.0.2` release. JWT 12 is ESM; Lambda Node.js 22 disables `require(ESM)` by default. Run `npm ci` and `npm run package:lambda`, then redeploy the rebuilt artifact. Packaging checks that the handler loads with `--no-experimental-require-module` to catch this mismatch locally.
 - **Database/configuration lookup failure:** check Lambda's database environment variables, networking and read access to both configuration tables. A health request without an Origin header does not prove database access.
 - **SMS HTTPS timeout in a VPC:** check the private subnet's NAT route and outbound HTTPS access.
 - **SQS AccessDenied:** check that the configured queue URL corresponds to the permitted ARN, its queue policy and any KMS permissions.
 - **CORS errors:** update `CORS_ORIGINS` in the configuration tables and allow the 60-second cache to expire; a conflicting value in `ConfigSecrets` overrides `ConfigValues`.
-- **Deployment failure:** inspect CloudFormation events. The saved rollback setting restores the stack on failed updates; a failed first deployment may require resolving the cause before recreating the failed stack.
+- **Change-set early validation failure:** retrieve the failed change set's detailed events with the commands below. For `CustomerApiFunctionRole` with `#/ManagedPolicyArns: array items are not unique`, remove any explicit `AWSLambdaBasicExecutionRole` entry from the function's `Policies`: SAM automatically adds that managed policy to its generated execution role. The current template already omits the duplicate. Validate the current template and retry deployment.
+- **IAM resource must be in ARN format:** check that unused guided parameters are actually empty, rather than literal quote characters. For a public database without SQS, the TOML setting is `parameter_overrides = "VpcSubnetIds=\"\" VpcSecurityGroupIds=\"\" OnboardingSmsQueueArn=\"\""`. Retry with `sam deploy --template-file template.yaml --config-env default --disable-rollback` when recovering a preserved `CREATE_FAILED` stack. After successful recovery, set `disable_rollback = false` for future deployments.
+- **Deployment failure:** inspect CloudFormation events. Rollback restores the stack on failed updates only when enabled; keep `disable_rollback = false` in `samconfig.toml` as recommended in step 5. A failed first deployment may require resolving the cause before recreating the failed stack.
 - **API/function throttling:** the template starts with API throttling at 10 requests/second, burst 20, and Lambda concurrency 5. Tune this against database capacity; each warm function can create a pool of up to 10 connections. Nest's in-memory rate limiter is per Lambda execution environment, so it is not a shared user limit across instances.
 
 For a successful release that needs to be reverted, use an isolated checkout/worktree of the previous known-good revision, copy your ignored SAM configuration into its `server` folder, run `npm ci`, tests and `package:lambda`, and deploy to the **same** stack and region. Review the infrastructure changes before applying that rollback. Restore configuration table values and database environment variables separately when needed; code rollback does not restore database data changed by API calls.
+
+For a failed change set, run these read-only commands using the same AWS profile as deployment:
+
+```powershell
+$customerChangeSet = aws cloudformation list-change-sets --stack-name oho-customer-api-dev --region ap-south-1 --query 'sort_by(Summaries, &CreationTime)[-1].ChangeSetId' --output text
+aws cloudformation describe-events --change-set-name $customerChangeSet --region ap-south-1 --output json
+```
+
+Inspect `ValidationStatusReason`, `ValidationPath` and `LogicalResourceId`. These change-set validation events can be absent from ordinary stack events. If your AWS CLI does not recognize `describe-events`, update AWS CLI v2 or open the failed change set's deployment validation details in the CloudFormation console. See [AWS CloudFormation DescribeEvents](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeEvents.html).
 
 No AWS resources are created by installing, building, packaging, testing or locally validating the template. The `sam deploy` commands perform the actual deployment.
 

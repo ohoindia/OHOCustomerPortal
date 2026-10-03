@@ -77,7 +77,7 @@ export function Profile() {
         subtitle={UI_TEXT.signOutOfYourAccount}
         onClick={() => {
           clearSession();
-          window.location.replace("/login");
+          nav("/login", { replace: true });
         }}
       />
     </AppShell>

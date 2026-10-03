@@ -13,7 +13,15 @@
     "server:build": "npm --prefix server run build",
     "server:test": "npm --prefix server test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "mobile:start": "npm --prefix mobile start",
+    "mobile:tunnel": "npm --prefix mobile run start:tunnel",
+    "mobile:android": "npm --prefix mobile run android",
+    "mobile:ios": "npm --prefix mobile run ios",
+    "mobile:typecheck": "npm --prefix mobile run typecheck",
+    "mobile:install": "npm --prefix mobile ci",
+    "mobile:lint": "npm --prefix mobile run lint",
+    "mobile:test": "npm --prefix mobile test"
   },
   "devDependencies": {
     "prettier": "^3.9.9"

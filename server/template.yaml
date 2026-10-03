@@ -62,11 +62,8 @@ Resources:
       # Application settings are read from ConfigValues and ConfigSecrets in MySQL.
       # Keep Environment omitted so this template does not manage those values.
       Policies:
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-        - !If
-          - UseVpc
-          - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-          - !Ref AWS::NoValue
+        # SAM automatically attaches AWSLambdaBasicExecutionRole to the generated role.
+        # It also attaches AWSLambdaVPCAccessExecutionRole when VpcConfig is present.
         - !If
           - UseQueue
           - Statement:
