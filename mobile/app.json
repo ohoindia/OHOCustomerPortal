@@ -33,6 +33,13 @@
           "locationWhenInUsePermission": "Allow OHOINDIA to find nearby network hospitals."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4b3542d8-7538-453c-b791-fef710a610a6"
+      }
+    },
+    "owner": "reachkarun"
   }
 }
