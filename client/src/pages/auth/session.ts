@@ -1,20 +1,13 @@
 import { UI_TEXT } from "../../../../common/content/labels";
 import type { AuthResponse, Member } from "../../../../common/models/customer";
 
-const sessionKeys = [
-  "accessToken",
-  "tokenExpiresAt",
-  "member",
-  "memberId",
-  "gender",
-  "FullName",
-  "UserImage",
-  "groupId",
-  "communityCustomerId",
-];
+import {
+  authSessionKeys,
+  authSessionValues,
+} from "../../../../common/utils/session";
 
 export function clearAuthSession(notify = true) {
-  for (const key of sessionKeys) sessionStorage.removeItem(key);
+  for (const key of authSessionKeys) sessionStorage.removeItem(key);
   if (notify) window.dispatchEvent(new Event("auth-session-changed"));
 }
 
@@ -42,17 +35,9 @@ export function saveAuthSession(response: AuthResponse, member: Member) {
   ) {
     throw new Error(UI_TEXT.loginDidNotReturnAValidSessionPleaseTry);
   }
-  sessionStorage.setItem("accessToken", response.JwtToken);
-  sessionStorage.setItem("tokenExpiresAt", response.expiresAt!);
-  sessionStorage.setItem("member", JSON.stringify(member));
-  for (const [key, value] of Object.entries({
-    memberId: member.MemberId,
-    gender: member.Gender,
-    FullName: member.Name,
-    UserImage: member.Image,
-    groupId: member.GroupId,
-    communityCustomerId: member.CommunityCustomerId,
-  }))
-    sessionStorage.setItem(key, String(value ?? ""));
+  for (const [key, value] of Object.entries(
+    authSessionValues(response.JwtToken, response.expiresAt!, member),
+  ))
+    sessionStorage.setItem(key, value);
   window.dispatchEvent(new Event("auth-session-changed"));
 }

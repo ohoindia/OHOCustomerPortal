@@ -4,6 +4,8 @@ Expo SDK 57 native shell with the **same interface as `client/`**. The client co
 
 The Expo Router entry points handle native launch/deep links. Inside the bundled interface, HashRouter preserves the client's navigation and query parameters without requesting pages from a server. There is one bottom navigation bar, rendered by the shared client.
 
+Packages has explicit Expo Router entry points at `/packages`, `/product-details?productId=...&purchase=1`, and `/purchase/:orderId/:step`. They open the shared live client catalog and complete purchase interface, including family members, nominee selection, guardians for minors, secure payment links and payment confirmation. The legacy native catalog also delegates packages to these screens instead of displaying demo products. Maintain reusable business functions in `common/`; purchase destinations and initial step selection are shared alongside session mapping. Rebuild the bundled client after changes to either `client/` or `common/` during an active Expo session.
+
 Native adapters provide backend requests (independent of WebView CORS), cancellation, SecureStore authentication, location permissions, external directions/call links, Android back navigation and session expiry after resuming the app. Wellness entries use AsyncStorage. Existing device sessions migrate automatically from the previous native interface.
 
 Requires Node 22.13 or newer. From the repository root:
@@ -103,8 +105,11 @@ The browser parity check compares all static authenticated client routes and six
 ```powershell
 cd mobile
 node tests/shared-client.browser.cjs <path-to-playwright-module>
+node tests/purchase.browser.cjs <path-to-playwright-module>
 ```
 
 `npm --prefix mobile run web` previews the bundled interface in an iframe. Browser API requests still require backend CORS configuration; device requests run through the native adapter. Preview sessions remain in memory.
 
-Feature/data availability matches the client. Sample checkout, wallet, notifications and catalog screens remain samples; OPD and account screens use the existing backend endpoints. The map uses the client's Leaflet/OpenStreetMap implementation; map tiles and API data need connectivity. Images and Inter/Plus Jakarta Sans fonts are bundled, with font licenses in `client/src/assets/fonts/`.
+The purchase browser check exercises Packages using mocked backend responses through the native bridge: package details, primary member, family member, nominee selection, payment-link handoff and completed payment confirmation. No real payment is made.
+
+Feature/data availability matches the client. Package purchase uses the purchase backend; wallet, notifications and the other demo catalog screens remain samples. OPD and account screens use the existing backend endpoints. The map uses the client's Leaflet/OpenStreetMap implementation; map tiles and API data need connectivity. Images and Inter/Plus Jakarta Sans fonts are bundled, with font licenses in `client/src/assets/fonts/`.

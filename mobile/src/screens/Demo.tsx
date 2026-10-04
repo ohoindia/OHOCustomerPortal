@@ -3,7 +3,6 @@ import { Text, View } from "react-native";
 import { router } from "expo-router";
 import {
   doctors,
-  packages,
   labTests as tests,
   medicines,
   paymentMethods,
@@ -22,6 +21,8 @@ import {
   Page,
   s,
 } from "../components/ui";
+import Packages from "./Packages";
+import { PackageDetails } from "./Purchase";
 export function DemoNotice() {
   return <Copy>Demo preview · sample data, matching the web client.</Copy>;
 }
@@ -75,6 +76,7 @@ export function Records() {
 }
 export function Catalog({ kind }: { kind: string }) {
   const [search, setSearch] = useState("");
+  if (kind === "packages") return <Packages />;
   const title =
     kind === "doctors"
       ? "Doctors"
@@ -95,10 +97,7 @@ export function Catalog({ kind }: { kind: string }) {
         ? tests.map((row) => ({ ...row, description: "Lab test" }))
         : kind === "pharmacy"
           ? medicines.map((row) => ({ ...row, description: row.pack }))
-          : packages.map((row) => ({
-              ...row,
-              description: `${row.tests} tests · ${row.off}`,
-            }));
+          : [];
   return (
     <Page title={title}>
       <DemoNotice />
@@ -133,6 +132,7 @@ export function Catalog({ kind }: { kind: string }) {
   );
 }
 export function CatalogDetail({ kind, id }: { kind: string; id: string }) {
+  if (kind === "packages") return <PackageDetails productId={id} />;
   const row =
     kind === "doctors"
       ? doctors.find((item) => item.id === Number(id))
@@ -140,7 +140,7 @@ export function CatalogDetail({ kind, id }: { kind: string; id: string }) {
         ? tests.find((item) => item.id === Number(id))
         : kind === "pharmacy"
           ? medicines.find((item) => item.id === Number(id))
-          : packages.find((item) => item.id === Number(id));
+          : undefined;
   return (
     <Page title="Details">
       <DemoNotice />

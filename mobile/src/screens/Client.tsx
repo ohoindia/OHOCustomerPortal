@@ -7,8 +7,11 @@ import type { ClientViewProps } from "../components/ClientView";
 import { Brand, Copy, Page } from "../components/ui";
 import { getSession, restoreSession } from "../lib/session";
 import { localKey } from "../lib/client-host";
+import { authSessionValues } from "../../../common/utils/session";
 
-export default function Client() {
+export default function Client({
+  initialRoute,
+}: { initialRoute?: string } = {}) {
   const params = useLocalSearchParams<{ path?: string[] }>();
   const [props, setProps] = useState<ClientViewProps | null>(null);
   const [generation, setGeneration] = useState(0);
@@ -23,20 +26,9 @@ export default function Client() {
     void (async () => {
       await restoreSession();
       const current = getSession();
-      const session: Record<string, string> = {};
-      if (current) {
-        Object.assign(session, {
-          accessToken: current.token,
-          tokenExpiresAt: current.expiresAt,
-          member: JSON.stringify(current.member),
-          memberId: String(current.member.MemberId),
-          gender: String(current.member.Gender ?? ""),
-          FullName: current.member.Name ?? "",
-          UserImage: current.member.Image ?? "",
-          groupId: String(current.member.GroupId ?? ""),
-          communityCustomerId: String(current.member.CommunityCustomerId ?? ""),
-        });
-      }
+      const session = current
+        ? authSessionValues(current.token, current.expiresAt, current.member)
+        : {};
       let local: Record<string, string> = {};
       try {
         local = JSON.parse((await AsyncStorage.getItem(localKey)) ?? "{}");
@@ -47,7 +39,9 @@ export default function Client() {
       const search = new URLSearchParams();
       for (const [key, value] of Object.entries(query))
         if (typeof value === "string") search.set(key, value);
-      const route = `/${path?.join("/") ?? ""}${search.size ? `?${search}` : ""}`;
+      const route =
+        initialRoute ??
+        `/${path?.join("/") ?? ""}${search.size ? `?${search}` : ""}`;
       if (!cancelled)
         setProps({
           apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",

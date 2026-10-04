@@ -38,6 +38,22 @@ const response = () => ({
   expiresAt: new Date(Date.now() + 60000).toISOString(),
 });
 
+test("shared session mapping preserves community accounts and clears missing profile fields", () => {
+  const { authSessionValues, authSessionKeys } = loadModule(
+    "../../common/utils/session.ts",
+  );
+  const profile = { MemberId: 0, CommunityCustomerId: 12 };
+  const values = authSessionValues("token", "expiry", profile);
+  assert.equal(values.memberId, "0");
+  assert.equal(values.communityCustomerId, "12");
+  assert.equal(values.FullName, "");
+  assert.equal(values.UserImage, "");
+  assert.equal(values.gender, "");
+  assert.equal(values.groupId, "");
+  assert.equal(values.member, JSON.stringify(profile));
+  assert.deepEqual(Object.keys(values).sort(), Array.from(authSessionKeys).sort());
+});
+
 test("client persists token and profile, notifies route guards, and clears credentials on logout", () => {
   const session = fixture();
   let notifications = 0;

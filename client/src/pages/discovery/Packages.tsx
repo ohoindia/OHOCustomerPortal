@@ -1,5 +1,6 @@
 ﻿import { Link } from "react-router-dom";
 import { UI_TEXT } from "../../../../common/content/labels";
+import { packageDetailsRoute } from "../../../../common/utils/purchase";
 import { AppShell, PageHeader } from "../../components/Layout";
 import { textValue, usePortalData } from "../portal/usePortalData";
 import {
@@ -98,7 +99,7 @@ export function Packages() {
                 <Link
                   className="catalog-package-card"
                   key={textValue(product, "ProductsId")}
-                  to={`/product-details?productId=${encodeURIComponent(textValue(product, "ProductsId"))}&purchase=1`}
+                  to={packageDetailsRoute(textValue(product, "ProductsId"))}
                 >
                   <div className="catalog-package-top">
                     <span className="catalog-package-badge">{group.name}</span>

@@ -1,6 +1,6 @@
 # Shared customer data layer
 
-This folder contains plain TypeScript used by the web app and the future React Native app. It has no React components, hooks, Vite environment variables, navigation, or browser storage dependencies.
+This folder contains plain TypeScript used by the web client and mobile app. It has no React components, hooks, Vite environment variables, navigation, or browser storage dependencies.
 
 ## Structure
 
@@ -14,6 +14,8 @@ This folder contains plain TypeScript used by the web app and the future React N
 - `controllers/catalog.controller.ts`: configuration values and product catalog.
 - `controllers/home.controller.ts`: combines the controllers into dashboard data, including partial failures and community fallback.
 - `utils/`: shared date, expiry, appointment, package, and OTP timer helpers.
+- `utils/session.ts`: shared authentication storage keys and member/session mapping used by web login and mobile session restoration. Keep platform storage in the app adapters.
+- `utils/purchase.ts`: shared package-detail destinations, purchase destinations, initial step selection, and nominee completion checks. Mobile purchase entry points reuse the client purchase interface and these helpers.
 - `utils/membership.ts`: shared membership display labels (`MEMBERSHIP_LABELS`) and state selection (`membershipState`). Web and mobile can call `membershipState(dashboard)` or `membershipState(null)` while loading.
 - `content/labels.ts`: `UI_TEXT` contains display text across authentication, home, account details, booking, discovery, profile, portal, and wellness screens. `UI_MESSAGES` formats messages containing dynamic values. Repeated labels share one value; capitalization and intentional spacing are preserved.
 - `content/options.ts`: reusable service menus, booking filters, form choices, field labels, membership benefits, and sample display collections. Menu paths identify the existing web destinations; mobile maps them to its own navigation.

@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import {
-  cardStatus,
-  homeServices,
-  membershipState,
-  UI_TEXT,
-} from "../../../common";
+import { cardStatus, membershipState, UI_TEXT } from "../../../common";
 import {
   Brand,
   Button,
@@ -20,7 +15,6 @@ import {
 } from "../components/ui";
 import { loadHomeData } from "../lib/api";
 import { getSession } from "../lib/session";
-import { destination } from "../lib/navigation";
 type Dashboard = Awaited<ReturnType<typeof loadHomeData>>;
 export default function Home() {
   const member = getSession()!.member;
@@ -103,20 +97,11 @@ export default function Home() {
           <Text style={s.label}>Pharmacy Subsidies</Text>
         </Pressable>
       </View>
-      <Heading>Quick Services</Heading>
-      <View style={s.grid}>
-        {homeServices.map(([icon, title, path]) => (
-          <Pressable
-            accessibilityRole="button"
-            key={title}
-            style={s.tile}
-            onPress={() => router.push(destination(path))}
-          >
-            <Text style={{ fontSize: 25 }}>{icon}</Text>
-            <Text style={s.label}>{title}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <Menu
+        title={UI_TEXT.packages}
+        subtitle="Explore health packages and purchase for your family"
+        onPress={() => router.push("/packages")}
+      />
       <Card>
         <Heading>Your next appointment</Heading>
         <Copy>

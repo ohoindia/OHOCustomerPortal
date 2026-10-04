@@ -14,7 +14,11 @@ import { getSessionMember } from "../auth/member";
 import { usePortalData, textValue } from "../portal/usePortalData";
 import type { PortalRow } from "../portal/usePortalData";
 import { packageAmount } from "../../../../common/utils/packages";
-import { allNomineesAdded } from "../../../../common/utils/purchase";
+import {
+  allNomineesAdded,
+  firstPurchaseStep,
+  purchaseRoute,
+} from "../../../../common/utils/purchase";
 import "../discovery/packages.css";
 import "./purchase.css";
 
@@ -269,18 +273,7 @@ function Details({ id }: { id: number }) {
       const result = await apiRequest<{ orderId: number }>("api/purchases", {
         body: { ...purchaser, relationship: "Self", productsId: id },
       });
-      const product = data.data;
-      const nominees =
-        product.includedProducts.some((row) =>
-          Boolean(row.IsNomineeRequired),
-        ) || Boolean(product.IsNomineeRequired);
-      const step =
-        Number(product.MaximumMembers) > 1
-          ? "family"
-          : nominees
-            ? "nominees"
-            : "payment";
-      navigate(`/purchase/${result.orderId}/${step}`);
+      navigate(purchaseRoute(result.orderId, firstPurchaseStep(data.data)));
     } catch (error) {
       setError(
         error instanceof Error
@@ -698,7 +691,9 @@ function NomineeMemberCard({
   return onSelect ? (
     <button
       type="button"
-      className={"nominee-member-card" + (selected ? " is-nominee-selected" : "")}
+      className={
+        "nominee-member-card" + (selected ? " is-nominee-selected" : "")
+      }
       aria-pressed={selected}
       aria-label={label}
       onClick={onSelect}
