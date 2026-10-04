@@ -103,6 +103,7 @@ export class PurchasesService {
 
   async create(customerId: number, body: PurchaseDto) {
     const product = await this.product(body.productsId);
+    console.log("customerId", customerId);
     const age = personAge(body.dateofBirth);
     const pricing = quote(product, age);
     return this.db.transaction(async (connection) => {
@@ -130,6 +131,17 @@ export class PurchasesService {
         throw new BadRequestException(
           "A valid mobile number is required for payment.",
         );
+      await this.db.execute(
+        "UPDATE Customer SET Name = ?, Gender = ?, DateofBirth = ?, Age = ? WHERE CustomerId = ?",
+        [
+          body.fullName.trim(),
+          body.gender,
+          body.dateofBirth.slice(0, 10),
+          age,
+          customerId,
+        ],
+        connection,
+      );
       const result = await this.db.execute(
         "INSERT INTO Orders (CustomerId, ProductsId, PayableAmount, PaidAmount, FullName, Gender, DateofBirth, Age, MobileNumber, Email, AddressLine1, AddressLine2, Village, Mandal, City, DistrictId, StateId, PinCode, CreatedTime, Status, CardHolderType, Description, CreatedSource, TypeofService) VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'Pending', 'Primary', ?, 'CustomerApp', (SELECT ServiceId FROM Service WHERE ServiceName = 'OHO Card' AND IsActive = TRUE LIMIT 1))",
         [

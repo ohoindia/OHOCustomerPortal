@@ -3,9 +3,5 @@
   "compilerOptions": {
     "strict": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "../common/**/*.ts"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../common/**/*.ts"]
 }

@@ -51,7 +51,10 @@ test("shared session mapping preserves community accounts and clears missing pro
   assert.equal(values.gender, "");
   assert.equal(values.groupId, "");
   assert.equal(values.member, JSON.stringify(profile));
-  assert.deepEqual(Object.keys(values).sort(), Array.from(authSessionKeys).sort());
+  assert.deepEqual(
+    Object.keys(values).sort(),
+    Array.from(authSessionKeys).sort(),
+  );
 });
 
 test("client persists token and profile, notifies route guards, and clears credentials on logout", () => {

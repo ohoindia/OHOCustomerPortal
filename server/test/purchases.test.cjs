@@ -123,6 +123,16 @@ test("order creation uses the server's premium and customer identity, starts unp
   assert.deepEqual(insert.values.slice(0, 3), [12, 278, 2999]);
   assert.match(insert.sql, /PaidAmount.*VALUES.*0/);
   assert.match(insert.sql, /'Pending'/);
+  const profileUpdate = calls.find((call) =>
+    call.sql?.startsWith("UPDATE Customer SET"),
+  );
+  assert.deepEqual(profileUpdate.values, [
+    person.fullName,
+    person.gender,
+    person.dateofBirth,
+    personAge(person.dateofBirth),
+    12,
+  ]);
   const resumed = harness({ pending: true });
   assert.equal(
     (await resumed.service.create(12, { ...person, productsId: 278 })).resumed,

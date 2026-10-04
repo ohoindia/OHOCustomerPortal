@@ -247,8 +247,19 @@ export function PurchaseDetails() {
 }
 function Details({ id }: { id: number }) {
   const data = useData<Product>(`api/purchases/products/${id}`);
+  const [sessionMember] = useState(getSessionMember);
+  const memberId = Number(
+    sessionMember?.MemberId || sessionStorage.getItem("memberId"),
+  );
+  const communityId = Number(
+    sessionMember?.communityCustomerId ||
+      sessionMember?.CommunityCustomerId ||
+      sessionStorage.getItem("communityCustomerId"),
+  );
   const profile = usePortalData(
-    `api/Customer/GetById/${getSessionMember()?.MemberId}`,
+    memberId > 0
+      ? `api/Customer/GetById/${memberId}`
+      : `api/CommunityCustomers/GetById/${communityId}`,
   );
   const [person, setPerson] = useState<Person | null>(null);
   const [busy, setBusy] = useState(false);
@@ -256,13 +267,20 @@ function Details({ id }: { id: number }) {
   const submitting = useRef(false);
   const navigate = useNavigate();
   const customer = profile.rows[0];
+  const accountValue = (key: string) =>
+    textValue(customer, key).trim() ||
+    textValue(sessionMember ?? undefined, key).trim();
   const purchaser = person ?? {
-    fullName: textValue(customer, "Name"),
-    dateofBirth: dateInput(customer?.DateofBirth),
-    gender: textValue(customer, "Gender"),
-    mobileNumber: textValue(customer, "MobileNumber"),
+    fullName: accountValue("Name"),
+    dateofBirth: dateInput(accountValue("DateofBirth")),
+    gender: accountValue("Gender"),
+    mobileNumber: accountValue("MobileNumber"),
     relationship: "Self",
   };
+  const missingDetails =
+    !accountValue("Name") ||
+    !dateInput(accountValue("DateofBirth")) ||
+    !accountValue("Gender");
   async function purchase(event: FormEvent) {
     event.preventDefault();
     if (submitting.current || !data.data) return;
@@ -354,7 +372,16 @@ function Details({ id }: { id: number }) {
             )}
           </section>
           <section className="purchase-panel">
-            <h2>Confirm your details</h2>
+            <h2>
+              {missingDetails
+                ? "Add your customer details"
+                : "Confirm your details"}
+            </h2>
+            <p>
+              {missingDetails
+                ? "Complete the missing details below to continue purchasing your package."
+                : "Your Account Details are filled in below. Review them before continuing."}
+            </p>
             <p>We’ll use these details for your package and payment.</p>
             {profile.loading ? (
               <Notice />
@@ -365,7 +392,7 @@ function Details({ id }: { id: number }) {
                 <PersonFields value={purchaser} onChange={setPerson} primary />
                 {error && <Notice error={error} />}
                 <button className="purchase-primary" disabled={busy}>
-                  {busy ? "Creating purchase…" : "Purchase"}
+                  {busy ? "Creating purchase…" : "Save details and continue"}
                   <span aria-hidden="true">→</span>
                 </button>
                 <small className="purchase-help">
