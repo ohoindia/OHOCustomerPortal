@@ -35,6 +35,8 @@ function harness(options = {}) {
     CustomerId: 12,
     ProductsId: 278,
     FullName: person.fullName,
+    Gender: person.gender,
+    DateofBirth: person.dateofBirth,
     MobileNumber: person.mobileNumber,
     Age: personAge(person.dateofBirth),
     PayableAmount: "2999.00",
@@ -211,27 +213,114 @@ test("paid purchases and active payment links cannot be edited", async () => {
 });
 test("nominee products are checked and minors require an adult guardian", async () => {
   await assert.rejects(
-    harness().service.nominee(12, 50, { ...person, productsId: 999 }),
+    harness().service.nominee(12, 50, { familyOrderId: 51, productsId: 999 }),
     /does not require/,
   );
   await assert.rejects(
-    harness().service.nominee(12, 50, {
-      ...person,
-      dateofBirth: "2020-01-01",
-      productsId: 19,
-    }),
-    /adult guardian/,
+    harness({
+      family: [
+        {
+          OrdersId: 51,
+          FullName: "Child",
+          DateofBirth: "2020-01-01",
+          Gender: "Male",
+          Relationship: "Son",
+          Age: 6,
+        },
+      ],
+    }).service.nominee(12, 50, { familyOrderId: 51, productsId: 19 }),
+    /adult family member/,
   );
-  const result = harness({ nominees: [] });
+  const result = harness({
+    nominees: [],
+    family: [
+      {
+        OrdersId: 51,
+        FullName: "Spouse Member",
+        DateofBirth: "1990-01-01",
+        Gender: "Male",
+        Relationship: "Spouse",
+        Age: 36,
+      },
+    ],
+  });
   await result.service.nominee(12, 50, {
-    ...person,
-    relationship: "Spouse",
+    familyOrderId: 51,
     productsId: 19,
   });
   const insert = result.calls.find((call) =>
     call.sql?.startsWith("INSERT INTO Nominee"),
   );
   assert.deepEqual(insert.values.slice(-4), [12, 50, 50, 19]);
+});
+
+test("nominee selection accepts only an owned family member and uses their saved details", async () => {
+  await assert.rejects(
+    harness().service.nominee(12, 50, { productsId: 19, familyOrderId: 999 }),
+    /family member included/,
+  );
+  await assert.rejects(
+    harness().service.nominee(12, 50, { productsId: 19, familyOrderId: 50 }),
+    /family member included/,
+  );
+  const result = harness({
+    nominees: [],
+    family: [
+      {
+        OrdersId: 51,
+        FullName: "Saved Spouse",
+        DateofBirth: "1992-01-01",
+        Gender: "Male",
+        Relationship: "Spouse",
+        Age: 34,
+        MobileNumber: "9123456789",
+      },
+    ],
+  });
+  await result.service.nominee(12, 50, {
+    productsId: 19,
+    familyOrderId: 51,
+    fullName: "Forged name",
+  });
+  const insert = result.calls.find((call) =>
+    call.sql?.startsWith("INSERT INTO Nominee"),
+  );
+  assert.equal(insert.values[0], "Saved Spouse");
+  assert.equal(insert.values[1], "1992-01-01");
+  assert.equal(insert.values[4], "9123456789");
+});
+test("minor family nominees use the selected adult guardian's stored details", async () => {
+  const result = harness({
+    nominees: [],
+    family: [
+      {
+        OrdersId: 51,
+        FullName: "Saved Child",
+        DateofBirth: "2020-01-01",
+        Gender: "Male",
+        Relationship: "Son",
+        Age: 6,
+      },
+    ],
+  });
+  await result.service.nominee(12, 50, {
+    productsId: 19,
+    familyOrderId: 51,
+    guardianOrderId: 50,
+  });
+  const insert = result.calls.find((call) =>
+    call.sql?.startsWith("INSERT INTO Nominee"),
+  );
+  assert.equal(insert.values[6], person.fullName);
+  assert.equal(insert.values[10], "Parent");
+  await assert.rejects(
+    result.service.nominee(12, 50, {
+      productsId: 19,
+      familyOrderId: 51,
+      guardianOrderId: 999,
+    }),
+    /adult family member/,
+  );
 });
 test("payment blocks missing nominees, missing spouses, and price changes", async () => {
   await assert.rejects(

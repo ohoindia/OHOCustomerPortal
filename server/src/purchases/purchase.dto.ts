@@ -19,13 +19,10 @@ export class PersonDto {
 export class PurchaseDto extends PersonDto {
   @IsInt() @Min(1) productsId!: number;
 }
-export class NomineeDto extends PersonDto {
+export class NomineeDto {
   @IsInt() @Min(1) productsId!: number;
-  @IsOptional() @IsString() @MaxLength(100) guardianName?: string;
-  @IsOptional() @IsDateString() guardianDateofBirth?: string;
-  @IsOptional() @IsIn(["Male", "Female", "Other"]) guardianGender?: string;
-  @IsOptional() @IsString() @MaxLength(50) guardianRelationship?: string;
-  @IsOptional() @Matches(/^[6-9]\d{9}$/) guardianMobileNumber?: string;
+  @IsInt() @Min(1) familyOrderId!: number;
+  @IsOptional() @IsInt() @Min(1) guardianOrderId?: number;
 }
 export class PaymentMethodDto {
   @IsInt() @Min(1) paymentTypeId!: number;

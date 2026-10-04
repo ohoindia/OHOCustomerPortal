@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { AppShell, PageHeader } from "../../components/Layout";
 import { apiRequest as request } from "../../services/api";
 import type { RequestOptions } from "../../../../common/api/transport";
@@ -8,6 +14,7 @@ import { getSessionMember } from "../auth/member";
 import { usePortalData, textValue } from "../portal/usePortalData";
 import type { PortalRow } from "../portal/usePortalData";
 import { packageAmount } from "../../../../common/utils/packages";
+import { allNomineesAdded } from "../../../../common/utils/purchase";
 import "../discovery/packages.css";
 import "./purchase.css";
 
@@ -398,7 +405,16 @@ export function PurchaseFlow() {
 }
 function OrderFlow({ id, step }: { id: number; step: string }) {
   const data = useData<Snapshot>(`api/purchases/${id}`);
+  const location = useLocation();
   const snapshot = data.data;
+  if (
+    snapshot &&
+    step === "nominees" &&
+    allNomineesAdded(snapshot.nomineeProducts, snapshot.nominees) &&
+    new URLSearchParams(location.search).get("review") !== "1"
+  ) {
+    return <Navigate to={`/purchase/${id}/payment`} replace />;
+  }
   const label =
     step === "family"
       ? "Family members"
@@ -598,13 +614,99 @@ function FamilyStep({
         disabled={busy || spouseRequired}
         onClick={() =>
           navigate(
-            `/purchase/${id}/${snapshot.nomineeProducts.length ? "nominees" : "payment"}`,
+            `/purchase/${id}/${allNomineesAdded(snapshot.nomineeProducts, snapshot.nominees) ? "payment" : "nominees"}`,
           )
         }
       >
         Continue<span aria-hidden="true">→</span>
       </button>
     </section>
+  );
+}
+function NomineeMemberCard({
+  member,
+  selected = false,
+  onSelect,
+  label,
+}: {
+  member: PortalRow;
+  selected?: boolean;
+  onSelect?: () => void;
+  label?: string;
+}) {
+  const name = textValue(member, "FullName");
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("");
+  const birthday = dateInput(member.DateofBirth);
+  const content = (
+    <>
+      <div className="nominee-member-top">
+        <span className="nominee-avatar" aria-hidden="true">
+          {initials}
+        </span>
+        <div>
+          <h3>{name}</h3>
+          <span className="nominee-relation">
+            {textValue(member, "Relationship") || "Primary member"}
+          </span>
+        </div>
+        {onSelect && (
+          <span className="nominee-selection-mark" aria-hidden="true">
+            {selected ? "✓" : ""}
+          </span>
+        )}
+      </div>
+      <dl className="nominee-member-details">
+        <div>
+          <dt>Age</dt>
+          <dd>{textValue(member, "Age")} years</dd>
+        </div>
+        <div>
+          <dt>Gender</dt>
+          <dd>{textValue(member, "Gender") || "Not provided"}</dd>
+        </div>
+        <div>
+          <dt>Date of birth</dt>
+          <dd>
+            {birthday
+              ? new Date(birthday + "T00:00:00").toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })
+              : "Not provided"}
+          </dd>
+        </div>
+        <div>
+          <dt>Mobile number</dt>
+          <dd>{textValue(member, "MobileNumber") || "Not provided"}</dd>
+        </div>
+      </dl>
+      <span className="nominee-card-caption">
+        {onSelect
+          ? selected
+            ? "Selected"
+            : "Tap to select"
+          : "You · Primary member"}
+      </span>
+    </>
+  );
+  return onSelect ? (
+    <button
+      type="button"
+      className={"nominee-member-card" + (selected ? " is-nominee-selected" : "")}
+      aria-pressed={selected}
+      aria-label={label}
+      onClick={onSelect}
+    >
+      {content}
+    </button>
+  ) : (
+    <div className="nominee-member-card primary-member">{content}</div>
   );
 }
 function NomineeStep({
@@ -616,180 +718,195 @@ function NomineeStep({
   snapshot: Snapshot;
   reload: () => void;
 }) {
-  const [selected, setSelected] = useState<number>(
-    Number(
-      snapshot.nomineeProducts.find(
-        (row) =>
-          !snapshot.nominees.some(
-            (nominee) => nominee.ProductsId === row.ProductsId,
-          ),
-      )?.ProductsId ?? snapshot.nomineeProducts[0]?.ProductsId,
-    ),
+  const [selectedMember, setSelectedMember] = useState<number | null>(() => {
+    const saved = snapshot.nominees[0];
+    const member = snapshot.family.find(
+      (row) =>
+        textValue(row, "FullName") === textValue(saved, "FullName") &&
+        textValue(row, "Relationship") === textValue(saved, "Relationship"),
+    );
+    return member ? Number(member.OrdersId) : null;
+  });
+  const [guardianId, setGuardianId] = useState<number | null>(
+    Number(snapshot.order.Age) >= 18 ? id : null,
   );
-  const [person, setPerson] = useState<Person>(blankPerson);
-  const [guardian, setGuardian] = useState<Person>(blankPerson);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [editing, setEditing] = useState(false);
   const navigate = useNavigate();
-  const minor =
-    Boolean(person.dateofBirth) &&
-    new Date(`${person.dateofBirth}T00:00:00`).getTime() >
-      new Date(
-        new Date().getFullYear() - 18,
-        new Date().getMonth(),
-        new Date().getDate(),
-      ).getTime();
-  const allAdded = snapshot.nomineeProducts.every((row) =>
-    snapshot.nominees.some(
-      (nominee) => Number(nominee.ProductsId) === Number(row.ProductsId),
-    ),
+  const allAdded = allNomineesAdded(
+    snapshot.nomineeProducts,
+    snapshot.nominees,
   );
+  const selected = snapshot.family.find(
+    (row) => Number(row.OrdersId) === selectedMember,
+  );
+  const minor = selected && Number(selected.Age) < 18;
+  const guardians = [snapshot.order, ...snapshot.family].filter(
+    (row) => Number(row.Age) >= 18 && Number(row.OrdersId) !== selectedMember,
+  );
+  const showSelection = !allAdded || editing;
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || !selectedMember) return;
     setBusy(true);
     setError("");
     try {
-      await apiRequest(`api/purchases/${id}/nominees`, {
-        body: {
-          ...person,
-          mobileNumber: person.mobileNumber || undefined,
-          productsId: selected,
-          ...(minor
-            ? {
-                guardianName: guardian.fullName,
-                guardianDateofBirth: guardian.dateofBirth,
-                guardianGender: guardian.gender,
-                guardianRelationship: guardian.relationship,
-                guardianMobileNumber: guardian.mobileNumber || undefined,
-              }
-            : {}),
-        },
-      });
+      for (const product of snapshot.nomineeProducts) {
+        await apiRequest(`api/purchases/${id}/nominees`, {
+          body: {
+            productsId: Number(product.ProductsId),
+            familyOrderId: selectedMember,
+            ...(minor ? { guardianOrderId: guardianId } : {}),
+          },
+        });
+      }
+      setEditing(false);
       reload();
-      setPerson(blankPerson);
-      setGuardian(blankPerson);
-      const nextProduct = snapshot.nomineeProducts.find(
-        (row) =>
-          Number(row.ProductsId) !== selected &&
-          !snapshot.nominees.some(
-            (nominee) => Number(nominee.ProductsId) === Number(row.ProductsId),
-          ),
-      );
-      if (nextProduct) setSelected(Number(nextProduct.ProductsId));
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Unable to save nominee.",
+        error instanceof Error ? error.message : "Unable to save your nominee.",
       );
     } finally {
       setBusy(false);
     }
   }
   return (
-    <section className="purchase-panel">
-      <h2>Protect the people who matter</h2>
+    <section className="purchase-panel nominee-panel">
+      <span className="purchase-eyebrow">FAMILY FIRST</span>
+      <h2>
+        {allAdded && !editing
+          ? "Your nominee details"
+          : "Protect the people who matter"}
+      </h2>
       <p>
-        Add a nominee for each product that requires one. A nominee under 18
-        needs an adult guardian.
+        {allAdded && !editing
+          ? "Your nominee is saved. You can review or change your selection before payment."
+          : "Choose one family member as your nominee. Their saved details will be used for all products in this package that require a nominee."}
       </p>
-      <ul className="purchase-people">
-        {snapshot.nomineeProducts.map((row) => {
-          const nominee = snapshot.nominees.find(
-            (item) => Number(item.ProductsId) === Number(row.ProductsId),
-          );
-          return (
-            <li key={textValue(row, "ProductsId")}>
+      {allAdded && !editing && (
+        <>
+          <div className="nominee-saved-list">
+            {snapshot.nomineeProducts.map((product) => {
+              const nominee = snapshot.nominees.find(
+                (row) => Number(row.ProductsId) === Number(product.ProductsId),
+              );
+              return (
+                <div key={textValue(product, "ProductsId")}>
+                  <span className="nominee-saved-check" aria-hidden="true">
+                    ✓
+                  </span>
+                  <div>
+                    <strong>{textValue(nominee, "FullName")}</strong>
+                    <small>
+                      {textValue(nominee, "Relationship")} ·{" "}
+                      {textValue(product, "ProductName")}
+                    </small>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <button
+            className="purchase-secondary"
+            onClick={() => setEditing(true)}
+          >
+            Change nominee
+          </button>
+        </>
+      )}
+      {showSelection && (
+        <form onSubmit={save}>
+          <fieldset className="nominee-card-fieldset" disabled={busy}>
+            <legend>Your family members</legend>
+            <p className="nominee-selection-help">
+              Select a card to choose your nominee.
+            </p>
+            <div className="nominee-member-grid">
+              <NomineeMemberCard member={snapshot.order} />
+              {snapshot.family.map((member) => (
+                <NomineeMemberCard
+                  key={textValue(member, "OrdersId")}
+                  member={member}
+                  selected={selectedMember === Number(member.OrdersId)}
+                  label={
+                    "Select " + textValue(member, "FullName") + " as nominee"
+                  }
+                  onSelect={() => setSelectedMember(Number(member.OrdersId))}
+                />
+              ))}
+            </div>
+          </fieldset>
+          {snapshot.family.length === 0 && (
+            <div className="purchase-notice">
+              <strong>Add a family member to choose your nominee</strong>
+              <span>
+                Your nominee must be a family member included in this package.
+              </span>
+              <Link
+                className="purchase-secondary"
+                to={`/purchase/${id}/family`}
+              >
+                Add a family member
+              </Link>
+            </div>
+          )}
+          {minor && (
+            <fieldset className="nominee-card-fieldset" disabled={busy}>
+              <legend>Choose an adult guardian</legend>
+              <p className="nominee-selection-help">
+                A nominee under 18 needs an adult guardian. Select a family
+                member below.
+              </p>
+              <div className="nominee-member-grid">
+                {guardians.map((member) => (
+                  <NomineeMemberCard
+                    key={textValue(member, "OrdersId")}
+                    member={member}
+                    selected={guardianId === Number(member.OrdersId)}
+                    label={
+                      "Select " + textValue(member, "FullName") + " as guardian"
+                    }
+                    onSelect={() => setGuardianId(Number(member.OrdersId))}
+                  />
+                ))}
+              </div>
+              {guardians.length === 0 && (
+                <p>
+                  Add an adult family member before choosing a minor nominee.
+                </p>
+              )}
+            </fieldset>
+          )}
+          {selected && (
+            <div className="nominee-choice-summary">
+              <span aria-hidden="true">✓</span>
               <div>
-                <b>{textValue(row, "ProductName")}</b>
+                <b>{textValue(selected, "FullName")}</b>
                 <small>
-                  {nominee
-                    ? `${textValue(nominee, "FullName")} · ${textValue(nominee, "Relationship")}`
-                    : "Nominee required"}
+                  Your selected nominee · {textValue(selected, "Relationship")}
                 </small>
               </div>
-              <button
-                className="purchase-text"
-                disabled={busy}
-                onClick={() => {
-                  setSelected(Number(row.ProductsId));
-                  setPerson(
-                    nominee
-                      ? {
-                          fullName: textValue(nominee, "FullName"),
-                          gender: textValue(nominee, "Gender"),
-                          dateofBirth: dateInput(nominee.DateofBirth),
-                          mobileNumber: textValue(nominee, "MobileNumber"),
-                          relationship: textValue(nominee, "Relationship"),
-                        }
-                      : blankPerson,
-                  );
-                  setGuardian(
-                    nominee
-                      ? {
-                          fullName: textValue(nominee, "GuardianName"),
-                          gender: textValue(nominee, "GuardianGender"),
-                          dateofBirth: dateInput(nominee.GuardianDateofBirth),
-                          mobileNumber: textValue(
-                            nominee,
-                            "GuardianMobileNumber",
-                          ),
-                          relationship: textValue(
-                            nominee,
-                            "GuardianRelationship",
-                          ),
-                        }
-                      : blankPerson,
-                  );
-                }}
-              >
-                {nominee ? "Edit" : "Add"}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-      {snapshot.nomineeProducts.length > 0 && (
-        <form onSubmit={save}>
-          <label className="purchase-existing">
-            Product
-            <select
-              value={selected}
-              onChange={(event) => {
-                setSelected(Number(event.target.value));
-                setPerson(blankPerson);
-                setGuardian(blankPerson);
-              }}
-            >
-              {snapshot.nomineeProducts.map((row) => (
-                <option
-                  value={Number(row.ProductsId)}
-                  key={textValue(row, "ProductsId")}
-                >
-                  {textValue(row, "ProductName")}
-                </option>
-              ))}
-            </select>
-          </label>
-          <PersonFields value={person} onChange={setPerson} nominee />
-          {minor && (
-            <>
-              <h3>Adult guardian</h3>
-              <PersonFields value={guardian} onChange={setGuardian} nominee />
-            </>
+            </div>
           )}
-          <button className="purchase-secondary" disabled={busy}>
-            {busy ? "Saving…" : "Save nominee"}
+          {error && <Notice error={error} />}
+          <button
+            className="purchase-primary"
+            disabled={busy || !selectedMember || Boolean(minor && !guardianId)}
+          >
+            {busy ? "Saving nominee…" : "Save nominee and continue"}
+            <span aria-hidden="true">→</span>
           </button>
         </form>
       )}
-      {error && <Notice error={error} />}
-      <button
-        className="purchase-primary"
-        disabled={!allAdded || busy}
-        onClick={() => navigate(`/purchase/${id}/payment`)}
-      >
-        Continue to payment<span aria-hidden="true">→</span>
-      </button>
+      {allAdded && !editing && (
+        <button
+          className="purchase-primary"
+          onClick={() => navigate(`/purchase/${id}/payment`)}
+        >
+          Continue to payment<span aria-hidden="true">→</span>
+        </button>
+      )}
     </section>
   );
 }
@@ -991,7 +1108,7 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
       )}
       <Link
         className="purchase-text"
-        to={`/purchase/${id}/${snapshot.nomineeProducts.length ? "nominees" : "family"}`}
+        to={`/purchase/${id}/${snapshot.nomineeProducts.length ? "nominees?review=1" : "family"}`}
       >
         Review purchase details
       </Link>

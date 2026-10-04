@@ -321,20 +321,74 @@ export class PurchasesService {
       return { status: true };
     }, `purchase-edit-${id}`);
   }
-  async nominee(customerId: number, id: number, body: NomineeDto) {
+  async nominee(customerId: number, id: number, selection: NomineeDto) {
     return this.db.transaction(async (connection) => {
       const order = await this.owned(customerId, id, connection);
       await this.editable(order, connection);
       const product = await this.product(Number(order.ProductsId));
       if (
         !this.nomineeProducts(product).some(
-          (row) => Number(row.ProductsId) === body.productsId,
+          (row) => Number(row.ProductsId) === selection.productsId,
         )
       )
         throw new BadRequestException(
           "This product does not require a nominee in your package.",
         );
-      const age = personAge(body.dateofBirth);
+      const family = await this.db.rows(
+        "SELECT OrdersId, FullName, Gender, DATE_FORMAT(DateofBirth, '%Y-%m-%d') AS DateofBirth, Age, MobileNumber, Relationship FROM Orders WHERE RelatedOrderId = ?",
+        [id],
+        connection,
+      );
+      const member = family.find(
+        (row) => Number(row.OrdersId) === selection.familyOrderId,
+      );
+      if (!member)
+        throw new BadRequestException(
+          "Choose a family member included in this purchase as your nominee.",
+        );
+      const age = personAge(String(member.DateofBirth));
+      const guardian =
+        selection.guardianOrderId === id
+          ? order
+          : family.find(
+              (row) => Number(row.OrdersId) === selection.guardianOrderId,
+            );
+      if (age < 18 && (!guardian || Number(guardian.Age) < 18))
+        throw new BadRequestException(
+          "Choose an adult family member as guardian for your minor nominee.",
+        );
+      const guardianDate =
+        guardian?.DateofBirth instanceof Date
+          ? new Intl.DateTimeFormat("en-CA", {
+              timeZone: "Asia/Kolkata",
+            }).format(guardian.DateofBirth)
+          : String(guardian?.DateofBirth ?? "").slice(0, 10);
+      const body = {
+        productsId: selection.productsId,
+        fullName: String(member.FullName),
+        dateofBirth: String(member.DateofBirth),
+        gender: String(member.Gender),
+        mobileNumber: member.MobileNumber
+          ? String(member.MobileNumber)
+          : undefined,
+        relationship: String(member.Relationship),
+        ...(age < 18 && guardian
+          ? {
+              guardianName: String(guardian.FullName),
+              guardianDateofBirth: guardianDate,
+              guardianGender: String(guardian.Gender),
+              guardianRelationship:
+                selection.guardianOrderId === id
+                  ? ["Son", "Daughter"].includes(String(member.Relationship))
+                    ? "Parent"
+                    : "Family"
+                  : String(guardian.Relationship),
+              guardianMobileNumber: guardian.MobileNumber
+                ? String(guardian.MobileNumber)
+                : undefined,
+            }
+          : {}),
+      };
       if (
         age < 18 &&
         (!body.guardianName?.trim() ||
