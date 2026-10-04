@@ -4,6 +4,7 @@ export type RequestOptions = {
   configurationError?: string;
   requestError?: string;
   authentication?: boolean;
+  serverErrors?: boolean;
 };
 export type ApiRequest = <T>(
   path: string,
@@ -46,8 +47,22 @@ export function createApiRequest(configuration: ApiConfiguration): ApiRequest {
         await configuration.onUnauthorized?.(token);
         throw new Error("Your session has expired. Please log in again.");
       }
+      let serverMessage: string | undefined;
+      if (options.serverErrors) {
+        try {
+          const error = (await response.json()) as { message?: unknown };
+          if (typeof error.message === "string") serverMessage = error.message;
+          else if (Array.isArray(error.message))
+            serverMessage = error.message
+              .filter((item): item is string => typeof item === "string")
+              .join(" ");
+        } catch {
+          /* Keep the fallback for non-JSON gateway failures. */
+        }
+      }
       throw new Error(
         options.requestError ??
+          serverMessage ??
           `Customer service request failed (${response.status}).`,
       );
     }

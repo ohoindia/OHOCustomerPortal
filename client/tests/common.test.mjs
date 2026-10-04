@@ -50,6 +50,25 @@ test("shared transport reports configuration and HTTP failures and preserves abo
   );
 });
 
+test("checkout can display server validation errors without changing other API callers", async () => {
+  const { createApiRequest } = loadModule("../../common/api/transport.ts");
+  const request = createApiRequest({
+    apiBaseUrl: "https://test",
+    fetch: async () => ({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        message: "Your age is outside this package's eligibility range.",
+      }),
+    }),
+  });
+  await assert.rejects(
+    request("api/purchases", { serverErrors: true }),
+    /eligibility range/,
+  );
+  await assert.rejects(request("api/purchases"), /400/);
+});
+
 test("auth controller preserves OTP proofs and validates the response envelope", async () => {
   const { createAuthController } = loadModule(
     "../../common/controllers/auth.controller.ts",

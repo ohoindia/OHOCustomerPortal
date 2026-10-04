@@ -12,6 +12,7 @@ import { ConsultationsModule } from "./consultations/consultations.module";
 import { CommunitiesModule } from "./communities/communities.module";
 import { CatalogModule } from "./catalog/catalog.module";
 import { PortalModule } from "./portal/portal.module";
+import { PurchasesModule } from "./purchases/purchases.module";
 import { RuntimeConfigModule } from "./runtime-config/runtime-config.module";
 import { AuthModule } from "./auth/auth.module";
 import { JwtAuthGuard, Public } from "./auth/jwt-auth.guard";
@@ -67,6 +68,7 @@ class HealthController {
     CommunitiesModule,
     CatalogModule,
     PortalModule,
+    PurchasesModule,
   ],
   controllers: [HealthController],
   providers: [

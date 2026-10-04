@@ -16,6 +16,7 @@ import { Hospitals } from "./pages/discovery/Hospitals";
 import { Doctors } from "./pages/discovery/Doctors";
 import { DoctorProfile } from "./pages/discovery/DoctorProfile";
 import { Packages } from "./pages/discovery/Packages";
+import { PurchaseDetails, PurchaseFlow } from "./pages/purchase/Purchase";
 import { LabTests } from "./pages/discovery/LabTests";
 import { Pharmacy } from "./pages/discovery/Pharmacy";
 import { BookAppointment } from "./pages/booking/BookAppointment";
@@ -57,6 +58,15 @@ function DefaultRoute() {
 
 function RequireLogin() {
   return getSessionMember() ? <Outlet /> : <Navigate to="/login" replace />;
+}
+
+function ProductDetailsRoute() {
+  const location = useLocation();
+  return new URLSearchParams(location.search).get("purchase") === "1" ? (
+    <PurchaseDetails />
+  ) : (
+    <ProductDetails />
+  );
 }
 
 export default function App() {
@@ -130,7 +140,8 @@ export default function App() {
         <Route path="/hospital-map" element={<HospitalNetwork />} />
         <Route path="/products" element={<Products />} />
         <Route path="/healthproducts" element={<Products />} />
-        <Route path="/product-details" element={<ProductDetails />} />
+        <Route path="/product-details" element={<ProductDetailsRoute />} />
+        <Route path="/purchase/:orderId/:step" element={<PurchaseFlow />} />
         <Route path="/kyc-verification" element={<KycVerification />} />
         <Route path="/account-management" element={<AccountManagement />} />
         <Route path="/resetpassword" element={<AccountManagement />} />
