@@ -127,7 +127,7 @@ export default function AccountDetailsPage() {
     .join(", ");
 
   return (
-    <AppShell nav={false} className="account-page">
+    <AppShell className="account-page">
       <PageHeader title={UI_TEXT.accountDetails2} />
       <section className="account-intro">
         <span>{UI_TEXT.yourFamilyHealthAccount}</span>

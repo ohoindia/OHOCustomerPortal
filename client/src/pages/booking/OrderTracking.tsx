@@ -4,7 +4,7 @@ import { AppShell, PageHeader } from "../../components/Layout";
 
 export function OrderTracking() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title={UI_TEXT.orderTracking} />
       <div className="timeline">
         {sampleOrderTimeline.map(([a, b]) => (

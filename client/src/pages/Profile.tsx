@@ -64,7 +64,7 @@ export function Profile() {
 
 export function Family() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title={UI_TEXT.myFamily} />
       <div className="stack">
         {sampleFamilyMembers.map(([n, r, a]) => (
@@ -85,7 +85,7 @@ export function Family() {
 
 export function Records() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title={UI_TEXT.healthRecords} />
       <div className="tabs">
         <b>{UI_TEXT.reports}</b>
@@ -167,7 +167,7 @@ export function Notifications() {
 
 export function Membership() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title={UI_TEXT.membership} />
       <section className="membership-detail">
         <LogoMini />

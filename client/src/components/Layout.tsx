@@ -1,12 +1,6 @@
+import { Package } from "./PackageIcon";
 import { UI_TEXT } from "../../../common/content/labels";
-import {
-  Home,
-  CalendarDays,
-  WalletCards,
-  Bell,
-  UserRound,
-  ArrowLeft,
-} from "./Icons";
+import { Home, CalendarDays, WalletCards, UserRound, ArrowLeft } from "./Icons";
 import { NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import type { ComponentType } from "react";
@@ -67,12 +61,12 @@ const nav: BottomNavItem[] = [
   { to: "/home", Icon: Home, label: UI_TEXT.home },
   { to: "/bookings", Icon: CalendarDays, label: UI_TEXT.bookings },
   { to: "/wallet", Icon: WalletCards, label: UI_TEXT.wallet },
-  { to: "/notifications", Icon: Bell, label: UI_TEXT.notifications },
+  { to: "/packages", Icon: Package, label: UI_TEXT.packages },
   { to: "/profile", Icon: UserRound, label: UI_TEXT.profile },
 ];
 export function BottomNav() {
   return (
-    <nav className="bottom-nav">
+    <nav className="bottom-nav" aria-label="Main navigation">
       {nav.map(({ to, Icon, label }) => (
         <NavLink
           key={to}
@@ -90,19 +84,14 @@ export function BottomNav() {
 
 type AppShellProps = {
   children: ReactNode;
-  nav?: boolean;
   className?: string;
 };
 
-export function AppShell({
-  children,
-  nav = true,
-  className = "",
-}: AppShellProps) {
+export function AppShell({ children, className = "" }: AppShellProps) {
   return (
     <main className={`phone-shell ${className}`}>
       <div className="phone-content">{children}</div>
-      {nav && <BottomNav />}
+      <BottomNav />
     </main>
   );
 }

@@ -76,13 +76,9 @@ export const pharmacyCategoryIcons = [
 
 export const homeServices = [
   [UI_TEXT.hospitalEmoji, UI_TEXT.hospitals, "/hospitals"],
-  [UI_TEXT.doctorEmoji, UI_TEXT.doctors, "/doctors"],
   [UI_TEXT.labEmoji, UI_TEXT.labTests, "/lab-tests"],
   [UI_TEXT.medicineEmoji, UI_TEXT.pharmacy, "/pharmacy"],
-  [UI_TEXT.heartIcon, UI_TEXT.wellness, "/packages"],
   [UI_TEXT.stethoscopeEmoji, UI_TEXT.healthCheckups, "/packages"],
-  [UI_TEXT.packageEmoji, UI_TEXT.packages, "/packages"],
-  [UI_TEXT.moreIcon, UI_TEXT.more, "/profile"],
 ];
 
 export const membershipAttentionStatuses: string[] = [

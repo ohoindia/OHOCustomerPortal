@@ -4,7 +4,7 @@ import { AppShell, PageHeader } from "../../components/Layout";
 
 export function Records() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title={UI_TEXT.healthRecords} />
       <div className="tabs">
         <b>{UI_TEXT.reports}</b>

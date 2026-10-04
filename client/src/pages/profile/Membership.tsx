@@ -8,7 +8,7 @@ function LogoMini() {
 
 export function Membership() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title={UI_TEXT.membership} />
       <section className="membership-detail">
         <LogoMini />

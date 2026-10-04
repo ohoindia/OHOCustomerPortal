@@ -81,7 +81,7 @@ export function Bookings() {
 export function Payment() {
   const nav = useNavigate();
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title={UI_TEXT.payment} />
       <section className="amount-box">
         <span>{UI_TEXT.amountToPay}</span>
@@ -105,7 +105,7 @@ export function Payment() {
 
 export function OrderTracking() {
   return (
-    <AppShell nav={false}>
+    <AppShell>
       <PageHeader title={UI_TEXT.orderTracking} />
       <div className="timeline">
         {sampleOrderTimeline.map(([a, b]) => (
