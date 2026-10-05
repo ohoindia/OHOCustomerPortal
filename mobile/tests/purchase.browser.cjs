@@ -66,6 +66,7 @@ const snapshot = {
 };
 let paid = false;
 let paymentLink;
+let expectedPurchaser = member;
 const requests = [];
 const external = [];
 function response(message) {
@@ -77,7 +78,10 @@ function response(message) {
   if (url === "/api/purchases/products/278") return product;
   if (url === "/api/purchases") {
     assert.equal(body.productsId, 278);
-    assert.equal(body.fullName, member.Name);
+    assert.equal(body.fullName, expectedPurchaser.Name);
+    assert.equal(body.dateofBirth, expectedPurchaser.DateofBirth);
+    assert.equal(body.gender, expectedPurchaser.Gender);
+    assert.equal(body.mobileNumber, expectedPurchaser.MobileNumber);
     return { orderId: 42 };
   }
   if (url === "/api/purchases/42") return snapshot;
@@ -147,27 +151,40 @@ function response(message) {
         postMessage: (value) => window.nativeMessage(value),
       };
     });
-    const html = require("../src/generated/client.json").html.replace(
-      "<!--OHO_BOOTSTRAP-->",
-      `<script>${bootstrap.clientBootstrap({
-        apiBaseUrl: "https://api.example.com",
-        local: {},
-        route: "/packages",
-        native: true,
-        session: {
-          accessToken: "test-token",
-          tokenExpiresAt: new Date(Date.now() + 3600000).toISOString(),
-          member: JSON.stringify(member),
-        },
-      })}</script>`,
-    );
+    const documentFor = (account, route = "/packages") =>
+      require("../src/generated/client.json").html.replace(
+        "<!--OHO_BOOTSTRAP-->",
+        `<script>${bootstrap.clientBootstrap({
+          apiBaseUrl: "https://api.example.com",
+          local: {},
+          route,
+          native: true,
+          session: {
+            accessToken: "test-token",
+            tokenExpiresAt: new Date(Date.now() + 3600000).toISOString(),
+            member: JSON.stringify(account),
+          },
+        })}</script>`,
+      );
+    let html = documentFor(member);
     await page.route("https://oho-mobile.invalid/**", (route) =>
       route.fulfill({ contentType: "text/html", body: html }),
     );
     await page.goto("https://oho-mobile.invalid/");
     await page.getByRole("link", { name: /Family Health Package/ }).click();
     await page.getByRole("heading", { name: "Confirm your details" }).waitFor();
-    await page.getByRole("button", { name: /^Purchase/ }).click();
+    await page.getByLabel("Full name", { exact: true }).waitFor();
+    assert.equal(
+      await page.getByLabel("Full name", { exact: true }).inputValue(),
+      member.Name,
+    );
+    assert.equal(
+      await page.getByLabel("Date of birth", { exact: true }).inputValue(),
+      member.DateofBirth,
+    );
+    await page
+      .getByRole("button", { name: /^Save details and continue/ })
+      .click();
     await page.waitForURL("**#/purchase/42/family");
     console.log("Package purchase created; entering family details.");
     await page.getByLabel("Full name", { exact: true }).fill("Family Member");
@@ -196,12 +213,60 @@ function response(message) {
     paid = true;
     await page.getByRole("button", { name: "Check payment status" }).click();
     await page.getByRole("heading", { name: "Payment received" }).waitFor();
+    {
+      const account = { ...member, MemberId: 0, CommunityCustomerId: 9 };
+      html = documentFor(account, "/product-details?productId=278&purchase=1");
+      await page.reload();
+      await page
+        .getByRole("heading", { name: "Confirm your details" })
+        .waitFor();
+      const fullName = page.getByLabel("Full name", { exact: true });
+      await fullName.waitFor();
+      assert.equal(await fullName.inputValue(), member.Name);
+      assert.ok(
+        requests.some(
+          (item) => item.url === "/api/CommunityCustomers/GetById/9",
+        ),
+      );
+    }
+    const incomplete = {
+      MemberId: 0,
+      CommunityCustomerId: 9,
+      MobileNumber: member.MobileNumber,
+    };
+    html = documentFor(incomplete, "/product-details?productId=278&purchase=1");
+    await page.reload();
+    await page
+      .getByRole("heading", { name: "Add your customer details" })
+      .waitFor();
+    await page
+      .getByLabel("Full name", { exact: true })
+      .fill("Community Member");
+    await page.getByLabel("Date of birth", { exact: true }).fill("1995-02-03");
+    await page.getByLabel(/^Gender/).selectOption("Male");
+    expectedPurchaser = {
+      Name: "Community Member",
+      DateofBirth: "1995-02-03",
+      Gender: "Male",
+      MobileNumber: member.MobileNumber,
+    };
+    await page
+      .getByRole("button", { name: /^Save details and continue/ })
+      .click();
+    await page.waitForURL("**#/purchase/42/family");
+    assert.equal(
+      requests.filter((item) => item.url === "/api/purchases").length,
+      2,
+    );
     assert.equal(errors.length, 0, errors.join("\n"));
     assert.ok(
       requests.some((item) => item.url === "/api/purchases/42/nominees"),
     );
     console.log(
       "Mobile Packages → details → family → nominee → secure payment → confirmation passed through the native bridge.",
+    );
+    console.log(
+      "Community account fallback and missing customer details passed.",
     );
   } finally {
     await browser.close();
