@@ -14,6 +14,7 @@ import { SessionClaims } from "../auth/session.service";
 import { DatabaseModule } from "../database/database.module";
 import { RuntimeConfigModule } from "../runtime-config/runtime-config.module";
 import {
+  CreatePaymentLinkDto,
   NomineeDto,
   PaymentMethodDto,
   PersonDto,
@@ -86,9 +87,37 @@ export class PurchasesController {
     return this.service.paymentStatus(session.customerId, id);
   }
 }
+@ApiTags("Payments")
+@ApiBearerAuth("jwt")
+@Controller("api/payment")
+export class PaymentController {
+  constructor(private readonly service: PurchasesService) {}
+
+  @Post("createPaymentLink")
+  @HttpCode(200)
+  create(
+    @Body() body: CreatePaymentLinkDto,
+    @CurrentSession() session: SessionClaims,
+  ) {
+    return this.service.payment(
+      session.customerId,
+      body.orderId,
+      body.paymentTypeId,
+    );
+  }
+
+  @Get("fetchPaymentLinksByLinkId/:linkId")
+  fetch(
+    @Param("linkId") linkId: string,
+    @CurrentSession() session: SessionClaims,
+  ) {
+    return this.service.fetchPaymentLink(session.customerId, linkId);
+  }
+}
+
 @Module({
   imports: [DatabaseModule, RuntimeConfigModule],
-  controllers: [PurchasesController],
+  controllers: [PurchasesController, PaymentController],
   providers: [PurchasesService],
 })
 export class PurchasesModule {}

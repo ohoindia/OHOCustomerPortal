@@ -18,6 +18,11 @@ import { validId } from "../customers/customers.service";
 import { NomineeDto, PersonDto, PurchaseDto } from "./purchase.dto";
 import { flag, personAge, premiums, quote } from "./purchase.utils";
 
+const isPaymentLink = (name: unknown) =>
+  String(name ?? "")
+    .replace(/[\s_-]/g, "")
+    .toLowerCase() === "paymentlink";
+
 const orderFields =
   "OrdersId, ProductsId, FullName, Gender, DateofBirth, Age, MobileNumber, Relationship, CardHolderType, PayableAmount, Status";
 @Injectable()
@@ -194,7 +199,7 @@ export class PurchasesService {
         [id],
       ),
       this.db.rows(
-        "SELECT PaymentTypeId, PaymentTypeName FROM PaymentType WHERE IsActive = TRUE AND IsWeb = TRUE AND PaymentTypeId IN (1, 3, 4, 5) ORDER BY PaymentTypeId",
+        "SELECT PaymentTypeId, PaymentTypeName FROM PaymentType WHERE IsActive = TRUE AND IsWeb = TRUE ORDER BY PaymentTypeId",
       ),
     ]);
     return {
@@ -205,7 +210,10 @@ export class PurchasesService {
       family,
       nominees,
       nomineeProducts: this.nomineeProducts(product),
-      paymentMethods: methods,
+      paymentMethods: methods.map((method) => ({
+        ...method,
+        enabled: isPaymentLink(method.PaymentTypeName),
+      })),
     };
   }
 
@@ -497,6 +505,8 @@ export class PurchasesService {
       url: link.LinkUrl,
       expiresAt: link.LinkExpiryTime,
       status: link.LinkStatus,
+      mode: "link",
+      qrCode: undefined,
     };
   }
   async payment(customerId: number, id: number, methodId: number) {
@@ -506,11 +516,11 @@ export class PurchasesService {
         throw new ConflictException("This purchase is already paid.");
       const product = await this.product(Number(order.ProductsId));
       const methods = await this.db.rows(
-        "SELECT PaymentTypeId, PaymentTypeName FROM PaymentType WHERE PaymentTypeId = ? AND IsActive = TRUE AND IsWeb = TRUE AND PaymentTypeId IN (1, 3, 4, 5)",
+        "SELECT PaymentTypeId, PaymentTypeName FROM PaymentType WHERE PaymentTypeId = ? AND IsActive = TRUE AND IsWeb = TRUE",
         [methodId],
         connection,
       );
-      if (!methods.length)
+      if (!methods.length || !isPaymentLink(methods[0].PaymentTypeName))
         throw new BadRequestException("Select an available payment method.");
       const family = await this.db.rows(
         "SELECT Relationship FROM Orders WHERE RelatedOrderId = ?",
@@ -562,8 +572,14 @@ export class PurchasesService {
       if (
         existing?.LinkStatus === "ACTIVE" &&
         new Date(String(existing.LinkExpiryTime)).getTime() > Date.now()
-      )
+      ) {
+        await this.db.execute(
+          "UPDATE Orders SET PaymentType = ? WHERE OrdersId = ?",
+          [String(methodId), id],
+          connection,
+        );
         return this.publicLink(existing);
+      }
       if (existing?.LinkStatus === "ACTIVE") {
         const previous = await this.gateway(
           `/${encodeURIComponent(String(existing.LinkId))}`,
@@ -591,7 +607,6 @@ export class PurchasesService {
         link_notify: { send_sms: false, send_email: false },
         link_meta: {
           notify_url: notifyUrl,
-          ...(methodId === 5 ? { payment_methods: "upi" } : {}),
         },
         link_id: linkId,
         link_amount: pricing.amount,
@@ -638,21 +653,31 @@ export class PurchasesService {
         [String(methodId), id],
         connection,
       );
-      return {
-        linkId: String(link.link_id ?? linkId),
-        url: paymentUrl.toString(),
-        expiresAt: expiry.toISOString(),
-        status: "ACTIVE",
-      };
+      return this.publicLink({
+        LinkId: String(link.link_id ?? linkId),
+        LinkUrl: paymentUrl.toString(),
+        LinkExpiryTime: expiry.toISOString(),
+        LinkStatus: "ACTIVE",
+      });
     }, `purchase-edit-${id}`);
   }
-  async paymentStatus(customerId: number, id: number) {
+  async fetchPaymentLink(customerId: number, linkId: string) {
+    const links = await this.db.rows(
+      "SELECT h.OrderId FROM PaymentLinkHistory h JOIN Orders o ON o.OrdersId = h.OrderId WHERE h.LinkId = ? AND o.CustomerId = ? AND o.RelatedOrderId IS NULL",
+      [linkId, customerId],
+    );
+    if (!links[0])
+      throw new NotFoundException("Payment link not found for your account.");
+    return this.paymentStatus(customerId, Number(links[0].OrderId), linkId);
+  }
+
+  async paymentStatus(customerId: number, id: number, linkId?: string) {
     const order = await this.owned(customerId, id);
     if (order.Status === "Completed")
       return { status: "COMPLETED", completed: true };
     const links = await this.db.rows(
-      "SELECT * FROM PaymentLinkHistory WHERE OrderId = ? ORDER BY PaymentLinkHistoryId DESC LIMIT 1",
-      [id],
+      `SELECT * FROM PaymentLinkHistory WHERE OrderId = ?${linkId ? " AND LinkId = ?" : ""} ORDER BY PaymentLinkHistoryId DESC LIMIT 1`,
+      linkId ? [id, linkId] : [id],
     );
     const existing = links[0];
     if (!existing) return { status: "NOT_STARTED", completed: false };
@@ -678,7 +703,10 @@ export class PurchasesService {
     return {
       status: paid ? "PAID" : String(link.link_status),
       completed: false,
-      link: this.publicLink(existing),
+      link: await this.publicLink({
+        ...existing,
+        LinkStatus: String(link.link_status),
+      }),
     };
   }
 }

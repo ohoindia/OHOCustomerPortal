@@ -64,9 +64,16 @@ function harness(options = {}) {
         return options.pending ? [{ OrdersId: 50 }] : [];
       if (sql.includes("FROM Customer WHERE"))
         return [{ Name: person.fullName, MobileNumber: person.mobileNumber }];
+      if (sql.includes("JOIN Orders o"))
+        return values[1] === 12 ? (options.links ?? []) : [];
       if (sql.includes("FROM PaymentLinkHistory")) return options.links ?? [];
       if (sql.includes("FROM PaymentType"))
-        return [{ PaymentTypeId: 4, PaymentTypeName: "Online payment" }];
+        return [
+          {
+            PaymentTypeId: options.methodId ?? 4,
+            PaymentTypeName: options.methodName ?? "PaymentLink",
+          },
+        ];
       if (sql.includes("FROM Nominee"))
         return options.nominees ?? [{ NomineeId: 1, ProductsId: 19 }];
       if (sql.includes("FROM Orders WHERE RelatedOrderId"))
@@ -413,7 +420,9 @@ test("payment confirmation verifies amount and currency, and awaits actual order
       linkId: "test",
       url: undefined,
       expiresAt: undefined,
-      status: "ACTIVE",
+      status: "PAID",
+      mode: "link",
+      qrCode: undefined,
     },
   });
   service.gateway = async () => ({
@@ -458,4 +467,57 @@ test("snapshot uses active web payment options and never exposes private custome
       ),
     ),
   );
+});
+
+test("only PaymentLink can start customer checkout", async () => {
+  for (const methodName of [
+    "QR Code",
+    "UPI",
+    "Cash",
+    "Online payment",
+    "Credit Card",
+  ]) {
+    const { service, calls } = harness({ methodName });
+    service.gateway = () =>
+      assert.fail("Disabled methods must not contact the provider");
+    await assert.rejects(
+      service.payment(12, 50, 9),
+      /available payment method/,
+    );
+    assert.ok(
+      !calls.some((call) =>
+        call.sql?.startsWith("INSERT INTO PaymentLinkHistory"),
+      ),
+    );
+    const snapshot = await service.snapshot(12, 50);
+    assert.equal(snapshot.paymentMethods[0].enabled, false);
+  }
+  const snapshot = await harness({
+    methodName: "Payment Link",
+  }).service.snapshot(12, 50);
+  assert.equal(snapshot.paymentMethods[0].enabled, true);
+});
+
+test("fetch-by-link requires customer ownership before checking provider status", async () => {
+  const { service } = harness({
+    links: [{ OrderId: 50, LinkId: "owned", LinkStatus: "ACTIVE" }],
+  });
+  let requested;
+  service.gateway = async (path) => {
+    requested = path;
+    return {
+      link_id: "owned",
+      link_status: "ACTIVE",
+      link_amount: 2999,
+      link_currency: "INR",
+    };
+  };
+  await assert.rejects(
+    service.fetchPaymentLink(99, "owned"),
+    /not found for your account/,
+  );
+  assert.equal(requested, undefined);
+  const status = await service.fetchPaymentLink(12, "owned");
+  assert.equal(status.status, "ACTIVE");
+  assert.equal(requested, "/owned");
 });

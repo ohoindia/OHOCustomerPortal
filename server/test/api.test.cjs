@@ -645,6 +645,8 @@ test("JWT protection denies anonymous access to every customer data endpoint", a
       "api/BookingConsultation/PendingAndSuccessConsultationList",
       { CustomerId: 12 },
     ],
+    ["api/payment/createPaymentLink", { orderId: 50, paymentTypeId: 9 }],
+    ["api/payment/fetchPaymentLinksByLinkId/test-link"],
     ["api/Products/all", {}],
     ["api/ConfigValues/all", {}],
   ])
@@ -783,4 +785,19 @@ test("community password login cannot grant access to a customer with a differen
   } finally {
     read = original;
   }
+});
+
+test("payment creation validates the authenticated order and method payload", async () => {
+  const beforeCalls = calls.length;
+  const response = await request("api/payment/createPaymentLink", {
+    orderId: -1,
+    paymentTypeId: "QR",
+    paidAmount: 1,
+  });
+  assert.equal(response.status, 400);
+  assert.ok(
+    !calls
+      .slice(beforeCalls)
+      .some((call) => /Orders|PaymentLinkHistory/.test(call.sql)),
+  );
 });

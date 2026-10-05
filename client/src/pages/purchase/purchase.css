@@ -484,3 +484,17 @@ button.nominee-member-card:hover {
     transition: none;
   }
 }
+
+.purchase-payment-qr {
+  text-align: center;
+}
+.purchase-payment-qr img {
+  width: min(100%, 320px);
+  height: auto;
+  background: white;
+}
+
+.purchase-payment-option:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

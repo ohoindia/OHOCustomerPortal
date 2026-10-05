@@ -62,7 +62,11 @@ const snapshot = {
   family: [],
   nominees: [],
   nomineeProducts: product.includedProducts,
-  paymentMethods: [{ PaymentTypeId: 5, PaymentTypeName: "UPI" }],
+  paymentMethods: [
+    { PaymentTypeId: 9, PaymentTypeName: "QR Code" },
+    { PaymentTypeId: 5, PaymentTypeName: "PaymentLink" },
+    { PaymentTypeId: 2, PaymentTypeName: "Cash" },
+  ],
 };
 let paid = false;
 let paymentLink;
@@ -104,9 +108,11 @@ function response(message) {
     ];
     return { status: true };
   }
-  if (url === "/api/purchases/42/payment") {
+  if (url === "/api/payment/createPaymentLink") {
+    assert.equal(body.orderId, 42);
     assert.equal(body.paymentTypeId, 5);
     paymentLink = {
+      mode: "link",
       linkId: "test-link",
       url: "https://payments.example.com/test-link",
       expiresAt: new Date(Date.now() + 3600000).toISOString(),
@@ -114,7 +120,10 @@ function response(message) {
     };
     return paymentLink;
   }
-  if (url === "/api/purchases/42/payment-status")
+  if (
+    url === "/api/purchases/42/payment-status" ||
+    url === `/api/payment/fetchPaymentLinksByLinkId/${paymentLink?.linkId}`
+  )
     return {
       status: paid ? "COMPLETED" : paymentLink ? "ACTIVE" : "NOT_STARTED",
       completed: paid,
@@ -204,6 +213,18 @@ function response(message) {
       .click();
     await page.waitForURL("**#/purchase/42/payment");
     console.log("Nominee saved; creating secure payment link.");
+    assert.equal(
+      await page.getByRole("radio", { name: /QR Code/ }).isDisabled(),
+      true,
+    );
+    assert.equal(
+      await page.getByRole("radio", { name: /Cash/ }).isDisabled(),
+      true,
+    );
+    assert.equal(
+      await page.getByRole("radio", { name: /PaymentLink/ }).isChecked(),
+      true,
+    );
     await page
       .getByRole("button", { name: /^Continue to secure payment/ })
       .click();

@@ -42,6 +42,8 @@ type Person = {
   relationship: string;
 };
 type PaymentLink = {
+  mode: "link" | "qr";
+  qrCode?: string;
   linkId: string;
   url: string;
   expiresAt: string;
@@ -932,21 +934,29 @@ function NomineeStep({
     </section>
   );
 }
+const isPaymentLink = (row: PortalRow) =>
+  String(row.PaymentTypeName ?? "")
+    .replace(/[\s_-]/g, "")
+    .toLowerCase() === "paymentlink";
+
 function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
   const [method, setMethod] = useState(
-    Number(snapshot.paymentMethods[0]?.PaymentTypeId),
+    Number(snapshot.paymentMethods.find(isPaymentLink)?.PaymentTypeId),
   );
   const [link, setLink] = useState<PaymentLink | null>(null);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const checking = useRef(false);
+  const currentLinkId = link?.linkId;
   async function check() {
     if (checking.current) return;
     checking.current = true;
     try {
       const result = await apiRequest<PaymentStatus>(
-        `api/purchases/${id}/payment-status`,
+        currentLinkId
+          ? `api/payment/fetchPaymentLinksByLinkId/${encodeURIComponent(currentLinkId)}`
+          : `api/purchases/${id}/payment-status`,
       );
       setStatus(result.status);
       if (result.link) setLink(result.link);
@@ -969,7 +979,9 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
       inFlight = true;
       try {
         const result = await apiRequest<PaymentStatus>(
-          `api/purchases/${id}/payment-status`,
+          currentLinkId
+            ? `api/payment/fetchPaymentLinksByLinkId/${encodeURIComponent(currentLinkId)}`
+            : `api/purchases/${id}/payment-status`,
           { signal: controller.signal },
         );
         if (!controller.signal.aborted) {
@@ -989,6 +1001,8 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
       }
     }
     void poll();
+    window.addEventListener("oho-resume", poll);
+    window.addEventListener("focus", poll);
     const timer = window.setInterval(() => {
       if (
         !document.hidden &&
@@ -1000,17 +1014,19 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
     }, 10000);
     return () => {
       controller.abort();
+      window.removeEventListener("oho-resume", poll);
+      window.removeEventListener("focus", poll);
       window.clearInterval(timer);
     };
-  }, [id, status]);
+  }, [id, status, currentLinkId]);
   async function pay() {
     if (busy) return;
     setBusy(true);
     setError("");
     try {
       const result = await apiRequest<PaymentLink>(
-        `api/purchases/${id}/payment`,
-        { body: { paymentTypeId: method } },
+        "api/payment/createPaymentLink",
+        { body: { orderId: id, paymentTypeId: method } },
       );
       setLink(result);
       setStatus(result.status);
@@ -1044,7 +1060,7 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
   const active = link && status === "ACTIVE";
   return (
     <section className="purchase-panel">
-      <h2>Complete your purchase</h2>
+      <h2>{active ? "Pay using payment link" : "Complete your purchase"}</h2>
       <p>
         Choose how you’d like to pay. Your payment is handled securely by
         Cashfree.
@@ -1063,15 +1079,18 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
             <input
               type="radio"
               name="payment-method"
-              checked={method === Number(row.PaymentTypeId)}
+              disabled={busy || !isPaymentLink(row)}
+              checked={
+                isPaymentLink(row) && method === Number(row.PaymentTypeId)
+              }
               onChange={() => setMethod(Number(row.PaymentTypeId))}
             />
             <span>
               <b>{textValue(row, "PaymentTypeName")}</b>
               <small>
-                {Number(row.PaymentTypeId) === 5
-                  ? "Pay using your preferred UPI app"
-                  : "Continue to secure online checkout"}
+                {isPaymentLink(row)
+                  ? "Continue to secure online checkout"
+                  : "Not available in the customer app"}
               </small>
             </span>
           </label>
@@ -1104,7 +1123,13 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
         <>
           <button
             className="purchase-primary"
-            disabled={busy || !method}
+            disabled={
+              busy ||
+              !snapshot.paymentMethods.some(
+                (row) =>
+                  isPaymentLink(row) && Number(row.PaymentTypeId) === method,
+              )
+            }
             onClick={() => void pay()}
           >
             {busy
@@ -1114,7 +1139,7 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
                 : "Continue to secure payment"}
             <span aria-hidden="true">→</span>
           </button>
-          {!snapshot.paymentMethods.length && (
+          {!snapshot.paymentMethods.some(isPaymentLink) && (
             <p className="purchase-help">
               No payment methods are currently available. Please contact
               support.

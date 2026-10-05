@@ -27,3 +27,7 @@ export class NomineeDto {
 export class PaymentMethodDto {
   @IsInt() @Min(1) paymentTypeId!: number;
 }
+
+export class CreatePaymentLinkDto extends PaymentMethodDto {
+  @IsInt() @Min(1) orderId!: number;
+}
