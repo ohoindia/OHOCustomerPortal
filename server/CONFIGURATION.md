@@ -31,9 +31,11 @@ For example, retain `SMSGateway=MSG91` and `MSG91OTPTemplateId=...` in ConfigVal
 
 ## Loading and updates
 
+API Gateway HTTP API also has a CORS allowlist, managed by the SAM `AllowedFrontendOrigins` parameter. Keep it aligned with `CORS_ORIGINS`. Gateway handles browser preflight without invoking Lambda and supplies CORS headers on integration responses. Adding a deployed browser origin requires updating both the gateway parameter and the database setting; local Nest CORS still reads only the database setting.
+
 Each Nest/Lambda instance caches settings for 60 seconds. The first application settings lookup loads both tables; concurrent lookups share one refresh. After cache expiry, the next lookup reloads both tables. A failed refresh is retried on subsequent lookups and is not silently replaced by environment values or stale secrets.
 
-SMS, queue and CORS changes in the tables need no redeployment; they become visible after each instance's cache expires and it next looks up a setting. Updating a queue can also require an IAM update. Changing the local PORT requires restarting the local server.
+SMS, queue and Nest CORS changes in the tables need no redeployment; they become visible after each instance's cache expires and it next looks up a setting. Deployed browser origin changes also require updating API Gateway's `AllowedFrontendOrigins` parameter. Updating a queue can also require an IAM update. Changing the local PORT requires restarting the local server.
 
 CORS checks with an Origin header use the configuration tables. Requests without an Origin header, including the plain `/health` check, do not load configuration. Local HTTP startup reads PORT from the tables, so local startup requires database access. Lambda's health check without Origin can succeed while database settings are missing; test a database-backed endpoint as well.
 

@@ -3,6 +3,15 @@ Transform: AWS::Serverless-2016-10-31
 Description: OHO customer NestJS API on Lambda and API Gateway HTTP API
 
 Parameters:
+  AllowedFrontendOrigins:
+    Type: CommaDelimitedList
+    Default: "http://localhost:5173"
+    Description: Explicit browser origins allowed by API Gateway; match CORS_ORIGINS in the database
+  ApiReservedConcurrency:
+    Type: Number
+    Default: 20
+    MinValue: 6
+    Description: Lambda concurrency; Book Service loads six endpoints in parallel
   VpcSubnetIds:
     Type: String
     Default: ""
@@ -39,6 +48,14 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: "$default"
+      # Handle preflight without consuming Lambda slots. Gateway responses must
+      # also be readable when an integration fails before Nest can add headers.
+      CorsConfiguration:
+        AllowOrigins: !Ref AllowedFrontendOrigins
+        AllowMethods: [GET, POST, OPTIONS]
+        AllowHeaders: [Authorization, Content-Type]
+        ExposeHeaders: [Retry-After, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset]
+        MaxAge: 300
       DefaultRouteSettings:
         ThrottlingBurstLimit: 20
         ThrottlingRateLimit: 10
@@ -52,7 +69,7 @@ Resources:
       Architectures: [x86_64]
       MemorySize: 1024
       Timeout: 29
-      ReservedConcurrentExecutions: 5
+      ReservedConcurrentExecutions: !Ref ApiReservedConcurrency
       VpcConfig: !If
         - UseVpc
         - SubnetIds: !Split [",", !Ref VpcSubnetIds]

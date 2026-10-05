@@ -46,6 +46,8 @@ All other application settings come from the existing MySQL `ConfigValues` and `
 
 ## 3. Configure database network access
 
+Set `AllowedFrontendOrigins` to the comma-separated frontend origins in `CORS_ORIGINS` (including the Amplify branch URL). API Gateway handles OPTIONS requests without Lambda. `ApiReservedConcurrency` defaults to 20: Book Service loads six endpoints concurrently, so a limit of five can reject even a single page load. Size this setting with database capacity and expected traffic; the default database pool allows up to ten connections per Lambda instance.
+
 For a private RDS/MySQL database, provide these template parameters during guided deployment:
 
 - `VpcSubnetIds`: comma-separated **private** subnet IDs in the database's VPC, such as `subnet-aaa,subnet-bbb`.
@@ -160,11 +162,11 @@ sam logs --name CustomerApiFunction --stack-name oho-customer-api-dev --region a
 - **Database/configuration lookup failure:** check Lambda's database environment variables, networking and read access to both configuration tables. A health request without an Origin header does not prove database access.
 - **SMS HTTPS timeout in a VPC:** check the private subnet's NAT route and outbound HTTPS access.
 - **SQS AccessDenied:** check that the configured queue URL corresponds to the permitted ARN, its queue policy and any KMS permissions.
-- **CORS errors:** update `CORS_ORIGINS` in the configuration tables and allow the 60-second cache to expire; a conflicting value in `ConfigSecrets` overrides `ConfigValues`.
+- **CORS errors:** keep the gateway's `AllowedFrontendOrigins` parameter aligned with `CORS_ORIGINS` in the configuration tables. Allow the Nest 60-second cache to expire; a conflicting value in `ConfigSecrets` overrides `ConfigValues`. Check Lambda throttles too: rejected invocations never reach Nest's CORS middleware.
 - **Change-set early validation failure:** retrieve the failed change set's detailed events with the commands below. For `CustomerApiFunctionRole` with `#/ManagedPolicyArns: array items are not unique`, remove any explicit `AWSLambdaBasicExecutionRole` entry from the function's `Policies`: SAM automatically adds that managed policy to its generated execution role. The current template already omits the duplicate. Validate the current template and retry deployment.
 - **IAM resource must be in ARN format:** check that unused guided parameters are actually empty, rather than literal quote characters. For a public database without SQS, the TOML setting is `parameter_overrides = "VpcSubnetIds=\"\" VpcSecurityGroupIds=\"\" OnboardingSmsQueueArn=\"\""`. Retry with `sam deploy --template-file template.yaml --config-env default --disable-rollback` when recovering a preserved `CREATE_FAILED` stack. After successful recovery, set `disable_rollback = false` for future deployments.
 - **Deployment failure:** inspect CloudFormation events. Rollback restores the stack on failed updates only when enabled; keep `disable_rollback = false` in `samconfig.toml` as recommended in step 5. A failed first deployment may require resolving the cause before recreating the failed stack.
-- **API/function throttling:** the template starts with API throttling at 10 requests/second, burst 20, and Lambda concurrency 5. Tune this against database capacity; each warm function can create a pool of up to 10 connections. Nest's in-memory rate limiter is per Lambda execution environment, so it is not a shared user limit across instances.
+- **API/function throttling:** the template starts with API throttling at 10 requests/second, burst 20, and `ApiReservedConcurrency` at 20. Gateway handles CORS preflight without invoking Lambda. Tune concurrency against database capacity; each warm function can create a pool of up to 10 connections. Nest's in-memory rate limiter is per Lambda execution environment, so it is not a shared user limit across instances.
 
 For a successful release that needs to be reverted, use an isolated checkout/worktree of the previous known-good revision, copy your ignored SAM configuration into its `server` folder, run `npm ci`, tests and `package:lambda`, and deploy to the **same** stack and region. Review the infrastructure changes before applying that rollback. Restore configuration table values and database environment variables separately when needed; code rollback does not restore database data changed by API calls.
 
