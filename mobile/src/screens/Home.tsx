@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import { cardStatus, membershipState, UI_TEXT } from "../../../common";
+import {
+  cardStatus,
+  formatHomeDate,
+  membershipState,
+  UI_TEXT,
+} from "../../../common";
 import {
   Brand,
   Button,
@@ -62,6 +67,22 @@ export default function Home() {
             style={{ width: "100%", height: 170, borderRadius: 12 }}
             resizeMode="contain"
           />
+        )}
+        {data?.card && (
+          <View style={{ flexDirection: "row", gap: 24 }}>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={s.label}>{UI_TEXT.validFrom}</Text>
+              <Text style={[s.copy, { fontWeight: "700" }]}>
+                {formatHomeDate(data.card.StartDate) || UI_TEXT.notProvided}
+              </Text>
+            </View>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={s.label}>{UI_TEXT.validUntil}</Text>
+              <Text style={[s.copy, { fontWeight: "700" }]}>
+                {formatHomeDate(data.card.EndDate) || UI_TEXT.notProvided}
+              </Text>
+            </View>
+          </View>
         )}
         <Button
           title="View membership"

@@ -74,15 +74,16 @@ export default function AccountDetails({ data }: AccountDetailsProps) {
               </div>
               {card && (
                 <div className="oho-card-validity">
-                  <span>
-                    {status === UI_TEXT.expired
-                      ? UI_TEXT.validityExpired
-                      : UI_TEXT.validity}
-                  </span>
-                  <strong>
-                    {formatHomeDate(card.StartDate) || UI_TEXT.notProvided}
-                    {UI_TEXT.to} {expiry || UI_TEXT.notProvided}
-                  </strong>
+                  <div>
+                    <span>{UI_TEXT.validFrom}</span>
+                    <strong>
+                      {formatHomeDate(card.StartDate) || UI_TEXT.notProvided}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>{UI_TEXT.validUntil}</span>
+                    <strong>{expiry || UI_TEXT.notProvided}</strong>
+                  </div>
                 </div>
               )}
             </div>

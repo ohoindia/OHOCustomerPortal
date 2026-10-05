@@ -177,6 +177,14 @@ export default function Home() {
         </div>
         <strong className="home-vault-value">{UI_TEXT.value37000}</strong>
         <p>{UI_TEXT.preLoadedHealthLiquidity}</p>
+        {card && (
+          <div className="home-vault-validity">
+            <span>{UI_TEXT.validUntil}</span>
+            <strong>
+              {formatHomeDate(card.EndDate) || UI_TEXT.notProvided}
+            </strong>
+          </div>
+        )}
         <div className="home-vault-pattern" aria-hidden="true">
           <svg
             viewBox="0 0 180 140"
