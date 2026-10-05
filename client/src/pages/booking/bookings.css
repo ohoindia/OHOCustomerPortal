@@ -249,6 +249,32 @@
 .appointment-card .portal-fields {
   padding: 0 17px 10px;
 }
+.bookings-savings,
+.appointment-savings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #166534;
+  background: #f0fdf4;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.bookings-savings {
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  margin-top: 16px;
+  padding: 14px 16px;
+}
+.bookings-savings strong {
+  font-size: 20px;
+}
+.appointment-savings {
+  margin: 0 17px 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
 .bookings-empty {
   padding: 30px 20px;
   margin-top: 14px;

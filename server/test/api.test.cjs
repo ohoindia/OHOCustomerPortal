@@ -56,11 +56,11 @@ let read = async (sql) => {
         IsActive: true,
       },
     ];
+  if (sql.includes("BookingConsultation bc"))
+    return [{ BookingConsultationId: 1, IsCouponClaimed: true }];
   if (sql.includes("FROM Customer")) return [customer];
   if (sql.includes("FROM OHOCards"))
     return [{ OHOCardnumber: "1234 5678", IsActivated: true }];
-  if (sql.includes("BookingConsultation bc"))
-    return [{ BookingConsultationId: 1, IsCouponClaimed: true }];
   if (sql.includes("FROM View_Subscription"))
     return [
       {

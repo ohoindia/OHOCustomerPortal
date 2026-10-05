@@ -77,6 +77,9 @@ export type MemberCard = {
 };
 export type Appointment = {
   BookingConsultationId: number;
+  Appointment?: string;
+  TotalAmount?: number | string | null;
+  PaidAmount?: number | string | null;
   AppointmentDate?: string;
   HospitalName?: string;
   ServiceName?: string;

@@ -25,6 +25,10 @@ import {
 } from "../services/home";
 import "./home-member.css";
 import {
+  consultationSavings,
+  savingsCurrency,
+} from "../../../common/utils/savings";
+import {
   serviceAccess,
   serviceAccessMessage,
 } from "../../../common/utils/home";
@@ -81,6 +85,7 @@ export default function Home() {
     return false;
   }
   const card = data?.card ?? null;
+  const savings = appointments ? consultationSavings(appointments) : null;
   const appointment = appointments ? nextAppointment(appointments) : null;
   const appointmentState = getAppointmentState(memberId, appointments);
   const status = cardStatus(card);
@@ -198,10 +203,22 @@ export default function Home() {
               : UI_TEXT.liquidity}
           </span>
         </div>
-        <strong className="home-vault-value">{UI_TEXT.value37000}</strong>
+        <strong className="home-vault-value">
+          {savings
+            ? savingsCurrency(savings.remaining)
+            : appointments === null
+              ? "Unavailable"
+              : "Loading…"}
+        </strong>
         <span className="home-vault-value-label">
-          {UI_TEXT.healthBenefitValue}
+          Remaining health benefit value
         </span>
+        {savings && (
+          <p>
+            Your family has saved {savingsCurrency(savings.total)} on successful
+            visits. <Link to="/wallet">View savings</Link>
+          </p>
+        )}
         {showPackageBenefits && (
           <>
             <p>{UI_TEXT.purchaseHealthBenefitsDescription}</p>

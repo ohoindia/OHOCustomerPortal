@@ -1,36 +1,56 @@
 import { UI_TEXT } from "../../../../common/content/labels";
+import {
+  consultationSavings,
+  savingsCurrency,
+} from "../../../../common/utils/savings";
 import { AppShell, PageHeader } from "../../components/Layout";
-import { MenuRow } from "../../components/Cards";
+import { getSessionMember } from "../auth/member";
+import { usePortalData } from "../portal/usePortalData";
 
 export function Wallet() {
+  const memberId = Number(
+    getSessionMember()?.MemberId || sessionStorage.getItem("memberId"),
+  );
+  const data = usePortalData(
+    "api/BookingConsultation/PendingAndSuccessConsultationList",
+    { customerId: memberId },
+  );
+  const savings = consultationSavings(data.rows);
   return (
     <AppShell>
       <PageHeader title={UI_TEXT.walletRewards} back={false} />
-      <section className="wallet-card">
-        <span>{UI_TEXT.totalBalance}</span>
-        <strong>{UI_TEXT.value2450}</strong>
-        <b>{UI_TEXT.purseEmoji}</b>
-      </section>
-      <div className="wallet-stats">
-        <article>
-          <span>{UI_TEXT.cashback}</span>
-          <b>{UI_TEXT.value850}</b>
-        </article>
-        <article>
-          <span>{UI_TEXT.ohoCoins}</span>
-          <b>{UI_TEXT.value1600}</b>
-        </article>
-      </div>
-      <MenuRow
-        icon={UI_TEXT.transferIcon}
-        title={UI_TEXT.transactionHistory}
-        subtitle={UI_TEXT.viewRecentTransactions}
-      />
-      <MenuRow
-        icon={UI_TEXT.giftEmoji}
-        title={UI_TEXT.redeemCoins}
-        subtitle={UI_TEXT.useCoinsForRewards}
-      />
+      {data.loading ? (
+        <p role="status">Loading savings...</p>
+      ) : data.error ? (
+        <div role="alert">
+          <p>{data.error}</p>
+          <button onClick={data.retry}>Retry</button>
+        </div>
+      ) : (
+        <>
+          <section className="wallet-card">
+            <span>Total savings</span>
+            <strong>{savingsCurrency(savings.total)}</strong>
+            <b>{UI_TEXT.purseEmoji}</b>
+          </section>
+          <p>
+            Your family saved this amount on successful visits through your
+            health benefits.
+          </p>
+          <div className="wallet-stats">
+            {[
+              ["Free Consultation", savings.freeConsultation],
+              ["Lab Investigation", savings.labInvestigation],
+              ["Pharmacy Discount", savings.pharmacyDiscount],
+            ].map(([label, amount]) => (
+              <article key={label}>
+                <span>{label}</span>
+                <b>{savingsCurrency(Number(amount))}</b>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
     </AppShell>
   );
 }

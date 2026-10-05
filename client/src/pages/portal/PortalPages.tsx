@@ -27,6 +27,10 @@ import type { PortalRow } from "./usePortalData";
 import "./portal.css";
 import { HospitalDirectory } from "../discovery/HospitalDirectory";
 import { bookingPeriod } from "../../../../common/utils/bookings";
+import {
+  consultationSavings,
+  savingsCurrency,
+} from "../../../../common/utils/savings";
 import "../booking/bookings.css";
 
 function customerId() {
@@ -228,6 +232,15 @@ function Consultations({ id }: { id: number }) {
           </div>
         )}
         {!bookingId && !data.loading && !data.error && (
+          <section
+            className="bookings-savings"
+            aria-label="Booking history savings"
+          >
+            <span>Savings from these bookings, including family visits</span>
+            <strong>{savingsCurrency(consultationSavings(rows).total)}</strong>
+          </section>
+        )}
+        {!bookingId && !data.loading && !data.error && (
           <div className="bookings-list-heading">
             <h2>
               {period === UI_TEXT.all
@@ -289,6 +302,7 @@ function AppointmentCard({
     parsedDate && Number.isFinite(parsedDate.getTime()) ? parsedDate : null;
   const options = { timeZone: DISPLAY_FORMAT.timeZone };
   const booking = textValue(row, "BookingConsultationId");
+  const savings = consultationSavings([row]).total;
   return (
     <article className={`appointment-card appointment-${period.toLowerCase()}`}>
       <div className="appointment-top">
@@ -348,6 +362,10 @@ function AppointmentCard({
             {textValue(row, "Name") || UI_TEXT.patientNotProvided}
           </span>
         </div>
+      </div>
+      <div className="appointment-savings">
+        <span>Savings from this visit</span>
+        <strong>{savingsCurrency(savings)}</strong>
       </div>
       <div className="appointment-footer">
         <div>
