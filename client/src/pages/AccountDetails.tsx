@@ -54,6 +54,8 @@ export default function AccountDetailsPage() {
       ),
       Number(sessionMember?.GroupId || sessionStorage.getItem("groupId")),
       controller.signal,
+      undefined,
+      sessionMember,
     ).then((result) => {
       if (!controller.signal.aborted) setData(result);
     });

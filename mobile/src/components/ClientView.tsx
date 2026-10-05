@@ -5,6 +5,7 @@ import { clientBootstrap } from "../lib/client-bootstrap";
 import { createClientHost } from "../lib/client-host";
 import type { ClientMessage } from "../lib/client-host";
 import { Button, Copy, Page } from "./ui";
+import Startup from "./Startup";
 
 export type ClientViewProps = {
   apiBaseUrl: string;
@@ -77,6 +78,8 @@ export default function ClientView(props: ClientViewProps) {
       originWhitelist={["*"]}
       javaScriptEnabled
       domStorageEnabled
+      startInLoadingState
+      renderLoading={() => <Startup />}
       setSupportMultipleWindows={false}
       onMessage={(event) => {
         try {

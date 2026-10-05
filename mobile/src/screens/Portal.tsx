@@ -128,11 +128,8 @@ export function Kyc() {
   useEffect(() => {
     const controller = new AbortController();
     const customer = createCustomerController(api);
-    void customer
-      .fetchMember(member.MemberId, controller.signal)
-      .then(async (rows) => {
-        const row = rows[0];
-        if (!row) throw new Error("Profile not found.");
+    void Promise.resolve(member)
+      .then(async (row) => {
         const [address, pan, aadhaar] = await Promise.all([
           customer.fetchAddressStatus(member.MemberId, controller.signal),
           customer.fetchPANStatus(member.MemberId, controller.signal),
@@ -157,7 +154,7 @@ export function Kyc() {
           setError(e instanceof Error ? e.message : "Unable to verify status.");
       });
     return () => controller.abort();
-  }, [member.MemberId, attempt]);
+  }, [member, attempt]);
   return (
     <Page title="KYC verification">
       <Status

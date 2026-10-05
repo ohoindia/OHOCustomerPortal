@@ -1,8 +1,6 @@
 import type { ApiRequest } from "../api/transport";
-import type { Member, MemberProduct, Verification } from "../models/customer";
+import type { MemberProduct, Verification } from "../models/customer";
 export function createCustomerController(apiRequest: ApiRequest) {
-  const fetchMember = (id: number, signal?: AbortSignal) =>
-    apiRequest<Member[]>(`api/Customer/GetById/${id}`, { signal });
   const fetchMemberProducts = (id: number, signal?: AbortSignal) =>
     apiRequest<
       Array<{
@@ -28,7 +26,6 @@ export function createCustomerController(apiRequest: ApiRequest) {
       signal,
     });
   return {
-    fetchMember,
     fetchMemberProducts,
     fetchAddressStatus,
     fetchKYCStatus,

@@ -80,16 +80,12 @@ export function MoreServices() {
   );
 }
 export function CustomerProfile() {
-  const id = getSession()!.member.MemberId;
-  const data = useData<Row[]>(`api/Customer/GetById/${id}`);
+  const member = getSession()!.member;
   return (
     <Page title="Account details">
-      <Status {...data} empty={data.data?.length === 0} />
-      {data.data?.map((row, i) => (
-        <Card key={i}>
-          <Details row={row} fields={customerProfileFields} />
-        </Card>
-      ))}
+      <Card>
+        <Details row={member} fields={customerProfileFields} />
+      </Card>
     </Page>
   );
 }

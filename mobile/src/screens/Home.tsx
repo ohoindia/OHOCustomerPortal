@@ -32,6 +32,8 @@ export default function Home() {
       Number(member.CommunityCustomerId || member.communityCustomerId || 0),
       Number(member.GroupId || 0),
       controller.signal,
+      undefined,
+      member,
     ).then((result) => {
       if (!controller.signal.aborted) setData(result);
     });

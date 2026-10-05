@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import ClientView from "../components/ClientView";
 import type { ClientViewProps } from "../components/ClientView";
-import { Brand, Copy, Page } from "../components/ui";
+import Startup from "../components/Startup";
 import { getSession, restoreSession } from "../lib/session";
 import { localKey } from "../lib/client-host";
 import { authSessionValues } from "../../../common/utils/session";
@@ -57,13 +57,7 @@ export default function Client({
     // Reload only after renderer recovery; normal navigation/auth must keep the document.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generation, onRestart]);
-  if (!props)
-    return (
-      <Page>
-        <Brand />
-        <Copy>Loading your account…</Copy>
-      </Page>
-    );
+  if (!props) return <Startup />;
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <ClientView {...props} />

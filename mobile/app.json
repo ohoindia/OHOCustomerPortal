@@ -28,6 +28,15 @@
       "expo-secure-store",
       "expo-font",
       [
+        "expo-splash-screen",
+        {
+          "image": "./assets/oho-brand.png",
+          "imageWidth": 150,
+          "resizeMode": "contain",
+          "backgroundColor": "#0094C6"
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "Allow OHOINDIA to find nearby network hospitals."

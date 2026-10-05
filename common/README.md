@@ -45,8 +45,16 @@ export const customerController = createCustomerController(request);
 export const homeController = createHomeController(request);
 
 const signal = new AbortController().signal;
-const members = await customerController.fetchMember(7, signal);
-const dashboard = await homeController.loadHomeData(7, 0, 0, signal);
+const login = await authController.authRequest("memberlogin", credentials);
+const member = login.memberData?.[0];
+const dashboard = await homeController.loadHomeData(
+  7,
+  0,
+  0,
+  signal,
+  undefined,
+  member,
+);
 ```
 
 React Native uses its own screens, navigation, and session storage around these controllers. It can use its native `fetch`; no web code needs to be imported. Configure the mobile bundler to include this sibling folder when scaffolding the mobile app.

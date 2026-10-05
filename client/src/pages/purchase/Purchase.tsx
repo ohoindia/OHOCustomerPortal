@@ -250,27 +250,12 @@ export function PurchaseDetails() {
 function Details({ id }: { id: number }) {
   const data = useData<Product>(`api/purchases/products/${id}`);
   const [sessionMember] = useState(getSessionMember);
-  const memberId = Number(
-    sessionMember?.MemberId || sessionStorage.getItem("memberId"),
-  );
-  const communityId = Number(
-    sessionMember?.communityCustomerId ||
-      sessionMember?.CommunityCustomerId ||
-      sessionStorage.getItem("communityCustomerId"),
-  );
-  const profile = usePortalData(
-    memberId > 0
-      ? `api/Customer/GetById/${memberId}`
-      : `api/CommunityCustomers/GetById/${communityId}`,
-  );
   const [person, setPerson] = useState<Person | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const submitting = useRef(false);
   const navigate = useNavigate();
-  const customer = profile.rows[0];
   const accountValue = (key: string) =>
-    textValue(customer, key).trim() ||
     textValue(sessionMember ?? undefined, key).trim();
   const purchaser = person ?? {
     fullName: accountValue("Name"),
@@ -385,27 +370,21 @@ function Details({ id }: { id: number }) {
                 : "Your Account Details are filled in below. Review them before continuing."}
             </p>
             <p>We’ll use these details for your package and payment.</p>
-            {profile.loading ? (
-              <Notice />
-            ) : profile.error ? (
-              <Notice error={profile.error} retry={profile.retry} />
-            ) : (
-              <form onSubmit={purchase}>
-                <PersonFields value={purchaser} onChange={setPerson} primary />
-                {error && <Notice error={error} />}
-                <button className="purchase-primary" disabled={busy}>
-                  {busy ? "Creating purchase…" : "Save details and continue"}
-                  <span aria-hidden="true">→</span>
-                </button>
-                <small className="purchase-help">
-                  Next:{" "}
-                  {Number(product.MaximumMembers) > 1
-                    ? "family members, then payment"
-                    : "complete your package details and payment"}
-                  .
-                </small>
-              </form>
-            )}
+            <form onSubmit={purchase}>
+              <PersonFields value={purchaser} onChange={setPerson} primary />
+              {error && <Notice error={error} />}
+              <button className="purchase-primary" disabled={busy}>
+                {busy ? "Creating purchase…" : "Save details and continue"}
+                <span aria-hidden="true">→</span>
+              </button>
+              <small className="purchase-help">
+                Next:{" "}
+                {Number(product.MaximumMembers) > 1
+                  ? "family members, then payment"
+                  : "complete your package details and payment"}
+                .
+              </small>
+            </form>
           </section>
         </>
       )}

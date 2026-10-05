@@ -1,4 +1,4 @@
-import type { Appointment, Verification } from "../models/customer";
+import type { Appointment, Member, Verification } from "../models/customer";
 import type { ApiRequest } from "../api/transport";
 import { nextAppointment } from "../utils/home";
 import { createCustomerController } from "./customer.controller";
@@ -8,7 +8,6 @@ import { createCommunityController } from "./community.controller";
 import { createCatalogController } from "./catalog.controller";
 export function createHomeController(apiRequest: ApiRequest) {
   const {
-    fetchMember,
     fetchMemberProducts,
     fetchAddressStatus,
     fetchKYCStatus,
@@ -26,6 +25,7 @@ export function createHomeController(apiRequest: ApiRequest) {
     groupId: number,
     signal: AbortSignal,
     onAppointmentsLoaded?: (appointments: Appointment[] | null) => void,
+    sessionMember?: Member | null,
   ) {
     const errors: string[] = [];
     async function read<T>(
@@ -57,15 +57,17 @@ export function createHomeController(apiRequest: ApiRequest) {
       config,
       catalog,
     ] = await Promise.all([
-      hasMember || hasCommunity
-        ? read(
-            "Profile",
-            hasMember
-              ? fetchMember(memberId, signal)
-              : fetchCommunityMember(communityId, signal),
-            Array.isArray,
-          )
-        : null,
+      hasMember
+        ? sessionMember && Number(sessionMember.MemberId) === memberId
+          ? [sessionMember]
+          : []
+        : hasCommunity
+          ? read(
+              "Profile",
+              fetchCommunityMember(communityId, signal),
+              Array.isArray,
+            )
+          : null,
       hasMember
         ? read(
             "Your packages",

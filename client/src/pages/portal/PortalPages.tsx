@@ -91,7 +91,7 @@ export function PortalMenu() {
 export function CustomerProfile() {
   const id = customerId();
   return id ? (
-    <MemberProfile id={id} />
+    <MemberProfile />
   ) : (
     <Page title={UI_TEXT.myProfile}>
       <p>
@@ -100,17 +100,14 @@ export function CustomerProfile() {
     </Page>
   );
 }
-function MemberProfile({ id }: { id: number }) {
-  const data = usePortalData(`api/Customer/GetById/${id}`);
+function MemberProfile() {
   return (
     <Page title={UI_TEXT.myProfile}>
-      <Status data={data} />
-      {!data.loading && !data.error && (
-        <>
-          <Fields row={data.rows[0]} fields={customerProfileFields} />
-          <Link to="/kyc-verification">{UI_TEXT.viewKycStatus}</Link>
-        </>
-      )}
+      <Fields
+        row={getSessionMember() ?? undefined}
+        fields={customerProfileFields}
+      />
+      <Link to="/kyc-verification">{UI_TEXT.viewKycStatus}</Link>
     </Page>
   );
 }
@@ -616,14 +613,14 @@ export function KycVerification() {
   );
 }
 function KycStatus({ id }: { id: number }) {
-  const data = usePortalData(`api/Customer/GetById/${id}`);
+  const member = getSessionMember();
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   async function check() {
     setBusy(true);
     setStatus("");
     try {
-      const aadhaar = textValue(data.rows[0], "AadhaarNumber");
+      const aadhaar = textValue(member ?? undefined, "AadhaarNumber");
       const pan = await apiRequest<{ status: boolean }>(
         "api/Customer/PANVerifiedOrNot",
         { body: { customerId: id } },
@@ -652,11 +649,10 @@ function KycStatus({ id }: { id: number }) {
   }
   return (
     <Page title={UI_TEXT.kycVerification2}>
-      <Status data={data} />
       <p>{UI_TEXT.checkTheVerificationStatusLinkedToYourMembership}</p>
       <button
         className="primary-btn"
-        disabled={busy || data.loading || !!data.error}
+        disabled={busy || !member}
         onClick={() => void check()}
       >
         {busy ? UI_TEXT.checking : UI_TEXT.checkVerificationStatus}

@@ -71,7 +71,7 @@ function ServiceOptions({
         `api/HospitalPoliciesProvision/GetByHospitalId/${hospitalId}`,
         options,
       ),
-      apiRequest<PortalRow[]>(`api/Customer/GetById/${customerId}`, options),
+      Promise.resolve(getSessionMember() ? [getSessionMember()!] : []),
       apiRequest<PortalRow[]>(
         `api/Customer/GetDependentsByCustomerId/${customerId}`,
         options,

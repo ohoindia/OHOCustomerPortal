@@ -53,11 +53,12 @@ export default function Home() {
       groupId,
       signal,
       setAppointments,
+      sessionMember,
     ).then((result) => {
       if (!signal.aborted) setData(result);
     });
     return () => controller.abort();
-  }, [memberId, communityId, groupId]);
+  }, [memberId, communityId, groupId, sessionMember]);
 
   const member = data?.customer ?? sessionMember;
   const card = data?.card ?? null;

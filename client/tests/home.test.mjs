@@ -38,19 +38,10 @@ test("card and package expiry distinguish yesterday, today, future and missing d
   );
 });
 
-test("loads every applicable dashboard endpoint once and uses fresh profile for group and KYC", async () => {
+test("loads every applicable dashboard endpoint once and uses login profile for group and KYC without refetching customer", async () => {
   const calls = [];
   const { loadHomeData } = service(async (path, options) => {
     calls.push({ path, ...options });
-    if (path.includes("Customer/GetById"))
-      return [
-        {
-          MemberId: 7,
-          GroupId: 9,
-          AadhaarNumber: "test",
-          FaceIdentityImage: "photo",
-        },
-      ];
     if (path.includes("Group/GetById")) return [{ GroupName: "Community" }];
     if (path.includes("GetMemberProducts"))
       return [
@@ -73,9 +64,22 @@ test("loads every applicable dashboard endpoint once and uses fresh profile for 
       ];
     return { status: true };
   });
-  const result = await loadHomeData(7, 0, 2, new AbortController().signal);
-  assert.equal(calls.length, 10);
-  assert.equal(new Set(calls.map((call) => call.path)).size, 10);
+  const result = await loadHomeData(
+    7,
+    0,
+    2,
+    new AbortController().signal,
+    undefined,
+    {
+      MemberId: 7,
+      GroupId: 9,
+      AadhaarNumber: "test",
+      FaceIdentityImage: "photo",
+    },
+  );
+  assert.equal(calls.length, 9);
+  assert.ok(calls.every((call) => !call.path.includes("Customer/GetById")));
+  assert.equal(new Set(calls.map((call) => call.path)).size, 9);
   assert.ok(calls.some((call) => call.path === "api/Group/GetById/9"));
   assert.equal(
     calls.find((call) => call.path.endsWith("KYCVerifiedOrNot")).body
@@ -91,12 +95,18 @@ test("loads every applicable dashboard endpoint once and uses fresh profile for 
 
 test("partial failures retain successful data and distinguish errors from empty records", async () => {
   const { loadHomeData } = service(async (path) => {
-    if (path.includes("Customer/GetById")) return [{ MemberId: 7 }];
     if (path.includes("GetMemberCard")) return { status: false };
     if (path.includes("GetMemberProducts")) return [];
     throw new Error("Offline");
   });
-  const result = await loadHomeData(7, 0, 0, new AbortController().signal);
+  const result = await loadHomeData(
+    7,
+    0,
+    0,
+    new AbortController().signal,
+    undefined,
+    { MemberId: 7 },
+  );
   assert.equal(result.customer.MemberId, 7);
   assert.equal(result.membershipLoaded, true);
   assert.equal(result.card, null);

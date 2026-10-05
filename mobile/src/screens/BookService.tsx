@@ -85,7 +85,7 @@ function ServiceForm({
         `api/HospitalPoliciesProvision/GetByHospitalId/${hospitalId}`,
         options,
       ),
-      api<Row[]>(`api/Customer/GetById/${customerId}`, options),
+      Promise.resolve(getSession() ? [getSession()!.member] : []),
       api<Row[]>(
         `api/Customer/GetDependentsByCustomerId/${customerId}`,
         options,
