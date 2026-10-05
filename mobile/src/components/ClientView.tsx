@@ -17,6 +17,7 @@ export type ClientViewProps = {
 const bundle: { html: string } = require("../generated/client.json");
 
 export default function ClientView(props: ClientViewProps) {
+  const bundledHtml = bundle.html;
   const ref = useRef<WebView>(null);
   const canGoBack = useRef(false);
   const [failed, setFailed] = useState(false);
@@ -29,13 +30,13 @@ export default function ClientView(props: ClientViewProps) {
   }
   const source = useMemo(
     () => ({
-      html: bundle.html.replace(
+      html: bundledHtml.replace(
         "<!--OHO_BOOTSTRAP-->",
         `<script>${clientBootstrap({ apiBaseUrl, session, local, route, native: true })}</script>`,
       ),
       baseUrl: "https://oho-mobile.invalid/",
     }),
-    [apiBaseUrl, session, local, route],
+    [apiBaseUrl, session, local, route, bundledHtml],
   );
 
   useEffect(() => {

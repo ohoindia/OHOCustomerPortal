@@ -5,9 +5,11 @@ import { DashboardIcon } from "./DashboardIcon";
 export function QuickActions({
   memberId,
   communityId,
+  allowService,
 }: {
   memberId: number;
   communityId: number;
+  allowService: () => boolean;
 }) {
   const navigate = useNavigate();
   return (
@@ -19,7 +21,8 @@ export function QuickActions({
       <div className="home-quick-actions-grid">
         <button
           type="button"
-          onClick={() =>
+          onClick={() => {
+            if (!allowService()) return;
             navigate("/hospitallist", {
               state: {
                 memberId,
@@ -27,8 +30,8 @@ export function QuickActions({
                 isFromBookService: true,
                 isFromHospitalMenu: true,
               },
-            })
-          }
+            });
+          }}
         >
           <span className="quick-action-icon">
             <DashboardIcon name="doctor" />
@@ -39,7 +42,12 @@ export function QuickActions({
             {UI_TEXT.opd}
           </span>
         </button>
-        <button type="button" disabled onClick={() => navigate("/payment")}>
+        <button
+          type="button"
+          onClick={() => {
+            if (allowService()) navigate("/payment");
+          }}
+        >
           <span className="quick-action-icon">
             <DashboardIcon name="qr" />
           </span>
@@ -49,7 +57,12 @@ export function QuickActions({
             {UI_TEXT.qr}
           </span>
         </button>
-        <button type="button" onClick={() => navigate("/pharmacy")}>
+        <button
+          type="button"
+          onClick={() => {
+            if (allowService()) navigate("/pharmacy");
+          }}
+        >
           <span className="quick-action-icon">
             <DashboardIcon name="pharmacy" />
           </span>

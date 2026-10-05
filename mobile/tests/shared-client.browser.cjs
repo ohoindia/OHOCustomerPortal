@@ -197,6 +197,33 @@ const server = http.createServer((request, response) => {
       }
     }
     await mobile.evaluate(() => {
+      location.hash = "/home";
+    });
+    await mobile.locator(".home-vault-purchase button").waitFor();
+    const vault = await mobile.locator(".home-family-vault").innerText();
+    for (const benefit of [
+      "37,000",
+      "Zero-Cash OPD consultations",
+      "Pharmacy subsidies",
+      "Health checkups",
+      "Choose a package",
+    ])
+      assert.ok(vault.includes(benefit), `Mobile vault is missing ${benefit}`);
+    await mobile.locator(".home-quick-actions-grid button").nth(2).click();
+    await mobile
+      .getByRole("alert")
+      .getByText("Purchase a package to use our services.")
+      .waitFor();
+    assert.ok(
+      mobile.url().endsWith("#/home"),
+      "Mobile service access must remain on home without a package",
+    );
+    await mobile
+      .getByRole("alert")
+      .getByRole("button", { name: "Dismiss", exact: true })
+      .click();
+
+    await mobile.evaluate(() => {
       location.hash = "/profile";
     });
     await mobile.getByText("Logout", { exact: true }).click();

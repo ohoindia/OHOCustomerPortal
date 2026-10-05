@@ -1,3 +1,7 @@
+import {
+  serviceAccess,
+  serviceAccessMessage,
+} from "../../../common/utils/home";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -32,12 +36,65 @@ export default function BookService() {
   const { hospitalId: param } = useLocalSearchParams<{ hospitalId: string }>();
   const hospitalId = Number(param);
   const customerId = getSession()!.member.MemberId;
+  const [membershipAttempt, setMembershipAttempt] = useState(0);
+  const [membership, setMembership] = useState<{
+    card: MemberCard | null;
+    membershipLoaded: boolean;
+  } | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    if (!(customerId > 0)) {
+      return;
+    }
+    void api<{ status: boolean; returnData?: MemberCard[] }>(
+      `api/OHOCards/GetMemberCardByMemberId/${customerId}`,
+      { signal: controller.signal },
+    )
+      .then((result) => {
+        if (
+          typeof result.status !== "boolean" ||
+          (result.status && !Array.isArray(result.returnData))
+        )
+          throw new Error("Unexpected membership response");
+        if (!controller.signal.aborted)
+          setMembership({
+            card: result.status
+              ? (result.returnData?.find((card) =>
+                  bookableCardStatuses.includes(cardStatus(card)),
+                ) ?? null)
+              : null,
+            membershipLoaded: true,
+          });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setMembership({ card: null, membershipLoaded: false });
+      });
+    return () => controller.abort();
+  }, [customerId, membershipAttempt]);
+  const access = customerId > 0 ? serviceAccess(membership) : "purchase";
+
   return (
     <Page title="Book service">
-      {!(customerId > 0) ? (
-        <Copy>
-          An individual customer membership is required to book this service.
-        </Copy>
+      {access !== "available" ? (
+        <>
+          <Copy>{serviceAccessMessage(access)}</Copy>
+          {access === "unavailable" && (
+            <Button
+              title="Try again"
+              onPress={() => {
+                setMembership(null);
+                setMembershipAttempt((value) => value + 1);
+              }}
+            />
+          )}
+          {access === "purchase" && (
+            <Button
+              title="Purchase a package"
+              onPress={() => router.push("/packages")}
+            />
+          )}
+        </>
       ) : !(Number.isSafeInteger(hospitalId) && hospitalId > 0) ? (
         <Button
           title="Choose hospital"
@@ -48,6 +105,7 @@ export default function BookService() {
           key={`${customerId}:${hospitalId}`}
           customerId={customerId}
           hospitalId={hospitalId}
+          membershipCard={membership!.card!}
         />
       )}
     </Page>
@@ -56,9 +114,11 @@ export default function BookService() {
 function ServiceForm({
   customerId,
   hospitalId,
+  membershipCard,
 }: {
   customerId: number;
   hospitalId: number;
+  membershipCard: MemberCard;
 }) {
   const [data, setData] = useState<Options | null>(null);
   const [error, setError] = useState("");
@@ -90,10 +150,7 @@ function ServiceForm({
         `api/Customer/GetDependentsByCustomerId/${customerId}`,
         options,
       ),
-      api<{ returnData: MemberCard[] }>(
-        `api/OHOCards/GetMemberCardByMemberId/${customerId}`,
-        options,
-      ),
+      Promise.resolve({ returnData: [membershipCard] }),
       api<Row[]>("api/HospitalServices/all", {
         ...options,
         body: { skip: 0, take: 0 },
@@ -122,7 +179,7 @@ function ServiceForm({
           );
       });
     return () => controller.abort();
-  }, [customerId, hospitalId, attempt]);
+  }, [customerId, hospitalId, attempt, membershipCard]);
   useEffect(() => {
     if (!data?.card || !data.policy) return;
     const controller = new AbortController();

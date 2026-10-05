@@ -235,3 +235,32 @@ test("appointments publish before unrelated dashboard requests finish", async ()
   releaseConfig([]);
   assert.equal((await loading).appointment.BookingConsultationId, 7);
 });
+
+test("service access requires activated, current membership validity and preserves loading and failures", () => {
+  const { serviceAccess } = service();
+  const now = new Date(2026, 8, 17, 12);
+  const check = (card) => serviceAccess({ card, membershipLoaded: true }, now);
+  assert.equal(serviceAccess(null, now), "loading");
+  assert.equal(
+    serviceAccess(
+      { card: null, membershipLoaded: false, hasMember: false },
+      now,
+    ),
+    "purchase",
+  );
+  assert.equal(
+    serviceAccess({ card: null, membershipLoaded: false }, now),
+    "unavailable",
+  );
+  for (const card of [
+    null,
+    { IsActivated: true },
+    { IsActivated: true, EndDate: "invalid" },
+    { IsActivated: true, EndDate: "2026-09-16" },
+    { IsActivated: false, EndDate: "2026-09-18" },
+    { IsActivated: true, StartDate: "2026-09-18", EndDate: "2026-09-20" },
+  ])
+    assert.equal(check(card), "purchase");
+  for (const EndDate of ["2026-09-17", "2026-09-18"])
+    assert.equal(check({ IsActivated: true, EndDate }), "available");
+});

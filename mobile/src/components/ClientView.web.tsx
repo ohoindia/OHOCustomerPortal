@@ -5,14 +5,15 @@ import { createClientHost } from "../lib/client-host";
 const bundle: { html: string } = require("../generated/client.json");
 
 export default function ClientView(props: ClientViewProps) {
+  const bundledHtml = bundle.html;
   const ref = useRef<HTMLIFrameElement>(null);
   const html = useMemo(
     () =>
-      bundle.html.replace(
+      bundledHtml.replace(
         "<!--OHO_BOOTSTRAP-->",
         `<script>${clientBootstrap({ ...props, native: false })}</script>`,
       ),
-    [props],
+    [props, bundledHtml],
   );
   useEffect(() => {
     const host = createClientHost(props.apiBaseUrl, (value) =>

@@ -3,6 +3,8 @@ import { Image, Pressable, Text, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import {
   cardStatus,
+  serviceAccess,
+  serviceAccessMessage,
   formatHomeDate,
   membershipState,
   UI_TEXT,
@@ -44,6 +46,13 @@ export default function Home() {
     });
     return () => controller.abort();
   }, [member, attempt]);
+  const [serviceMessage, setServiceMessage] = useState("");
+  const access = serviceAccess(data);
+  function allowService() {
+    if (access === "available") return true;
+    setServiceMessage(serviceAccessMessage(access));
+    return false;
+  }
   return (
     <Page back={false}>
       <Brand />
@@ -55,6 +64,17 @@ export default function Home() {
         <Text style={[s.label, { color: colors.brand }]}>
           YOUR HEALTH MEMBERSHIP
         </Text>
+        <Heading>{UI_TEXT.value37000}</Heading>
+        <Copy>{UI_TEXT.healthBenefitValue}</Copy>
+        <Copy>
+          {access === "available"
+            ? UI_TEXT.activeHealthBenefitsDescription
+            : UI_TEXT.purchaseHealthBenefitsDescription}
+        </Copy>
+        <Copy>{UI_TEXT.vaultBenefitOpd}</Copy>
+        <Copy>{UI_TEXT.vaultBenefitPharmacy}</Copy>
+        <Copy>{UI_TEXT.vaultBenefitCheckups}</Copy>
+        <Text style={s.label}>{UI_TEXT.vaultPackageBenefitsNote}</Text>
         <Heading>{membershipState(data)}</Heading>
         <Copy>
           {data?.card
@@ -84,6 +104,14 @@ export default function Home() {
             </View>
           </View>
         )}
+        {access === "purchase" && (
+          <>
+            <Button
+              title={UI_TEXT.choosePackage}
+              onPress={() => router.push("/packages")}
+            />
+          </>
+        )}
         <Button
           title="View membership"
           onPress={() => router.push("/membership")}
@@ -106,17 +134,45 @@ export default function Home() {
           />
         </Card>
       )}
+      {serviceMessage && (
+        <Card>
+          <Copy>{serviceMessage}</Copy>
+          {access === "purchase" && (
+            <Button
+              title="Purchase a package"
+              onPress={() => router.push("/packages")}
+            />
+          )}
+          <Button
+            title="Dismiss"
+            secondary
+            onPress={() => setServiceMessage("")}
+          />
+        </Card>
+      )}
       <Heading>{UI_TEXT.quickActions}</Heading>
       <Menu
         title="Zero-Cash OPD"
         subtitle="Use your free consultation benefits"
-        onPress={() => router.push("/hospitals")}
+        onPress={() => {
+          if (allowService()) router.push("/hospitals");
+        }}
       />
       <View style={s.grid}>
-        <Pressable style={s.tile} onPress={() => router.push("/payment")}>
+        <Pressable
+          style={s.tile}
+          onPress={() => {
+            if (allowService()) router.push("/payment");
+          }}
+        >
           <Text style={s.label}>Scan & Pay QR</Text>
         </Pressable>
-        <Pressable style={s.tile} onPress={() => router.push("/pharmacy")}>
+        <Pressable
+          style={s.tile}
+          onPress={() => {
+            if (allowService()) router.push("/pharmacy");
+          }}
+        >
           <Text style={s.label}>Pharmacy Subsidies</Text>
         </Pressable>
       </View>
@@ -151,7 +207,9 @@ export default function Home() {
         <Button
           title="More services"
           secondary
-          onPress={() => router.push("/menu")}
+          onPress={() => {
+            if (allowService()) router.push("/menu");
+          }}
         />
       </Card>
     </Page>

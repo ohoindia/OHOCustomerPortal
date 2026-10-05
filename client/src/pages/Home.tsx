@@ -22,6 +22,10 @@ import {
   type Appointment,
 } from "../services/home";
 import "./home-member.css";
+import {
+  serviceAccess,
+  serviceAccessMessage,
+} from "../../../common/utils/home";
 
 const services = homeServices;
 export default function Home() {
@@ -61,6 +65,13 @@ export default function Home() {
   }, [memberId, communityId, groupId, sessionMember]);
 
   const member = data?.customer ?? sessionMember;
+  const [serviceMessage, setServiceMessage] = useState("");
+  const access = serviceAccess(data);
+  function allowService() {
+    if (access === "available") return true;
+    setServiceMessage(serviceAccessMessage(access));
+    return false;
+  }
   const card = data?.card ?? null;
   const appointment = appointments ? nextAppointment(appointments) : null;
   const appointmentState = getAppointmentState(memberId, appointments);
@@ -173,16 +184,51 @@ export default function Home() {
           <h2 id="home-family-vault-title">
             {UI_TEXT.familyHealthAccountVault}
           </h2>
-          <span className="home-vault-badge">{UI_TEXT.liquidity}</span>
+          <span className="home-vault-badge">
+            {access === "purchase"
+              ? UI_TEXT.packageRequired
+              : UI_TEXT.liquidity}
+          </span>
         </div>
         <strong className="home-vault-value">{UI_TEXT.value37000}</strong>
-        <p>{UI_TEXT.preLoadedHealthLiquidity}</p>
-        {card && (
+        <span className="home-vault-value-label">
+          {UI_TEXT.healthBenefitValue}
+        </span>
+        <p>
+          {access === "available"
+            ? UI_TEXT.activeHealthBenefitsDescription
+            : UI_TEXT.purchaseHealthBenefitsDescription}
+        </p>
+        <ul
+          className="home-vault-benefits"
+          aria-label={UI_TEXT.membershipBenefits}
+        >
+          <li>{UI_TEXT.vaultBenefitOpd}</li>
+          <li>{UI_TEXT.vaultBenefitPharmacy}</li>
+          <li>{UI_TEXT.vaultBenefitCheckups}</li>
+        </ul>
+        <small className="home-vault-benefits-note">
+          {UI_TEXT.vaultPackageBenefitsNote}
+        </small>
+        {(access === "loading" || access === "unavailable") && (
+          <p role="status">{serviceAccessMessage(access)}</p>
+        )}
+        {card && formatHomeDate(card.EndDate) && (
           <div className="home-vault-validity">
             <span>{UI_TEXT.validUntil}</span>
             <strong>
               {formatHomeDate(card.EndDate) || UI_TEXT.notProvided}
             </strong>
+          </div>
+        )}
+        {access === "purchase" && (
+          <div className="home-vault-purchase">
+            <button
+              className="outline-btn"
+              onClick={() => navigate("/packages")}
+            >
+              {UI_TEXT.choosePackage}
+            </button>
           </div>
         )}
         <div className="home-vault-pattern" aria-hidden="true">
@@ -240,11 +286,40 @@ export default function Home() {
           messages={actionMessages}
         />
       )}
-      <QuickActions memberId={memberId} communityId={communityId} />
+      {serviceMessage && (
+        <aside className="home-action-notice" role="alert">
+          <p>{serviceMessage}</p>
+          {access === "purchase" && (
+            <button
+              className="primary-btn"
+              onClick={() => navigate("/packages")}
+            >
+              Purchase a package
+            </button>
+          )}
+          <button
+            className="text-btn"
+            aria-label="Dismiss"
+            onClick={() => setServiceMessage("")}
+          >
+            {UI_TEXT.dismissIcon}
+          </button>
+        </aside>
+      )}
+      <QuickActions
+        memberId={memberId}
+        communityId={communityId}
+        allowService={allowService}
+      />
       <SectionTitle title={UI_TEXT.quickServices} />
       <div className="service-grid">
         {services.map(([icon, label, to]) => (
-          <button key={label} onClick={() => navigate(to)}>
+          <button
+            key={label}
+            onClick={() => {
+              if (allowService()) navigate(to);
+            }}
+          >
             <span>{icon}</span>
             <small>{label}</small>
           </button>

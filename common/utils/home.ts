@@ -1,5 +1,30 @@
 import { DISPLAY_FORMAT } from "../content/config";
 import { UI_TEXT } from "../content/labels";
+export function serviceAccess(
+  data: {
+    card: MemberCard | null;
+    membershipLoaded: boolean;
+    hasMember?: boolean;
+  } | null,
+  now = new Date(),
+) {
+  if (!data) return "loading";
+  if (data.hasMember === false) return "purchase";
+  if (!data.membershipLoaded) return "unavailable";
+  const status = cardStatus(data.card, now);
+  return status === UI_TEXT.active || status === UI_TEXT.expiresToday
+    ? "available"
+    : "purchase";
+}
+export function serviceAccessMessage(access: ReturnType<typeof serviceAccess>) {
+  return access === "loading"
+    ? "Checking membership validity. Please try again shortly."
+    : access === "unavailable"
+      ? "Unable to check membership validity. Please refresh and try again."
+      : access === "purchase"
+        ? "Purchase a package to use our services."
+        : "";
+}
 import type {
   Appointment,
   MemberCard,

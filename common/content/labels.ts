@@ -470,7 +470,20 @@ export const UI_TEXT = {
   hello: "Hello, ",
   decoration1F44B: " 👋",
   familyHealthAccountVault: "Family Health Account Vault",
-  liquidity: "Liquidity",
+  liquidity: "Health benefits",
+  packageRequired: "Package required",
+  activateHealthBenefits: "Activate your health benefits",
+  healthBenefitValue: "Health benefit value",
+  activeHealthBenefitsDescription:
+    "Use eligible healthcare services included in your active package.",
+  purchaseHealthBenefitsDescription:
+    "Purchase a package to unlock your family healthcare benefits.",
+  choosePackage: "Choose a package",
+  vaultBenefitOpd: "Zero-Cash OPD consultations",
+  vaultBenefitPharmacy: "Pharmacy subsidies",
+  vaultBenefitCheckups: "Health checkups",
+  vaultPackageBenefitsNote:
+    "Included services and limits depend on the package you choose.",
   value37000: "₹ 37,000",
   preLoadedHealthLiquidity: "Pre-loaded Health Liquidity",
   quickServices: "Quick Services",

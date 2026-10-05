@@ -1,3 +1,7 @@
+import {
+  serviceAccess,
+  serviceAccessMessage,
+} from "../../../../common/utils/home";
 import { bookableCardStatuses } from "../../../../common/content/options";
 import { UI_TEXT, UI_MESSAGES } from "../../../../common/content/labels";
 import { useEffect, useState } from "react";
@@ -25,14 +29,65 @@ export function BookService() {
     new URLSearchParams(location.search).get("hospitalId") || state?.hospitalId,
   );
   const customerId = Number(getSessionMember()?.MemberId || 0);
+  const [membershipAttempt, setMembershipAttempt] = useState(0);
+  const [membership, setMembership] = useState<{
+    card: MemberCard | null;
+    membershipLoaded: boolean;
+  } | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    if (!(customerId > 0)) {
+      return;
+    }
+    void apiRequest<{ status: boolean; returnData?: MemberCard[] }>(
+      `api/OHOCards/GetMemberCardByMemberId/${customerId}`,
+      { signal: controller.signal },
+    )
+      .then((result) => {
+        if (
+          typeof result.status !== "boolean" ||
+          (result.status && !Array.isArray(result.returnData))
+        )
+          throw new Error("Unexpected membership response");
+        if (!controller.signal.aborted)
+          setMembership({
+            card: result.status
+              ? (result.returnData?.find((card) =>
+                  bookableCardStatuses.includes(cardStatus(card)),
+                ) ?? null)
+              : null,
+            membershipLoaded: true,
+          });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setMembership({ card: null, membershipLoaded: false });
+      });
+    return () => controller.abort();
+  }, [customerId, membershipAttempt]);
+  const access = customerId > 0 ? serviceAccess(membership) : "purchase";
+
   return (
     <AppShell className="portal-page">
       <PageHeader title={UI_TEXT.bookService} />
       <div className="portal-content">
-        {!customerId ? (
+        {access !== "available" ? (
           <>
-            <p>{UI_TEXT.anIndividualCustomerMembershipIsRequiredToBookThis}</p>
-            <Link to="/support">{UI_TEXT.contactOhoCare}</Link>
+            <p role="status">{serviceAccessMessage(access)}</p>
+            {access === "unavailable" && (
+              <button
+                className="outline-btn"
+                onClick={() => {
+                  setMembership(null);
+                  setMembershipAttempt((value) => value + 1);
+                }}
+              >
+                Try again
+              </button>
+            )}
+            {access === "purchase" && (
+              <Link to="/packages">Purchase a package</Link>
+            )}
           </>
         ) : !Number.isSafeInteger(hospitalId) || hospitalId <= 0 ? (
           <>
@@ -46,6 +101,7 @@ export function BookService() {
             key={`${customerId}:${hospitalId}`}
             customerId={customerId}
             hospitalId={hospitalId}
+            membershipCard={membership!.card!}
           />
         )}
       </div>
@@ -55,9 +111,11 @@ export function BookService() {
 function ServiceOptions({
   customerId,
   hospitalId,
+  membershipCard,
 }: {
   customerId: number;
   hospitalId: number;
+  membershipCard: MemberCard;
 }) {
   const [data, setData] = useState<BookingData | null>(null);
   const [error, setError] = useState("");
@@ -76,10 +134,7 @@ function ServiceOptions({
         `api/Customer/GetDependentsByCustomerId/${customerId}`,
         options,
       ),
-      apiRequest<{ returnData: MemberCard[] }>(
-        `api/OHOCards/GetMemberCardByMemberId/${customerId}`,
-        options,
-      ),
+      Promise.resolve({ returnData: [membershipCard] }),
       apiRequest<PortalRow[]>("api/HospitalServices/all", {
         ...options,
         body: { skip: 0, take: 0 },
@@ -110,7 +165,7 @@ function ServiceOptions({
           );
       });
     return () => controller.abort();
-  }, [customerId, hospitalId, attempt]);
+  }, [customerId, hospitalId, attempt, membershipCard]);
   if (error)
     return (
       <div role="alert">
