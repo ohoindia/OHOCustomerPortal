@@ -469,9 +469,10 @@ test("snapshot uses active web payment options and never exposes private custome
   );
 });
 
-test("only PaymentLink can start customer checkout", async () => {
+test("Cashfree payment link options are enabled and static QR is disabled", async () => {
   for (const methodName of [
     "QR Code",
+    "Static QRCode",
     "UPI",
     "Cash",
     "Online payment",
@@ -492,10 +493,31 @@ test("only PaymentLink can start customer checkout", async () => {
     const snapshot = await service.snapshot(12, 50);
     assert.equal(snapshot.paymentMethods[0].enabled, false);
   }
-  const snapshot = await harness({
-    methodName: "Payment Link",
-  }).service.snapshot(12, 50);
-  assert.equal(snapshot.paymentMethods[0].enabled, true);
+  for (const methodName of [
+    "Payment Link",
+    "Cashfree Payment Link",
+    "Cashfree PaymentLink and QRCode",
+  ]) {
+    const { service } = harness({
+      methodName,
+      links: [
+        {
+          LinkId: "existing",
+          LinkUrl: "https://payments.cashfree.com/links/existing",
+          LinkStatus: "ACTIVE",
+          LinkExpiryTime: new Date(Date.now() + 60000),
+        },
+      ],
+    });
+    service.gateway = () => assert.fail("Must reuse the active payment");
+    const snapshot = await service.snapshot(12, 50);
+    assert.equal(snapshot.paymentMethods[0].enabled, true, methodName);
+    assert.equal(
+      (await service.payment(12, 50, 4)).linkId,
+      "existing",
+      methodName,
+    );
+  }
 });
 
 test("fetch-by-link requires customer ownership before checking provider status", async () => {

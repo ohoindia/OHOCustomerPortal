@@ -63,8 +63,9 @@ const snapshot = {
   nominees: [],
   nomineeProducts: product.includedProducts,
   paymentMethods: [
-    { PaymentTypeId: 9, PaymentTypeName: "QR Code" },
-    { PaymentTypeId: 5, PaymentTypeName: "PaymentLink" },
+    { PaymentTypeId: 9, PaymentTypeName: "Static QRCode" },
+    { PaymentTypeId: 5, PaymentTypeName: "Cashfree Payment Link" },
+    { PaymentTypeId: 10, PaymentTypeName: "Cashfree PaymentLink and QRCode" },
     { PaymentTypeId: 2, PaymentTypeName: "Cash" },
   ],
 };
@@ -214,16 +215,26 @@ function response(message) {
     await page.waitForURL("**#/purchase/42/payment");
     console.log("Nominee saved; creating secure payment link.");
     assert.equal(
-      await page.getByRole("radio", { name: /QR Code/ }).isDisabled(),
+      await page.getByRole("radio", { name: /Static QRCode/ }).isDisabled(),
       true,
     );
     assert.equal(
-      await page.getByRole("radio", { name: /Cash/ }).isDisabled(),
+      await page
+        .getByRole("radio", { name: /^Cash Not available/ })
+        .isDisabled(),
       true,
     );
     assert.equal(
-      await page.getByRole("radio", { name: /PaymentLink/ }).isChecked(),
+      await page
+        .getByRole("radio", { name: /Cashfree Payment Link/ })
+        .isChecked(),
       true,
+    );
+    assert.equal(
+      await page
+        .getByRole("radio", { name: /Cashfree PaymentLink and QRCode/ })
+        .isDisabled(),
+      false,
     );
     await page
       .getByRole("button", { name: /^Continue to secure payment/ })

@@ -935,9 +935,11 @@ function NomineeStep({
   );
 }
 const isPaymentLink = (row: PortalRow) =>
-  String(row.PaymentTypeName ?? "")
-    .replace(/[\s_-]/g, "")
-    .toLowerCase() === "paymentlink";
+  /^(cashfree)?paymentlink(andqrcode)?$/.test(
+    String(row.PaymentTypeName ?? "")
+      .replace(/[\s_-]/g, "")
+      .toLowerCase(),
+  );
 
 function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
   const [method, setMethod] = useState(

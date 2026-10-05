@@ -19,9 +19,11 @@ import { NomineeDto, PersonDto, PurchaseDto } from "./purchase.dto";
 import { flag, personAge, premiums, quote } from "./purchase.utils";
 
 const isPaymentLink = (name: unknown) =>
-  String(name ?? "")
-    .replace(/[\s_-]/g, "")
-    .toLowerCase() === "paymentlink";
+  /^(cashfree)?paymentlink(andqrcode)?$/.test(
+    String(name ?? "")
+      .replace(/[\s_-]/g, "")
+      .toLowerCase(),
+  );
 
 const orderFields =
   "OrdersId, ProductsId, FullName, Gender, DateofBirth, Age, MobileNumber, Relationship, CardHolderType, PayableAmount, Status";
