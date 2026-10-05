@@ -4,18 +4,20 @@ import {
   renewalStatuses,
 } from "../../../common/content/options";
 import { UI_TEXT, UI_MESSAGES } from "../../../common/content/labels";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Logo, AppShell } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
 import { QuickActions } from "../components/QuickActions";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { getSessionMember } from "./auth/member";
+import { textValue, usePortalData } from "./portal/usePortalData";
 import {
   loadHomeData,
   formatHomeDate,
   expiryStatus,
   cardStatus,
+  latestActivePackage,
   nextAppointment,
   appointmentState as getAppointmentState,
   vaultMembershipStatus as getVaultMembershipStatus,
@@ -30,6 +32,8 @@ import {
 const services = homeServices;
 export default function Home() {
   const navigate = useNavigate();
+  const pending = usePortalData("api/purchases/pending");
+  const [pendingOrdersExpanded, setPendingOrdersExpanded] = useState(false);
   const [sessionMember] = useState(getSessionMember);
   const [data, setData] = useState<Awaited<
     ReturnType<typeof loadHomeData>
@@ -67,6 +71,10 @@ export default function Home() {
   const member = data?.customer ?? sessionMember;
   const [serviceMessage, setServiceMessage] = useState("");
   const access = serviceAccess(data);
+  const showPackageBenefits =
+    access === "purchase" &&
+    (data?.hasMember === false || data?.products != null) &&
+    !latestActivePackage(data?.products ?? []);
   function allowService() {
     if (access === "available") return true;
     setServiceMessage(serviceAccessMessage(access));
@@ -194,22 +202,22 @@ export default function Home() {
         <span className="home-vault-value-label">
           {UI_TEXT.healthBenefitValue}
         </span>
-        <p>
-          {access === "available"
-            ? UI_TEXT.activeHealthBenefitsDescription
-            : UI_TEXT.purchaseHealthBenefitsDescription}
-        </p>
-        <ul
-          className="home-vault-benefits"
-          aria-label={UI_TEXT.membershipBenefits}
-        >
-          <li>{UI_TEXT.vaultBenefitOpd}</li>
-          <li>{UI_TEXT.vaultBenefitPharmacy}</li>
-          <li>{UI_TEXT.vaultBenefitCheckups}</li>
-        </ul>
-        <small className="home-vault-benefits-note">
-          {UI_TEXT.vaultPackageBenefitsNote}
-        </small>
+        {showPackageBenefits && (
+          <>
+            <p>{UI_TEXT.purchaseHealthBenefitsDescription}</p>
+            <ul
+              className="home-vault-benefits"
+              aria-label={UI_TEXT.membershipBenefits}
+            >
+              <li>{UI_TEXT.vaultBenefitOpd}</li>
+              <li>{UI_TEXT.vaultBenefitPharmacy}</li>
+              <li>{UI_TEXT.vaultBenefitCheckups}</li>
+            </ul>
+            <small className="home-vault-benefits-note">
+              {UI_TEXT.vaultPackageBenefitsNote}
+            </small>
+          </>
+        )}
         {(access === "loading" || access === "unavailable") && (
           <p role="status">{serviceAccessMessage(access)}</p>
         )}
@@ -311,6 +319,66 @@ export default function Home() {
         communityId={communityId}
         allowService={allowService}
       />
+      {pending.error && (
+        <aside className="home-action-notice" role="alert">
+          <p>Unable to load pending orders.</p>
+          <button className="outline-btn" onClick={pending.retry}>
+            {UI_TEXT.tryAgain}
+          </button>
+        </aside>
+      )}
+      {pending.rows.length > 0 && (
+        <section
+          className="home-pending-orders"
+          aria-labelledby="pending-orders-heading"
+        >
+          <div className="section-title">
+            <h2 id="pending-orders-heading">Pending Orders</h2>
+            <span>{pending.rows.length}</span>
+            {pending.rows.length > 1 && (
+              <button
+                type="button"
+                aria-expanded={pendingOrdersExpanded}
+                aria-controls="pending-orders-list"
+                onClick={() =>
+                  setPendingOrdersExpanded((expanded) => !expanded)
+                }
+              >
+                {pendingOrdersExpanded
+                  ? "Collapse"
+                  : `View all (${pending.rows.length})`}
+              </button>
+            )}
+          </div>
+          <ul id="pending-orders-list">
+            {(pendingOrdersExpanded
+              ? pending.rows
+              : pending.rows.slice(0, 1)
+            ).map((order) => (
+              <li key={textValue(order, "OrdersId")}>
+                <Link to={`/purchase/${textValue(order, "OrdersId")}/payment`}>
+                  <span className="home-pending-order-details">
+                    <strong>
+                      {textValue(order, "ProductName") || "Package purchase"}
+                    </strong>
+                    <small>
+                      Order #{textValue(order, "OrdersId")} · Pending
+                    </small>
+                    <small>{textValue(order, "FullName")}</small>
+                  </span>
+                  <span className="home-pending-order-action">
+                    <strong>
+                      {UI_TEXT.currencySymbol}
+                      {Number(order.PayableAmount).toLocaleString("en-IN")}
+                    </strong>
+                    <span>Continue purchase →</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <SectionTitle title={UI_TEXT.quickServices} />
       <div className="service-grid">
         {services.map(([icon, label, to]) => (

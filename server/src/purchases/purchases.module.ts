@@ -27,6 +27,10 @@ import { PurchasesService } from "./purchases.service";
 @Controller("api/purchases")
 export class PurchasesController {
   constructor(private readonly service: PurchasesService) {}
+  @Get("pending")
+  pending(@CurrentSession() session: SessionClaims) {
+    return this.service.pending(session.customerId);
+  }
   @Get("products/:id")
   product(@Param("id", ParseIntPipe) id: number) {
     return this.service.product(id);

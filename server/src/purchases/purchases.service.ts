@@ -34,6 +34,13 @@ export class PurchasesService {
     private readonly config: RuntimeConfigService,
   ) {}
 
+  async pending(customerId: number) {
+    return this.db.rows(
+      "SELECT o.OrdersId, o.ProductsId, o.FullName, o.PayableAmount, o.CreatedTime, o.Status, p.ProductName FROM Orders o LEFT JOIN Products p ON p.ProductsId = o.ProductsId WHERE o.CustomerId = ? AND o.RelatedOrderId IS NULL AND o.Status = 'Pending' ORDER BY o.OrdersId DESC",
+      [validId(customerId)],
+    );
+  }
+
   async product(
     id: number,
     requireAvailable = true,

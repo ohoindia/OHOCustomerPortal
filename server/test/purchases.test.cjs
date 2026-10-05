@@ -4,6 +4,24 @@ const { test } = require("node:test");
 const { PurchasesService } = require("../dist/purchases/purchases.service");
 const { personAge, quote } = require("../dist/purchases/purchase.utils");
 
+test("pending orders are scoped to the customer and exclude dependents and completed orders", async () => {
+  const orders = [{ OrdersId: 50, ProductName: "Health package" }];
+  const service = new PurchasesService(
+    {
+      async rows(sql, values) {
+        assert.deepEqual(values, [12]);
+        assert.match(sql, /o.CustomerId = \?/);
+        assert.match(sql, /o.RelatedOrderId IS NULL/);
+        assert.match(sql, /o.Status = 'Pending'/);
+        assert.match(sql, /ORDER BY o.OrdersId DESC/);
+        return orders;
+      },
+    },
+    {},
+  );
+  assert.deepEqual(await service.pending(12), orders);
+});
+
 const product = {
   ProductsId: 278,
   ProductName: "OHO HEALTH ACCOUNT",

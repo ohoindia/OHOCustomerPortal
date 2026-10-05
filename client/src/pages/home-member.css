@@ -2,6 +2,52 @@
   min-width: 0;
 }
 
+.home-pending-orders .section-title {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.home-pending-orders .section-title h2 {
+  margin-right: auto;
+}
+.home-pending-orders .section-title button {
+  min-height: 36px;
+}
+.home-pending-orders ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.home-pending-orders a {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #dceaf1;
+  border-radius: 16px;
+  background: #fff;
+  color: #142344;
+  text-decoration: none;
+}
+.home-pending-orders a:focus-visible {
+  outline: 3px solid #0094c6;
+  outline-offset: 3px;
+}
+.home-pending-order-details,
+.home-pending-order-action {
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.home-pending-order-details small {
+  color: #5c6c7d;
+}
+.home-pending-order-action {
+  color: #087eaf;
+}
+
 .home-quick-actions {
   margin: 24px 0;
 }
@@ -680,6 +726,7 @@
 .home-vault-value-label {
   display: block;
   margin-top: 6px;
+  margin-bottom: 8px;
   color: #d2f1fb;
   font-size: 13px;
 }

@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { UI_TEXT } from "../../../../common/content/labels";
 import { packageDetailsRoute } from "../../../../common/utils/purchase";
 import { AppShell, PageHeader } from "../../components/Layout";
