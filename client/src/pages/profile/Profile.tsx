@@ -1,4 +1,5 @@
 import { UI_TEXT } from "../../../../common/content/labels";
+import { capitalizeName } from "../../../../common/utils/names";
 import { useNavigate } from "react-router-dom";
 import { Settings } from "../../components/Icons";
 import { AppShell } from "../../components/Layout";
@@ -10,7 +11,7 @@ import { textValue, usePortalData } from "../portal/usePortalData";
 export function Profile() {
   const nav = useNavigate();
   const member = getSessionMember();
-  const name = member?.Name?.trim() || UI_TEXT.myProfile;
+  const name = capitalizeName(member?.Name?.trim() || UI_TEXT.myProfile);
   const initials = name
     .split(/\s+/)
     .slice(0, 2)

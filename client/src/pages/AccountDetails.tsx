@@ -1,4 +1,5 @@
 import { UI_TEXT, UI_MESSAGES } from "../../../common/content/labels";
+import { capitalizeName } from "../../../common/utils/names";
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell, PageHeader } from "../components/Layout";
@@ -158,7 +159,10 @@ export default function AccountDetailsPage() {
       <section className="account-section">
         <h2>{UI_TEXT.accountHolder}</h2>
         <dl className="account-fields">
-          <Field label={UI_TEXT.fullName} value={member?.Name} />
+          <Field
+            label={UI_TEXT.fullName}
+            value={member?.Name ? capitalizeName(member.Name) : member?.Name}
+          />
           <Field
             label={UI_TEXT.memberId}
             value={member?.MemberId || undefined}

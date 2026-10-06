@@ -8,6 +8,85 @@ export class ConsultationsService {
     private readonly db: DatabaseService,
     private readonly config: RuntimeConfigService,
   ) {}
+  async walletOpds(customerId: number) {
+    const cards = await this.db.rows(
+      `SELECT OHOCardnumber, DATE_FORMAT(StartDate, '%Y-%m-%d') AS StartDate,
+      DATE_FORMAT(EndDate, '%Y-%m-%d') AS EndDate,
+      (IsActivated = TRUE AND DATE(EndDate) >= DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+05:30'))
+      AND (StartDate IS NULL OR DATE(StartDate) <= DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+05:30')))) AS IsValid
+      FROM OHOCards WHERE CustomerId = ? ORDER BY IsValid DESC, EndDate DESC, OHOCardsId DESC LIMIT 1`,
+      [customerId],
+    );
+    const card = cards[0];
+    const usage = card
+      ? await this.db.rows(
+          `SELECT COALESCE(bc.DependentCustomerId, bc.CustomerId) AS CustomerId,
+      MAX(bc.Name) AS Name, COUNT(*) AS UsedOpds FROM BookingConsultation bc
+      JOIN HospitalPolicies hp ON hp.HospitalPoliciesId = bc.HospitalPoliciesId
+      LEFT JOIN Status s ON s.StatusId = bc.Status
+      WHERE (bc.CustomerId = ? OR EXISTS (
+        SELECT 1 FROM Customer family WHERE family.CustomerId = bc.CustomerId AND family.RelatedCustomerId = ?
+      )) AND hp.PoliciesType = 'Free Consultation'
+      AND bc.CardNumber = ?
+      AND (? IS NULL OR DATE(COALESCE(bc.AppointmentDate, bc.BookingDate)) >= ?)
+      AND DATE(COALESCE(bc.AppointmentDate, bc.BookingDate)) <= ?
+      AND (bc.IsCouponClaimed = TRUE OR LOWER(TRIM(s.Value)) IN ('visited', 'success', 'successful', 'successful visit'))
+      GROUP BY COALESCE(bc.DependentCustomerId, bc.CustomerId)`,
+          [
+            customerId,
+            customerId,
+            String(card.OHOCardnumber ?? ""),
+            card.StartDate ? String(card.StartDate) : null,
+            card.StartDate ? String(card.StartDate) : null,
+            String(card.EndDate ?? ""),
+          ],
+        )
+      : [];
+    const family = await this.db.rows(
+      "SELECT CustomerId, Name FROM Customer WHERE CustomerId = ? OR RelatedCustomerId = ? ORDER BY CustomerId",
+      [customerId, customerId],
+    );
+    const totalOpds = card ? 24 : 0;
+    const cardValid = Number(card?.IsValid ?? 0) === 1;
+    const usedOpds = usage.reduce(
+      (total, row) => total + Math.max(0, Number(row.UsedOpds ?? 0)),
+      0,
+    );
+    const members = [
+      ...family,
+      ...usage.filter(
+        (row) =>
+          !family.some(
+            (member) => Number(member.CustomerId) === Number(row.CustomerId),
+          ),
+      ),
+    ].map((member) => {
+      const used = Math.max(
+        0,
+        Number(
+          usage.find(
+            (row) => Number(row.CustomerId) === Number(member.CustomerId),
+          )?.UsedOpds ?? 0,
+        ),
+      );
+      return {
+        customerId: Number(member.CustomerId),
+        name: String(member.Name || "Family member"),
+        usedOpds: used,
+        utilizedAmount: used * 500,
+      };
+    });
+    return [
+      {
+        totalOpds,
+        usedOpds,
+        availableOpds: cardValid ? Math.max(0, totalOpds - usedOpds) : 0,
+        cardValid,
+        cardExpiry: card?.EndDate ?? null,
+        members,
+      },
+    ];
+  }
   async list(dto: AppointmentDto) {
     const values: SqlValue[] = [dto.customerId, dto.customerId];
     const coupon =

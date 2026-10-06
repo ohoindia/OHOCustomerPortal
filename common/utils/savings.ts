@@ -1,4 +1,26 @@
 export const HEALTH_BENEFIT_VALUE = 37000;
+export const LAB_MEDICINE_BENEFIT_VALUE = 25000;
+
+export function walletBalances(
+  availableOpds: number,
+  savings: { labInvestigation: number; pharmacyDiscount: number },
+) {
+  const consultation = Math.max(0, availableOpds) * 500;
+  const labAndMedicines = Math.max(
+    0,
+    Math.round(
+      (LAB_MEDICINE_BENEFIT_VALUE -
+        savings.labInvestigation -
+        savings.pharmacyDiscount) *
+        100,
+    ) / 100,
+  );
+  return {
+    consultation,
+    labAndMedicines,
+    total: consultation + labAndMedicines,
+  };
+}
 
 type SavingsBooking = {
   Appointment?: unknown;

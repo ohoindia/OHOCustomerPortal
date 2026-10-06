@@ -1,4 +1,5 @@
 import { UI_TEXT, UI_MESSAGES } from "../../common/content/labels";
+import { capitalizeName } from "../../common/utils/names";
 import { useEffect, useSyncExternalStore } from "react";
 import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { getSessionMember } from "./pages/auth/member";
@@ -95,7 +96,7 @@ export default function App() {
       ? member.Name?.trim() || sessionStorage.getItem("FullName")?.trim()
       : "";
     document.title = customerName
-      ? UI_MESSAGES.ohoindiaCustomerApp(customerName)
+      ? UI_MESSAGES.ohoindiaCustomerApp(capitalizeName(customerName))
       : UI_TEXT.ohoindiaCustomerApp2;
   }, [location, token]);
 

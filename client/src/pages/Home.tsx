@@ -4,6 +4,7 @@ import {
   renewalStatuses,
 } from "../../../common/content/options";
 import { UI_TEXT, UI_MESSAGES } from "../../../common/content/labels";
+import { capitalizeName } from "../../../common/utils/names";
 import { Link, useNavigate } from "react-router-dom";
 import { Logo, AppShell } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
@@ -162,7 +163,9 @@ export default function Home() {
     icon: UI_TEXT.doctorEmoji,
   };
   const name =
-    member?.Name?.trim() || sessionStorage.getItem("FullName") || UI_TEXT.guest;
+    capitalizeName(
+      member?.Name?.trim() || sessionStorage.getItem("FullName") || UI_TEXT.guest,
+    );
   const initials = name
     .split(/\s+/)
     .slice(0, 2)

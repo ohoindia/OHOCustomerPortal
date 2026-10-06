@@ -29,6 +29,18 @@ export class ConsultationsController {
     private readonly service: ConsultationsService,
     private readonly booking: BookServiceService,
   ) {}
+  @Post("walletOpds")
+  @HttpCode(200)
+  @ApiOperation({
+    summary: "Read family OPD entitlement and utilization for the wallet",
+  })
+  walletOpds(
+    @Body() dto: AppointmentDto,
+    @CurrentSession() session: SessionClaims,
+  ) {
+    requireOwner(session, "customerId", dto.customerId);
+    return this.service.walletOpds(dto.customerId);
+  }
   @Post("checkAvailableCoupons")
   @HttpCode(200)
   @ApiOperation({

@@ -2,6 +2,22 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule } from "./load-common.mjs";
 const { consultationSavings } = loadModule("../../common/utils/savings.ts");
+const { walletBalances } = loadModule("../../common/utils/savings.ts");
+
+test("wallet values available OPDs at 500 and shares the lab and medicine allowance", () => {
+  const balance = walletBalances(3, {
+    labInvestigation: 300,
+    pharmacyDiscount: 100,
+  });
+  assert.equal(balance.consultation, 1500);
+  assert.equal(balance.labAndMedicines, 24600);
+  assert.equal(balance.total, 26100);
+  assert.equal(
+    walletBalances(0, { labInvestigation: 26000, pharmacyDiscount: 100 })
+      .labAndMedicines,
+    0,
+  );
+});
 test("customer 42463: four visited consultations including family and two initiated bookings", () => {
   const rows = [
     {
