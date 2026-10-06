@@ -29,6 +29,8 @@ Keep the secret out of frontend configuration, Git, and `ConfigValues`. The serv
 
 ## Session behavior
 
+Native mobile login and registration request `mobileSession: true`. These device tokens use a persistent expiry (`9999-12-31T23:59:59Z`) and are stored in SecureStore; the app restores the same account on restart until logout clears the saved credential. Password/account/community changes and signing-key rotation still invalidate them through the existing server checks. Browser login keeps the configured JWT lifetime. Existing mobile installations with short-lived tokens need to sign in once after the server and mobile update. Logout removes the device credential; there is no server-side token revocation table.
+
 Tokens use HS256 with fixed algorithm validation, issuer, audience, expiry, subject, and a unique ID. Every protected request rechecks the account and a keyed password fingerprint. Password changes, account deactivation/deletion, and community membership changes invalidate existing sessions. The fingerprint does not contain the plaintext password.
 
 The web client stores the token, expiry, and profile in `sessionStorage`. Its route guards require a live session, logout clears it, and token expiry or a protected API's HTTP 401 returns the user to login. Old profile-only sessions must log in again. HTTP 403 means the session is valid but cannot access that resource. A delayed 401 from an older session cannot clear a newly created session.

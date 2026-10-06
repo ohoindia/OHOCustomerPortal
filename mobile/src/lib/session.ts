@@ -29,9 +29,11 @@ const publish = (value: Session | null) => {
 export async function restoreSession() {
   // Browser preview sessions remain in memory; device sessions use Keychain/Keystore.
   if (Platform.OS === "web") return;
+  const restoringRevision = revision;
   try {
     const saved = await SecureStore.getItemAsync(key);
     const value: Session | null = saved ? JSON.parse(saved) : null;
+    if (revision !== restoringRevision) return;
     if (validSession(value)) publish(value);
     else await SecureStore.deleteItemAsync(key);
   } catch {

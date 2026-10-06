@@ -44,7 +44,7 @@ export default function ClientView(props: ClientViewProps) {
       ref.current?.injectJavaScript(
         `window.ohoReceive(${JSON.stringify(value).replace(/</g, "\\u003c")}); true;`,
       );
-    });
+    }, true);
     host.current = clientHost;
     const back = BackHandler.addEventListener("hardwareBackPress", () => {
       if (!canGoBack.current) return false;

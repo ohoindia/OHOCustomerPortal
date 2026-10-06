@@ -83,10 +83,13 @@ export default function App() {
     const expiresAt = Date.parse(
       sessionStorage.getItem("tokenExpiresAt") ?? "",
     );
-    const timeout = window.setTimeout(
-      () => clearAuthSession(),
-      Math.max(0, expiresAt - Date.now()),
-    );
+    let timeout: number;
+    const checkExpiry = () => {
+      const remaining = expiresAt - Date.now();
+      if (remaining <= 0) clearAuthSession();
+      else timeout = window.setTimeout(checkExpiry, Math.min(remaining, 2147483647));
+    };
+    checkExpiry();
     return () => window.clearTimeout(timeout);
   }, [token]);
 

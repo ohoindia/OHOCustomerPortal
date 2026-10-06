@@ -7,6 +7,16 @@ const { SessionService } = require("../dist/auth/session.service");
 const secret = "test-only-random-secret-with-more-than-32-characters";
 const jwt = new JwtService();
 const identity = { customerId: 12, communityCustomerId: 0, groupId: 0 };
+
+test("mobile sessions survive ordinary expiry and revoke after password changes", async () => {
+  const state = fixture();
+  const result = await state.sessions.issue(identity, "4321", true);
+  const claims = await state.sessions.verify(result.JwtToken);
+  assert.equal(claims.exp, 253402300799);
+  assert.equal(result.expiresAt, "9999-12-31T23:59:59.000Z");
+  state.setAccount({ Password: "5678", IsActive: true });
+  await assert.rejects(state.sessions.verify(result.JwtToken), error => error.getStatus() === 401);
+});
 function fixture(settings = {}) {
   let account = {
     Password: "4321",

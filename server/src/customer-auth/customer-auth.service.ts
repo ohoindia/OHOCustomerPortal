@@ -186,6 +186,7 @@ export class CustomerAuthService {
       const token = await this.sessions.issue(
         { customerId: saved.insertId, communityCustomerId: 0, groupId: 0 },
         "1234",
+        dto.mobileSession === true,
       );
       return {
         status: true as const,
@@ -284,6 +285,7 @@ export class CustomerAuthService {
         groupId: Number(community?.GroupId ?? 0),
       },
       dto.password,
+      dto.mobileSession === true,
     );
     if (customerValid) {
       const now = new Date();

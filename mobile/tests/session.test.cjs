@@ -48,6 +48,23 @@ const response = (token) => ({
   expiresAt: new Date(Date.now() + 60000).toISOString(),
 });
 const member = { MemberId: 7, Name: "Member" };
+
+test("persistent device login restores after restart and logout removes it", async () => {
+  const first = setup();
+  await first.session.saveSession({ JwtToken: "persistent", expiresAt: "9999-12-31T23:59:59.000Z" }, member);
+  const restarted = compile("session", {
+    "expo-secure-store": first.storage,
+    "react-native": { Platform: { OS: "ios" } },
+    "./validation": compile("validation", {}),
+  });
+  await restarted.restoreSession();
+  assert.equal(restarted.getAccessToken(), "persistent");
+  assert.equal(restarted.getSession().member.MemberId, 7);
+  await restarted.clearSession();
+  await restarted.restoreSession();
+  assert.equal(restarted.getSession(), null);
+  assert.equal(first.saved(), null);
+});
 test("device sessions persist, restore, and clear credentials", async () => {
   const { session, saved } = setup();
   let notifications = 0;

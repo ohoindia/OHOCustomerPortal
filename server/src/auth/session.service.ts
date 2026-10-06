@@ -61,9 +61,12 @@ export class SessionService {
       .digest("hex");
   }
 
-  async issue(identity: SessionIdentity, password: string) {
+  async issue(identity: SessionIdentity, password: string, mobileSession = false) {
     const { secret, ttl, issuer, audience } = await this.settings();
     const now = Math.floor(Date.now() / 1000);
+    // Device credentials remain valid until removed by logout or revoked by
+    // account/password/signing-key changes. Keep a finite expiry in the contract.
+    const expires = mobileSession ? 253402300799 : now + ttl;
     const JwtToken = await this.jwt.signAsync(
       {
         ...identity,
@@ -77,7 +80,7 @@ export class SessionService {
       {
         secret,
         algorithm: "HS256",
-        expiresIn: ttl,
+        expiresIn: expires - now,
         issuer,
         audience,
         jwtid: randomUUID(),
@@ -86,7 +89,7 @@ export class SessionService {
     return {
       JwtToken,
       tokenType: "Bearer" as const,
-      expiresAt: new Date((now + ttl) * 1000).toISOString(),
+      expiresAt: new Date(expires * 1000).toISOString(),
     };
   }
 

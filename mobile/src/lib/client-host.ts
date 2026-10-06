@@ -21,6 +21,7 @@ export const localKey = "oho.client.local";
 export function createClientHost(
   apiBaseUrl: string,
   reply: (value: ClientReply) => void,
+  mobileSession = false,
 ) {
   const requests = new Map<number, AbortController>();
   let persistence = Promise.resolve();
@@ -66,7 +67,10 @@ export function createClientHost(
               const response = await fetch(url.href, {
                 method: message.method,
                 headers: message.headers,
-                body: message.body,
+                body: mobileSession && message.method === "POST" &&
+                  /\/api\/Customer\/(memberlogin|add)$/i.test(url.pathname)
+                  ? JSON.stringify({ ...JSON.parse(message.body ?? "{}"), mobileSession: true })
+                  : message.body,
                 signal: controller.signal,
               });
               const body = await response.text();

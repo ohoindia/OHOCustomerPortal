@@ -21,6 +21,10 @@ export class MobileDto {
   mobileNumber!: string;
 }
 export class LoginDto extends MobileDto {
+  @ApiPropertyOptional({ description: "Keep the mobile device signed in until logout." })
+  @IsOptional()
+  @IsBoolean()
+  mobileSession?: boolean;
   @ApiProperty({ example: "4321", pattern: "^\\d{4}$", writeOnly: true })
   @Matches(/^\d{4}$/)
   password!: string;
@@ -38,6 +42,10 @@ export class OtpDto extends MobileDto {
   otpGenerated!: string;
 }
 export class RegisterDto extends OtpDto {
+  @ApiPropertyOptional({ description: "Keep the mobile device signed in until logout." })
+  @IsOptional()
+  @IsBoolean()
+  mobileSession?: boolean;
   @ApiProperty({ example: "Example Customer", maxLength: 150 })
   @IsString()
   @MaxLength(150)

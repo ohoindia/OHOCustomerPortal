@@ -5,7 +5,7 @@ const vm = require("node:vm");
 const path = require("node:path");
 const ts = require("typescript");
 
-function setup(fetch = async () => new Response("[]")) {
+function setup(fetch = async () => new Response("[]"), mobileSession = false) {
   const exports = {};
   const writes = [];
   const sessions = [];
@@ -42,12 +42,28 @@ function setup(fetch = async () => new Response("[]")) {
   return {
     host: exports.createClientHost("https://api.example.com", (value) =>
       replies.push(value),
+      mobileSession,
     ),
     writes,
     sessions,
     replies,
   };
 }
+
+test("native login requests a persistent session without modifying other requests", async () => {
+  const bodies = [];
+  const { host } = setup(async (_, options) => {
+    bodies.push(JSON.parse(options.body));
+    return new Response("{}");
+  }, true);
+  for (const action of ["memberlogin", "add", "updatePassword"])
+    await host.receive({ type: "fetch", id: bodies.length + 1,
+      url: `https://api.example.com/api/Customer/${action}`, method: "POST",
+      body: JSON.stringify({ mobileNumber: "9876543210" }) });
+  assert.equal(bodies[0].mobileSession, true);
+  assert.equal(bodies[1].mobileSession, true);
+  assert.equal(bodies[2].mobileSession, undefined);
+});
 
 test("native API bridge forwards requests and preserves unauthorized status", async () => {
   let request;
