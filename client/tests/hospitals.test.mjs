@@ -116,3 +116,29 @@ test("search and speciality filters compose with distance selection and directio
     ),
   );
 });
+
+test("nearby results include hospitals inside 10 km and exclude those beyond it or without coordinates", () => {
+  const origin = { latitude: 0, longitude: 0 };
+  const latitudeAtKm = (km) => (km / 6371) * (180 / Math.PI);
+  const rows = [
+    { HospitalId: 1, Latitude: latitudeAtKm(10.01), Longitude: 0 },
+    { HospitalId: 2, Latitude: latitudeAtKm(9.99), Longitude: 0 },
+    { HospitalId: 3, Latitude: 0, Longitude: 0 },
+    { HospitalId: 4, Latitude: null, Longitude: null },
+  ];
+  assert.deepEqual(
+    Array.from(
+      selectHospitals(rows, { ...options, position: origin, proximity: "nearby" }),
+      (row) => row.HospitalId,
+    ),
+    [3, 2],
+  );
+  assert.equal(
+    selectHospitals(rows.slice(0, 1), {
+      ...options,
+      position: origin,
+      proximity: "nearby",
+    }).length,
+    0,
+  );
+});

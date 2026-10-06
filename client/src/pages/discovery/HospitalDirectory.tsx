@@ -1,5 +1,5 @@
 import { UI_TEXT } from "../../../../common/content/labels";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { AppShell, PageHeader } from "../../components/Layout";
 import { usePortalData, textValue } from "../portal/usePortalData";
@@ -37,10 +37,13 @@ export function HospitalDirectory() {
   const data = usePortalData("api/Hospital/all", { skip: 0, take: 0 });
   const [search, setSearch] = useState("");
   const [speciality, setSpeciality] = useState("all");
-  const [proximity, setProximity] = useState<HospitalProximity>("all");
+  const [proximity, setProximity] = useState<HospitalProximity>(
+    singleId ? "all" : "nearby",
+  );
   const [position, setPosition] = useState<Coordinates | null>(null);
-  const [locating, setLocating] = useState(false);
+  const [locating, setLocating] = useState(!singleId);
   const [locationError, setLocationError] = useState("");
+  const locationRequest = useRef(0);
   const specialities = [
     ...new Set(
       data.rows.map((row) => textValue(row, "Specialization")).filter(Boolean),
@@ -62,15 +65,20 @@ export function HospitalDirectory() {
     if (isBooking) nextParams.set("bookService", "1");
     setParams(nextParams, { replace: true, state: location.state });
   }
-  function locate(next: HospitalProximity = proximity) {
+  const requestLocation = useCallback((next: HospitalProximity) => {
+    const request = ++locationRequest.current;
     if (!navigator.geolocation) {
-      setLocationError(UI_TEXT.yourBrowserDoesNotSupportLocationYouCanStill);
+      queueMicrotask(() => {
+        if (request !== locationRequest.current) return;
+        setLocationError(UI_TEXT.yourBrowserDoesNotSupportLocationYouCanStill);
+        setProximity("all");
+        setLocating(false);
+      });
       return;
     }
-    setLocating(true);
-    setLocationError("");
     navigator.geolocation.getCurrentPosition(
       (result) => {
+        if (request !== locationRequest.current) return;
         setPosition({
           latitude: result.coords.latitude,
           longitude: result.coords.longitude,
@@ -79,7 +87,9 @@ export function HospitalDirectory() {
         setLocating(false);
       },
       (error) => {
+        if (request !== locationRequest.current) return;
         setLocating(false);
+        setProximity("all");
         setLocationError(
           error.code === 1
             ? UI_TEXT.locationAccessWasDeniedAllowItInYourBrowser
@@ -88,7 +98,20 @@ export function HospitalDirectory() {
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
+  }, []);
+  function locate(next: HospitalProximity) {
+    setLocating(true);
+    setLocationError("");
+    requestLocation(next);
   }
+  useEffect(() => {
+    const requests = locationRequest;
+    // A selected hospital's map should stay visible even outside the nearby area.
+    if (!singleId) requestLocation("nearby");
+    return () => {
+      requests.current++;
+    };
+  }, [singleId, requestLocation]);
   function changeProximity(next: HospitalProximity) {
     if (next !== "all" && !position) locate(next);
     else setProximity(next);
@@ -149,7 +172,7 @@ export function HospitalDirectory() {
           <button
             className="hospital-location-button"
             disabled={locating}
-            onClick={() => locate()}
+            onClick={() => locate(proximity)}
           >
             {locating
               ? UI_TEXT.locating
@@ -184,7 +207,9 @@ export function HospitalDirectory() {
             {locationError}
           </p>
         )}
-        {data.loading ? (
+        {locating && !position ? (
+          <p role="status">{UI_TEXT.locating}</p>
+        ) : data.loading ? (
           <p role="status">{UI_TEXT.loadingHospitals}</p>
         ) : data.error ? (
           <div role="alert">
