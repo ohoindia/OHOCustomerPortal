@@ -188,6 +188,7 @@
   color: #64748b;
 }
 .appointment-hospital {
+  flex: 1;
   min-width: 0;
 }
 .appointment-hospital h2 {

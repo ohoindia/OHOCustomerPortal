@@ -1,0 +1,69 @@
+.appointment-qr-code {
+  padding: 24px;
+  background: #fff;
+  max-width: 100%;
+}
+
+.appointment-qr-code svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.appointment-qr-thumbnail {
+  align-self: center;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.booking-card .card-grow {
+  overflow-wrap: anywhere;
+}
+
+.appointment-qr-thumbnail:focus-visible {
+  outline: 3px solid var(--brand-strong);
+  outline-offset: 3px;
+}
+
+.appointment-qr-dialog {
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: #fff;
+  color: #142344;
+  box-shadow: 0 20px 60px #0003;
+}
+
+.appointment-qr-dialog::backdrop {
+  background: #0f172ab3;
+}
+
+.appointment-qr-popup {
+  padding: 24px;
+  text-align: center;
+}
+
+.appointment-qr-popup h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.appointment-qr-popup p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.appointment-qr-popup .appointment-qr-code {
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.appointment-qr-popup .outline-btn {
+  width: 100%;
+}

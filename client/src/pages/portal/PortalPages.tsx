@@ -16,6 +16,7 @@ import {
 } from "../../../../common/content/options";
 import { UI_TEXT, UI_MESSAGES } from "../../../../common/content/labels";
 import { useState } from "react";
+import { BookingQr } from "../../components/BookingQr";
 import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AppShell, PageHeader, Logo } from "../../components/Layout";
@@ -302,6 +303,7 @@ function AppointmentCard({
     parsedDate && Number.isFinite(parsedDate.getTime()) ? parsedDate : null;
   const options = { timeZone: DISPLAY_FORMAT.timeZone };
   const booking = textValue(row, "BookingConsultationId");
+  const qrValue = textValue(row, "IdHashCode").trim();
   const savings = consultationSavings([row]).total;
   return (
     <article className={`appointment-card appointment-${period.toLowerCase()}`}>
@@ -359,9 +361,11 @@ function AppointmentCard({
               : UI_TEXT.appointmentDateToBeConfirmed}
           </p>
           <span className="appointment-patient">
-            {textValue(row, "Name") || UI_TEXT.patientNotProvided}
+            Patient:{" "}
+            {textValue(row, "Name").trim() || UI_TEXT.patientNotProvided}
           </span>
         </div>
+        <BookingQr value={qrValue} booking={booking} />
       </div>
       <div className="appointment-savings">
         <span>Savings from this visit</span>

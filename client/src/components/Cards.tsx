@@ -2,6 +2,7 @@ import { UI_TEXT } from "../../../common/content/labels";
 import { Star, ChevronRight } from "./Icons";
 import { useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
+import { BookingQr } from "./BookingQr";
 
 type Hospital = {
   id: number;
@@ -17,6 +18,7 @@ type Booking = {
   id: number;
   title: string;
   subtitle: string;
+  patientName?: string;
   date: string;
   status: string;
   icon: string;
@@ -51,10 +53,15 @@ export function HospitalCard({ hospital }: HospitalCardProps) {
 
 type BookingCardProps = {
   item: Booking;
+  qrValue?: string | null;
   onViewDetails?: () => void;
 };
 
-export function BookingCard({ item, onViewDetails }: BookingCardProps) {
+export function BookingCard({
+  item,
+  onViewDetails,
+  qrValue,
+}: BookingCardProps) {
   return (
     <article className="list-card booking-card">
       <div className="card-visual avatar">{item.icon}</div>
@@ -62,11 +69,13 @@ export function BookingCard({ item, onViewDetails }: BookingCardProps) {
         <span className="status-pill">{item.status}</span>
         <h3>{item.title}</h3>
         <p>{item.subtitle}</p>
+        {item.patientName && <p>Patient: {item.patientName}</p>}
         <p className="strong">{item.date}</p>
         <button className="text-btn" onClick={onViewDetails}>
           {UI_TEXT.viewDetails}
         </button>
       </div>
+      <BookingQr value={qrValue} booking={item.id} />
     </article>
   );
 }

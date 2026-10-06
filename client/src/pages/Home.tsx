@@ -154,6 +154,7 @@ export default function Home() {
         UI_TEXT.hospitalAppointment
       : appointmentState,
     subtitle: appointment?.HospitalName || "",
+    patientName: appointment?.Name?.trim() || UI_TEXT.patientNotProvided,
     date: formatHomeDate(appointment?.AppointmentDate),
     status:
       appointment?.StatusName ||
@@ -418,6 +419,7 @@ export default function Home() {
       {appointment ? (
         <BookingCard
           item={booking}
+          qrValue={appointment.IdHashCode}
           onViewDetails={() =>
             navigate(
               `/hospitalConsulationForm?bookingId=${appointment.BookingConsultationId}`,
