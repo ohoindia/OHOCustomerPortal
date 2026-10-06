@@ -921,15 +921,27 @@ const isPaymentLink = (row: PortalRow) =>
   );
 
 function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
+  const navigate = useNavigate();
   const [method, setMethod] = useState(
     Number(snapshot.paymentMethods.find(isPaymentLink)?.PaymentTypeId),
   );
   const [link, setLink] = useState<PaymentLink | null>(null);
+  const [failedQr, setFailedQr] = useState<string | null>(null);
+  const [now, setNow] = useState(Date.now);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const checking = useRef(false);
   const currentLinkId = link?.linkId;
+  const expiresAt = link ? new Date(link.expiresAt).getTime() : NaN;
+  const remainingSeconds = Number.isFinite(expiresAt)
+    ? Math.max(0, Math.ceil((expiresAt - now) / 1000))
+    : null;
+  useEffect(() => {
+    if (!currentLinkId || status !== "ACTIVE") return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [currentLinkId, status]);
   async function check() {
     if (checking.current) return;
     checking.current = true;
@@ -1010,6 +1022,7 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
         { body: { orderId: id, paymentTypeId: method } },
       );
       setLink(result);
+      setNow(Date.now());
       setStatus(result.status);
     } catch (error) {
       setError(
@@ -1038,10 +1051,10 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
         {error && <Notice error={error} />}
       </section>
     );
-  const active = link && status === "ACTIVE";
+  const active = link && status === "ACTIVE" && remainingSeconds !== 0;
   return (
     <section className="purchase-panel">
-      <h2>{active ? "Pay using payment link" : "Complete your purchase"}</h2>
+      <h2>{active ? "Scan to pay with Cashfree" : "Complete your purchase"}</h2>
       <p>
         Choose how you’d like to pay. Your payment is handled securely by
         Cashfree.
@@ -1079,6 +1092,33 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
       {error && <Notice error={error} />}
       {active ? (
         <>
+          {remainingSeconds !== null && (
+            <div className="purchase-payment-qr">
+              <span>QR code expires in</span>
+              <strong aria-label="Payment time remaining">
+                {String(Math.floor(remainingSeconds / 60)).padStart(2, "0")}:
+                {String(remainingSeconds % 60).padStart(2, "0")}
+              </strong>
+            </div>
+          )}
+          {link.qrCode && failedQr !== link.qrCode ? (
+            <div className="purchase-payment-qr">
+              <img
+                src={link.qrCode}
+                alt="Cashfree payment QR code"
+                onError={() => setFailedQr(link.qrCode ?? null)}
+              />
+              <p>
+                Scan this QR code to open Cashfree and complete your payment.
+              </p>
+            </div>
+          ) : (
+            <p className="purchase-help" role="status">
+              {link.qrCode
+                ? "The Cashfree QR code could not load. Use the secure payment link below."
+                : "Cashfree did not return a QR code. Use the secure payment link below."}
+            </p>
+          )}
           <a
             className="purchase-primary"
             href={link.url}
@@ -1126,14 +1166,24 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
               support.
             </p>
           )}
-          {(status === "EXPIRED" || status === "CANCELLED") && (
+          {(status === "EXPIRED" ||
+            status === "CANCELLED" ||
+            remainingSeconds === 0) && (
             <p className="purchase-help">
-              The previous payment link {status.toLowerCase()}. You can create a
-              new one.
+              The previous payment link{" "}
+              {remainingSeconds === 0 ? "expired" : status.toLowerCase()}. You
+              can create a new one.
             </p>
           )}
         </>
       )}
+      <button
+        type="button"
+        className="purchase-secondary"
+        onClick={() => navigate("/home")}
+      >
+        Cancel
+      </button>
       <Link
         className="purchase-text"
         to={`/purchase/${id}/${snapshot.nomineeProducts.length ? "nominees?review=1" : "family"}`}

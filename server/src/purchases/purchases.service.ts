@@ -508,14 +508,15 @@ export class PurchasesService {
       );
     return (await response.json()) as DbRow;
   }
-  private publicLink(link: DbRow) {
+  private publicLink(link: DbRow, provider?: DbRow) {
+    const qrCode = provider?.link_qrcode ?? provider?.link_QRCode;
     return {
       linkId: link.LinkId,
       url: link.LinkUrl,
       expiresAt: link.LinkExpiryTime,
       status: link.LinkStatus,
       mode: "link",
-      qrCode: undefined,
+      qrCode: typeof qrCode === "string" && qrCode.trim() ? qrCode : undefined,
     };
   }
   async payment(customerId: number, id: number, methodId: number) {
@@ -587,7 +588,21 @@ export class PurchasesService {
           [String(methodId), id],
           connection,
         );
-        return this.publicLink(existing);
+        const provider = await this.gateway(
+          `/${encodeURIComponent(String(existing.LinkId))}`,
+        );
+        if (
+          String(provider.link_id) !== String(existing.LinkId) ||
+          Number(provider.link_amount) !== Number(order.PayableAmount) ||
+          provider.link_currency !== "INR"
+        )
+          throw new ServiceUnavailableException(
+            "Payment details could not be verified.",
+          );
+        return this.publicLink(
+          { ...existing, LinkStatus: provider.link_status },
+          provider,
+        );
       }
       if (existing?.LinkStatus === "ACTIVE") {
         const previous = await this.gateway(
@@ -623,7 +638,7 @@ export class PurchasesService {
         link_purpose: "Wellness",
         link_partial_payments: false,
         link_auto_reminders: false,
-        link_expiry_time: new Date(Date.now() + 15 * 60000).toISOString(),
+        link_expiry_time: new Date(Date.now() + 5 * 60000).toISOString(),
       });
       const paymentUrl = new URL(String(link.link_url));
       if (
@@ -662,12 +677,15 @@ export class PurchasesService {
         [String(methodId), id],
         connection,
       );
-      return this.publicLink({
-        LinkId: String(link.link_id ?? linkId),
-        LinkUrl: paymentUrl.toString(),
-        LinkExpiryTime: expiry.toISOString(),
-        LinkStatus: "ACTIVE",
-      });
+      return this.publicLink(
+        {
+          LinkId: String(link.link_id ?? linkId),
+          LinkUrl: paymentUrl.toString(),
+          LinkExpiryTime: expiry.toISOString(),
+          LinkStatus: "ACTIVE",
+        },
+        link,
+      );
     }, `purchase-edit-${id}`);
   }
   async fetchPaymentLink(customerId: number, linkId: string) {
@@ -712,10 +730,13 @@ export class PurchasesService {
     return {
       status: paid ? "PAID" : String(link.link_status),
       completed: false,
-      link: await this.publicLink({
-        ...existing,
-        LinkStatus: String(link.link_status),
-      }),
+      link: this.publicLink(
+        {
+          ...existing,
+          LinkStatus: String(link.link_status),
+        },
+        link,
+      ),
     };
   }
 }
