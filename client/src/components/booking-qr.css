@@ -4,6 +4,7 @@
   max-width: 100%;
 }
 
+.appointment-qr-code img,
 .appointment-qr-code svg {
   display: block;
   max-width: 100%;

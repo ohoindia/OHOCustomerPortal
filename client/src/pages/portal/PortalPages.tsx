@@ -303,7 +303,8 @@ function AppointmentCard({
     parsedDate && Number.isFinite(parsedDate.getTime()) ? parsedDate : null;
   const options = { timeZone: DISPLAY_FORMAT.timeZone };
   const booking = textValue(row, "BookingConsultationId");
-  const qrValue = textValue(row, "IdHashCode").trim();
+  const qrValue =
+    textValue(row, "QRCode").trim() || textValue(row, "QRCodeUrl").trim();
   const savings = consultationSavings([row]).total;
   return (
     <article className={`appointment-card appointment-${period.toLowerCase()}`}>

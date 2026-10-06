@@ -419,7 +419,7 @@ export default function Home() {
       {appointment ? (
         <BookingCard
           item={booking}
-          qrValue={appointment.IdHashCode}
+          qrValue={appointment.QRCode || appointment.QRCodeUrl}
           onViewDetails={() =>
             navigate(
               `/hospitalConsulationForm?bookingId=${appointment.BookingConsultationId}`,

@@ -10,8 +10,29 @@ export function BookingQr({
   booking: string | number;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const qrValue = value?.trim();
-  if (!qrValue) return null;
+  const qrImage = value?.trim();
+  if (!qrImage) return null;
+  // The booking API supplies the hospital QR as a PNG, as in Customer Portal.
+  // Encoding IdHashCode again loses the hospital URL contained in that image.
+  const qrSource = qrImage.startsWith("data:image/png;base64,")
+    ? qrImage
+    : `data:image/png;base64,${qrImage}`;
+  const isBookingUrl = /^https?:\/\//i.test(qrImage);
+  const renderQr = (size: number) =>
+    isBookingUrl ? (
+      <QRCode
+        value={qrImage}
+        size={size}
+        title={`Hospital check-in QR code for booking ${booking}`}
+      />
+    ) : (
+      <img
+        src={qrSource}
+        width={size}
+        height={size}
+        alt={`Hospital check-in QR code for booking ${booking}`}
+      />
+    );
   return (
     <>
       <button
@@ -22,12 +43,7 @@ export function BookingQr({
         title="Tap to enlarge QR code"
         onClick={() => dialog.current?.showModal()}
       >
-        <QRCode
-          value={qrValue}
-          size={48}
-          level="M"
-          title={`Hospital check-in QR code for booking ${booking}`}
-        />
+        {renderQr(48)}
       </button>
       <dialog
         ref={dialog}
@@ -40,14 +56,7 @@ export function BookingQr({
         <div className="appointment-qr-popup">
           <h3>Consultation QR code</h3>
           <p>Booking #{booking}</p>
-          <div className="appointment-qr-code">
-            <QRCode
-              value={qrValue}
-              size={320}
-              level="M"
-              title={`Scan booking ${booking} at the hospital`}
-            />
-          </div>
+          <div className="appointment-qr-code">{renderQr(320)}</div>
           <p>Show this code to the hospital to scan with another mobile.</p>
           <button
             type="button"
