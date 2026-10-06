@@ -888,6 +888,18 @@ button {
   }
 }
 
+@media (max-width: 767px) {
+  .phone-content {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+  .bottom-nav {
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+  .bottom-nav a {
+    gap: 3px;
+  }
+}
+
 @media (min-width: 768px) {
   body {
     padding: 20px;
