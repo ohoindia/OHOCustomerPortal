@@ -80,6 +80,8 @@ npx eas-cli@latest build --platform android --profile preview
 
 Download and install the new APK from its new build link. Starting Expo or refreshing Metro does not update an already installed standalone APK. Update `expo.version` and `expo.android.versionCode` in `mobile/app.json` when assigning a new release version; keep the Android package name and signing keystore unchanged for in-place updates.
 
+The installed version is checked after sign-in and when the mobile app returns to the foreground. In `ConfigValues`, set `BizManageVersion` to the latest numeric release (for example `1.1.0`) and `BizManageAppLocation` to its HTTPS download page, APK URL, or store listing. Publish the downloadable release before raising `BizManageVersion`. A newer release displays an update message; **Update now** opens that location, and **Later** dismisses the message for that version during the current app session. Missing/invalid configuration or a failed request leaves the app usable. The existing authenticated `api/ConfigValues/all` endpoint exposes these two settings alongside dashboard settings; deploy the server change with the mobile release. The browser preview does not check for native updates.
+
 If a build appears to use stale cached dependencies, retry from `mobile` with:
 
 ```powershell

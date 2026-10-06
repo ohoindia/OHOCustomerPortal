@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import NetworkGuard from "../components/NetworkGuard";
+import AppVersionCheck from "../components/AppVersionCheck";
 
 export default function Layout() {
   return (
@@ -9,6 +10,7 @@ export default function Layout() {
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }} />
       <NetworkGuard />
+      <AppVersionCheck />
     </SafeAreaProvider>
   );
 }

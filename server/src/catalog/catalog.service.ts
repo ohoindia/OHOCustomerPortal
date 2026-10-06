@@ -5,9 +5,9 @@ import { DatabaseService } from "../database/database.service";
 export class CatalogService {
   constructor(private readonly db: DatabaseService) {}
   configValues(dto: PaginationDto) {
-    // Only settings consumed by the customer dashboard may leave the server.
+    // Only settings consumed by the customer app may leave the server.
     return this.paginate(
-      "SELECT ConfigKey, ConfigValue FROM ConfigValues WHERE ConfigKey IN ('HealthTip', 'OHOCareMobileNumber')",
+      "SELECT ConfigKey, ConfigValue FROM ConfigValues WHERE ConfigKey IN ('HealthTip', 'OHOCareMobileNumber', 'BizManageVersion', 'BizManageAppLocation') ORDER BY ConfigValuesId",
       dto,
     );
   }

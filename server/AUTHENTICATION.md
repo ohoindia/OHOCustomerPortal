@@ -25,7 +25,7 @@ node -e "console.log(require('node:crypto').randomBytes(48).toString('base64'))"
 
 Keep the secret out of frontend configuration, Git, and `ConfigValues`. The server reads `JWT_SECRET` exclusively from `ConfigSecrets`; missing or invalid settings fail closed with HTTP 503. No signing key is generated or inserted into a live database automatically. Settings refresh on the existing 60-second cache cycle; rotating the secret invalidates tokens as instances reload it.
 
-`ConfigValues/all` now returns only `HealthTip` and `OHOCareMobileNumber`, the settings used by the dashboard. JWT and other server settings are never included.
+`ConfigValues/all` returns only `HealthTip`, `OHOCareMobileNumber`, `BizManageVersion`, and `BizManageAppLocation`, the settings used by the dashboard and mobile update prompt. JWT and other server settings are never included.
 
 ## Session behavior
 
