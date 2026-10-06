@@ -5,8 +5,6 @@ on:
     branches: [develop]
     paths:
       - "server/**"
-      - ".github/workflows/deploy-server.yml"
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -35,50 +33,6 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: server/package-lock.json
-
-      - name: Inspect OIDC claims
-        run: |
-          node --input-type=module <<'NODE'
-          const url = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
-          url.searchParams.set("audience", "sts.amazonaws.com");
-
-          const response = await fetch(url, {
-            headers: {
-              Authorization: `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}`
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error(`OIDC request failed: ${response.status}`);
-          }
-
-          const { value } = await response.json();
-          const claims = JSON.parse(
-            Buffer.from(value.split(".")[1], "base64url").toString()
-          );
-
-          console.log(JSON.stringify({
-            iss: claims.iss,
-            aud: claims.aud,
-            sub: claims.sub
-          }, null, 2));
-          NODE
-
-      - name: Check deployment role variable
-        env:
-          DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-        run: |
-          node -e '
-            const actual = process.env.DEPLOY_ROLE_ARN;
-            const expected = "arn:aws:iam::640168439195:role/GitHubOhoCustomerApiDeploy";
-
-            console.log("Received:", JSON.stringify(actual));
-
-            if (actual !== expected) {
-              console.error("AWS_DEPLOY_ROLE_ARN does not match the expected ARN.");
-              process.exit(1);
-            }
-          '
 
       - name: Set up AWS SAM
         uses: aws-actions/setup-sam@v3
