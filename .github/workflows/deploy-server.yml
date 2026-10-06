@@ -36,6 +36,20 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
 
+      - name: Check deployment role variable
+        env:
+          DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+        run: |
+          node -e '
+            const actual = process.env.DEPLOY_ROLE_ARN;
+            const expected = "arn:aws:iam::640168439195:role/GitHubOhoCustomerApiDeploy";
+            console.log("Received:", JSON.stringify(actual));
+            if (actual !== expected) {
+              console.error("AWS_DEPLOY_ROLE_ARN does not match the expected ARN.");
+              process.exit(1);
+            }
+          '
+
       - name: Set up AWS SAM
         uses: aws-actions/setup-sam@v3
 
@@ -48,7 +62,7 @@ jobs:
       - name: Authenticate to AWS
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ap-south-1
 
       - name: Deploy API
