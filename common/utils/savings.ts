@@ -1,3 +1,4 @@
+import { getLocaleTag } from "../content/locale";
 export const HEALTH_BENEFIT_VALUE = 37000;
 export const LAB_MEDICINE_BENEFIT_VALUE = 25000;
 
@@ -83,7 +84,7 @@ export function consultationSavings(rows: readonly SavingsBooking[]) {
 }
 
 export function savingsCurrency(amount: number) {
-  return new Intl.NumberFormat("en-IN", {
+  return new Intl.NumberFormat(getLocaleTag(), {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 2,

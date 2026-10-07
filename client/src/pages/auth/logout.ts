@@ -1,9 +1,12 @@
 import { clearAuthSession } from "./session";
+import { LANGUAGE_KEY } from "../../../../common/content/locale";
 
 export function clearSession() {
   clearAuthSession();
   sessionStorage.clear();
+  const language = localStorage.getItem(LANGUAGE_KEY);
   localStorage.clear();
+  if (language) localStorage.setItem(LANGUAGE_KEY, language);
 
   // Cookies must be expired with the path and domain used when setting them.
   const paths = new Set(["/"]);

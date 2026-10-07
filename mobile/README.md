@@ -54,6 +54,49 @@ If prompted for Android signing credentials, generate a new keystore for a new a
 
 The build hook installs the client dependencies and bundles the latest shared interface automatically. When the build finishes, open the APK download link provided by EAS on your Android phone, download it, allow installation from that source if prompted, and install it. The installed APK runs without Metro or Expo Go; backend data and map tiles require connectivity.
 
+## Update the existing Google Play app
+
+The Android package is `com.ohoindia.connect`, matching the original app in
+`C:\code\oho\OHOCareConnectApp`. The new app keeps its own Expo project and
+`EXPO_PUBLIC_API_BASE_URL`; do not copy the original app's backend or Firebase configuration.
+The production profile in `eas.json` generates a store AAB and automatically increments
+the remote Android version code. No remote version is currently configured for this project;
+before the first replacement release, check the highest version code in Play Console
+and initialize EAS's production Android version with `npx eas-cli@latest build:version:set
+--platform android --profile production` if needed. Subsequent builds must exceed every
+previously uploaded Play version code.
+
+The original folder contains only a debug keystore, not a verified release upload key.
+Its Expo project is owned by `ohoindia`, with project ID
+`a76ab5cf-8a0c-4ee6-8373-cdc41c681ae7`. An account with access to that project should
+check its Android credentials in the Expo dashboard and download the original upload
+keystore, alias and passwords. Verify the keystore with `keytool -list -v -keystore
+"C:\secure\original-upload-key.jks"`: the expected SHA1 is
+`1D:2C:BB:E7:40:4D:FF:60:29:1B:F8:2E:DF:AC:62:0A:E6:FA:DA:17`.
+
+From this project's `mobile` directory, run:
+
+```powershell
+npx eas-cli@latest credentials --platform android
+```
+
+Select production and supply the verified original keystore for
+`com.ohoindia.connect`. Do not generate a replacement key unless you intend to request
+an upload key reset in Play Console. If the original key cannot be recovered and Play
+App Signing is enabled, register a replacement upload certificate through Play Console's
+upload key reset process and wait until it becomes active. Keep private keystores and
+passwords out of source control; do not upload them to chat.
+
+Once signing and version code are confirmed, build:
+
+```powershell
+npx eas-cli@latest build --platform android --profile production
+```
+
+Download the AAB from the completed EAS build and upload it to the existing app's
+internal testing track before releasing to production. Changing the Android package
+requires a new binary; previously built AABs with `in.ohoindia.customer` cannot be used.
+
 ## Rebuild after making changes
 
 To include changes to screens, styles, assets, navigation, dependencies, native configuration or the API URL in an installed APK, build and install a new APK. Reuse the existing Expo project and signing credentials; login and initialization are only needed if your account or project setup has changed.

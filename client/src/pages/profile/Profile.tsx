@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Settings } from "../../components/Icons";
 import { AppShell } from "../../components/Layout";
 import { MenuRow } from "../../components/Cards";
+import { LanguageLink } from "../Language";
 import { clearSession } from "../auth/logout";
 import { getSessionMember } from "../auth/member";
 import { textValue, usePortalData } from "../portal/usePortalData";
@@ -31,6 +32,7 @@ export function Profile() {
         <ProfileFamily id={Number(member?.MemberId)} />
       )}
       <div className="menu-list">
+        <LanguageLink />
         <MenuRow
           icon={UI_TEXT.familyIcon}
           title={UI_TEXT.myFamily}

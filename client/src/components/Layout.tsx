@@ -1,3 +1,4 @@
+import { translate as localize } from "../../../common/content/locale";
 import { Package } from "./PackageIcon";
 import { UI_TEXT } from "../../../common/content/labels";
 import { Home, CalendarDays, WalletCards, UserRound, ArrowLeft } from "./Icons";
@@ -35,7 +36,7 @@ export function PageHeader({ title, right, back = true }: PageHeaderProps) {
         {back && (
           <button
             className="icon-btn"
-            aria-label="Go back"
+            aria-label={localize("Go back")}
             onClick={() => {
               if ((window.history.state?.idx ?? 0) > 0) navigate(-1);
               else navigate("/home", { replace: true });
@@ -57,16 +58,17 @@ type BottomNavItem = {
   label: string;
 };
 
-const nav: BottomNavItem[] = [
-  { to: "/home", Icon: Home, label: UI_TEXT.home },
-  { to: "/bookings", Icon: CalendarDays, label: UI_TEXT.bookings },
-  { to: "/wallet", Icon: WalletCards, label: UI_TEXT.wallet },
-  { to: "/packages", Icon: Package, label: UI_TEXT.packages },
-  { to: "/profile", Icon: UserRound, label: UI_TEXT.profile },
-];
 export function BottomNav() {
+  const nav: BottomNavItem[] = [
+    { to: "/home", Icon: Home, label: UI_TEXT.home },
+    { to: "/bookings", Icon: CalendarDays, label: UI_TEXT.bookings },
+    { to: "/wallet", Icon: WalletCards, label: UI_TEXT.wallet },
+    { to: "/packages", Icon: Package, label: UI_TEXT.packages },
+    { to: "/profile", Icon: UserRound, label: UI_TEXT.profile },
+  ];
+
   return (
-    <nav className="bottom-nav" aria-label="Main navigation">
+    <nav className="bottom-nav" aria-label={localize("Main navigation")}>
       {nav.map(({ to, Icon, label }) => (
         <NavLink
           key={to}

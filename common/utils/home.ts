@@ -1,4 +1,4 @@
-import { DISPLAY_FORMAT } from "../content/config";
+import { getLocaleTag, translate } from "../content/locale";
 import { UI_TEXT } from "../content/labels";
 export function serviceAccess(
   data: {
@@ -18,11 +18,13 @@ export function serviceAccess(
 }
 export function serviceAccessMessage(access: ReturnType<typeof serviceAccess>) {
   return access === "loading"
-    ? "Checking membership validity. Please try again shortly."
+    ? translate("Checking membership validity. Please try again shortly.")
     : access === "unavailable"
-      ? "Unable to check membership validity. Please refresh and try again."
+      ? translate(
+          "Unable to check membership validity. Please refresh and try again.",
+        )
       : access === "purchase"
-        ? "Purchase a package to use our services."
+        ? translate("Purchase a package to use our services.")
         : "";
 }
 import type {
@@ -43,7 +45,7 @@ export function appointmentState(
 export function formatHomeDate(value?: string) {
   if (!value || !Number.isFinite(Date.parse(value))) return "";
   return new Date(value)
-    .toLocaleDateString(DISPLAY_FORMAT.dateLocale, {
+    .toLocaleDateString(getLocaleTag(), {
       day: "2-digit",
       month: "short",
       year: "numeric",

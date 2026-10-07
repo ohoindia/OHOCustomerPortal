@@ -1,3 +1,4 @@
+import { translate as localize } from "../../../../common/content/locale";
 import { UI_TEXT } from "../../../../common/content/labels";
 import {
   consultationSavings,
@@ -29,7 +30,7 @@ export function Wallet() {
     <AppShell>
       <PageHeader title={UI_TEXT.walletRewards} back={false} />
       {data.loading || opds.loading ? (
-        <p role="status">Loading wallet...</p>
+        <p role="status">{localize("Loading wallet...")}</p>
       ) : error ? (
         <div role="alert">
           <p>{error}</p>
@@ -39,59 +40,73 @@ export function Wallet() {
               opds.retry();
             }}
           >
-            Retry
+            {localize("Retry")}
           </button>
         </div>
       ) : (
         <>
           <section className="wallet-card">
-            <span>Available benefit amount</span>
+            <span>{localize("Available benefit amount")}</span>
             <strong>{savingsCurrency(balances.total)}</strong>
           </section>
           <div className="wallet-stats">
             <article>
-              <span>Free Consultation available</span>
+              <span>{localize("Free Consultation available")}</span>
               <b>{savingsCurrency(balances.consultation)}</b>
               <span>
-                {Number(opds.rows[0]?.availableOpds ?? 0)} OPDs available × ₹500
+                {Number(opds.rows[0]?.availableOpds ?? 0)}
+                {localize(" OPDs available × ₹500")}
               </span>
-              <span>{Number(opds.rows[0]?.usedOpds ?? 0)} OPDs utilized</span>
               <span>
-                {Number(opds.rows[0]?.totalOpds ?? 0)} OPDs for the card
-                validity period
+                {Number(opds.rows[0]?.usedOpds ?? 0)}
+                {localize(" OPDs utilized")}
+              </span>
+              <span>
+                {Number(opds.rows[0]?.totalOpds ?? 0)}
+                {localize(" OPDs for the card validity period")}
               </span>
               {Boolean(opds.rows[0]?.cardExpiry) && (
-                <span>Card expiry: {String(opds.rows[0].cardExpiry)}</span>
+                <span>
+                  {localize("Card expiry: ")}
+                  {String(opds.rows[0].cardExpiry)}
+                </span>
               )}
             </article>
             <article>
-              <span>Labs and Medicines available</span>
+              <span>{localize("Labs and Medicines available")}</span>
               <b>{savingsCurrency(balances.labAndMedicines)}</b>
               <span>
-                Shared ₹25,000 allowance, less lab and medicine discounts used.
+                {localize(
+                  "Shared ₹25,000 allowance, less lab and medicine discounts used.",
+                )}
               </span>
             </article>
           </div>
-          <h3>Free consultation utilization by family member</h3>
+          <h3>{localize("Free consultation utilization by family member")}</h3>
           <div className="wallet-stats">
             {childRows(opds.rows[0], "members").map((member) => (
               <article key={String(member.customerId)}>
                 <b>{String(member.name)}</b>
-                <span>{Number(member.usedOpds)} OPDs utilized</span>
                 <span>
-                  {savingsCurrency(Number(member.utilizedAmount))} used
+                  {Number(member.usedOpds)}
+                  {localize(" OPDs utilized")}
+                </span>
+                <span>
+                  {savingsCurrency(Number(member.utilizedAmount))}
+                  {localize(" used")}
                 </span>
               </article>
             ))}
           </div>
           <section className="wallet-card">
-            <span>Total savings</span>
+            <span>{localize("Total savings")}</span>
             <strong>{savingsCurrency(savings.total)}</strong>
             <b>{UI_TEXT.purseEmoji}</b>
           </section>
           <p>
-            Your family saved this amount on successful visits through your
-            health benefits.
+            {localize(
+              "Your family saved this amount on successful visits through your health benefits.",
+            )}
           </p>
           <div className="wallet-stats">
             {[
@@ -100,7 +115,7 @@ export function Wallet() {
               ["Pharmacy Discount", savings.pharmacyDiscount],
             ].map(([label, amount]) => (
               <article key={label}>
-                <span>{label}</span>
+                <span>{localize(String(label))}</span>
                 <b>{savingsCurrency(Number(amount))}</b>
               </article>
             ))}

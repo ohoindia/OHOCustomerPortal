@@ -1,7 +1,19 @@
 import { UI_TEXT } from "./labels";
 
+// Rebuild display options on access; API field names and routes stay intact.
+function localizedOptions<T extends readonly unknown[]>(factory: () => T): T {
+  return new Proxy([] as unknown as T, {
+    get(_target, key) {
+      return Reflect.get(factory(), key);
+    },
+    has(_target, key) {
+      return Reflect.has(factory(), key);
+    },
+  });
+}
+
 // Shared menu entries, form options, field labels, and sample display collections.
-export const otpKeypad = [
+export const otpKeypad = localizedOptions(() => [
   1,
   2,
   3,
@@ -14,188 +26,195 @@ export const otpKeypad = [
   "",
   0,
   UI_TEXT.backspaceIcon,
-];
+]);
 
-export const appointmentDates = [
+export const appointmentDates = localizedOptions(() => [
   [UI_TEXT.mon, "20"],
   [UI_TEXT.tue, "21"],
   [UI_TEXT.wed, "22"],
   [UI_TEXT.thu, "23"],
   [UI_TEXT.fri, "24"],
-];
+]);
 
-export const appointmentTimeSlots = [
+export const appointmentTimeSlots = localizedOptions(() => [
   UI_TEXT.value0900Am,
   UI_TEXT.value0930Am,
   UI_TEXT.value1000Am,
   UI_TEXT.value1030Am,
   UI_TEXT.value1100Am,
   UI_TEXT.value1130Am,
-];
+]);
 
-export const bookableCardStatuses: string[] = [
+export const bookableCardStatuses: string[] = localizedOptions(() => [
   UI_TEXT.active,
   UI_TEXT.expiresToday,
-];
+]);
 
-export const sampleOrderTimeline = [
+export const sampleOrderTimeline = localizedOptions(() => [
   [UI_TEXT.orderPlaced, UI_TEXT.value20May20261000Am],
   [UI_TEXT.confirmed, UI_TEXT.value20May20261005Am],
   [UI_TEXT.packed, UI_TEXT.value20May20261130Am],
   [UI_TEXT.outForDelivery, UI_TEXT.value20May20260400Pm],
   [UI_TEXT.delivered, UI_TEXT.value20May20260615Pm],
-];
+]);
 
-export const paymentMethods = [
+export const paymentMethods = localizedOptions(() => [
   UI_TEXT.upiPhonepeGpayPaytm,
   UI_TEXT.creditDebitCard,
   UI_TEXT.netBanking,
   UI_TEXT.ohoWalletBalance2450,
-];
+]);
 
-export const paymentMethodIcons = [
+export const paymentMethodIcons = localizedOptions(() => [
   UI_TEXT.selectedCircleIcon,
   UI_TEXT.gridIcon,
   UI_TEXT.homeIcon,
   UI_TEXT.walletIcon,
-];
+]);
 
-export const pharmacyCategories = [
+export const pharmacyCategories = localizedOptions(() => [
   UI_TEXT.allMedicines,
   UI_TEXT.healthCare,
   UI_TEXT.babyCare,
   UI_TEXT.devices,
-];
+]);
 
-export const pharmacyCategoryIcons = [
+export const pharmacyCategoryIcons = localizedOptions(() => [
   UI_TEXT.medicineEmoji,
   UI_TEXT.bottleEmoji,
   UI_TEXT.babyEmoji,
   UI_TEXT.watchEmoji,
-];
+]);
 
-export const homeServices = [
+export const homeServices = localizedOptions(() => [
   [UI_TEXT.hospitalEmoji, UI_TEXT.hospitals, "/hospitals"],
   [UI_TEXT.labEmoji, UI_TEXT.labTests, "/lab-tests"],
   [UI_TEXT.medicineEmoji, UI_TEXT.pharmacy, "/pharmacy"],
   [UI_TEXT.stethoscopeEmoji, UI_TEXT.healthCheckups, "/packages"],
-];
+]);
 
-export const membershipAttentionStatuses: string[] = [
+export const membershipAttentionStatuses: string[] = localizedOptions(() => [
   UI_TEXT.expired,
   UI_TEXT.expiresToday,
   UI_TEXT.inactive,
-];
+]);
 
-export const renewalStatuses: string[] = [
+export const renewalStatuses: string[] = localizedOptions(() => [
   UI_TEXT.expired,
   UI_TEXT.expiresToday,
-];
+]);
 
-export const portalServices = [
-  [UI_TEXT.myMembership, "/PurchasedPackages"],
-  [UI_TEXT.healthProducts, "/products"],
-  [UI_TEXT.myBookings, "/ConsultationList"],
-  [UI_TEXT.hospitalNetwork, "/network"],
-  [UI_TEXT.myProfile, "/myprofile"],
-  [UI_TEXT.familyMembers2, "/family-members"],
-  [UI_TEXT.nomineeDetails, "/NomineeDetails"],
-  [UI_TEXT.kycVerification2, "/kyc-verification"],
-  [UI_TEXT.accountManagement, "/account-management"],
-  [UI_TEXT.bmiCalculator, "/BMICalculator"],
-  [UI_TEXT.meditationBreathing, "/MeditationBreathing"],
-  [UI_TEXT.stepTracker, "/StepTracker"],
-  [UI_TEXT.nutritionTracking, "/NutritionTracking"],
-  [UI_TEXT.support2, "/support"],
-  [UI_TEXT.privacyPolicy, "/privacy-policy"],
-  [UI_TEXT.aboutUs, "/aboutus"],
-] as const;
+export const portalServices = localizedOptions(
+  () =>
+    [
+      [UI_TEXT.myMembership, "/PurchasedPackages"],
+      [UI_TEXT.healthProducts, "/products"],
+      [UI_TEXT.myBookings, "/ConsultationList"],
+      [UI_TEXT.hospitalNetwork, "/network"],
+      [UI_TEXT.myProfile, "/myprofile"],
+      [UI_TEXT.familyMembers2, "/family-members"],
+      [UI_TEXT.nomineeDetails, "/NomineeDetails"],
+      [UI_TEXT.kycVerification2, "/kyc-verification"],
+      [UI_TEXT.accountManagement, "/account-management"],
+      [UI_TEXT.bmiCalculator, "/BMICalculator"],
+      [UI_TEXT.meditationBreathing, "/MeditationBreathing"],
+      [UI_TEXT.stepTracker, "/StepTracker"],
+      [UI_TEXT.nutritionTracking, "/NutritionTracking"],
+      [UI_TEXT.support2, "/support"],
+      [UI_TEXT.privacyPolicy, "/privacy-policy"],
+      [UI_TEXT.aboutUs, "/aboutus"],
+    ] as const,
+);
 
-export const customerProfileFields: [string, string][] = [
-  ["Name", UI_TEXT.name],
-  ["MobileNumber", UI_TEXT.mobileNumber],
-  ["Email", UI_TEXT.email],
-  ["DateofBirth", UI_TEXT.dateOfBirth],
-  ["Gender", UI_TEXT.gender],
-  ["AddressLine1", UI_TEXT.address],
-  ["AddressLine2", UI_TEXT.addressLine2],
-  ["Village", UI_TEXT.village],
-  ["City", UI_TEXT.city],
-  ["Pincode", UI_TEXT.pincode],
-];
+export const customerProfileFields: [string, string][] = localizedOptions(
+  () => [
+    ["Name", UI_TEXT.name],
+    ["MobileNumber", UI_TEXT.mobileNumber],
+    ["Email", UI_TEXT.email],
+    ["DateofBirth", UI_TEXT.dateOfBirth],
+    ["Gender", UI_TEXT.gender],
+    ["AddressLine1", UI_TEXT.address],
+    ["AddressLine2", UI_TEXT.addressLine2],
+    ["Village", UI_TEXT.village],
+    ["City", UI_TEXT.city],
+    ["Pincode", UI_TEXT.pincode],
+  ],
+);
 
-export const familyMemberFields: [string, string][] = [
+export const familyMemberFields: [string, string][] = localizedOptions(() => [
   ["Name", UI_TEXT.name],
   ["Relationship", UI_TEXT.relationship],
   ["DateofBirth", UI_TEXT.dateOfBirth],
   ["Gender", UI_TEXT.gender],
-];
+]);
 
-export const bookingPeriods = [
+export const bookingPeriods = localizedOptions(() => [
   UI_TEXT.all,
   UI_TEXT.previous,
   UI_TEXT.upcoming,
   UI_TEXT.running,
-];
+]);
 
-export const appointmentFields: [string, string][] = [
+export const appointmentFields: [string, string][] = localizedOptions(() => [
   ["BookingDate", UI_TEXT.bookedOn],
   ["AppointmentDate", UI_TEXT.appointmentDate],
   ["ServiceName", UI_TEXT.service],
   ["Name", UI_TEXT.patient],
   ["StatusName", UI_TEXT.status],
-];
+]);
 
-export const policyFields: [string, string][] = [
+export const policyFields: [string, string][] = localizedOptions(() => [
   ["PoliciesProductName", UI_TEXT.policy],
   ["PolicyCOINumber", UI_TEXT.coiNumber],
-];
+]);
 
-export const insurerFields: [string, string][] = [
+export const insurerFields: [string, string][] = localizedOptions(() => [
   ["InsurerName", UI_TEXT.name],
   ["InsurerRelationship", UI_TEXT.relationship],
-];
+]);
 
-export const dependentFields: [string, string][] = [
+export const dependentFields: [string, string][] = localizedOptions(() => [
   ["DependentFullName", UI_TEXT.name],
   ["DependentRelationship", UI_TEXT.relationship],
-];
+]);
 
-export const nomineeFields: [string, string][] = [
+export const nomineeFields: [string, string][] = localizedOptions(() => [
   ["NomineeFullName", UI_TEXT.name],
   ["NomineeRelationship", UI_TEXT.relationship],
   ["NomineeDateofBirth", UI_TEXT.dateOfBirth],
-];
+]);
 
-export const packageValidityFields: [string, string][] = [
-  ["IssuedOn", UI_TEXT.issuedOn],
-  ["ValidTill", UI_TEXT.validUntil],
-  ["PaidAmount", UI_TEXT.paidAmount],
-];
+export const packageValidityFields: [string, string][] = localizedOptions(
+  () => [
+    ["IssuedOn", UI_TEXT.issuedOn],
+    ["ValidTill", UI_TEXT.validUntil],
+    ["PaidAmount", UI_TEXT.paidAmount],
+  ],
+);
 
-export const hospitalFields: [string, string][] = [
+export const hospitalFields: [string, string][] = localizedOptions(() => [
   ["Specialization", UI_TEXT.speciality],
   ["AddressLine1", UI_TEXT.address],
   ["AddressLine2", UI_TEXT.addressLine2],
   ["City", UI_TEXT.city],
   ["HospitalCode", UI_TEXT.hospitalCode],
-];
+]);
 
-export const productFields: [string, string][] = [
+export const productFields: [string, string][] = localizedOptions(() => [
   ["SaleAmount", UI_TEXT.price],
   ["MaximumAdult", UI_TEXT.adultsCovered],
   ["MaximumChild", UI_TEXT.childrenCovered],
   ["SumAssured", UI_TEXT.sumAssured],
-];
+]);
 
-export const membershipBenefits = [
+export const membershipBenefits = localizedOptions(() => [
   UI_TEXT.discountsAtPartnerHospitals,
   UI_TEXT.freeAnnualHealthCheck,
   UI_TEXT.priorityAppointmentBooking,
   UI_TEXT.ohoCoinsOnEveryPurchase,
-];
+]);
 
-export const sampleNotifications = [
+export const sampleNotifications = localizedOptions(() => [
   [
     UI_TEXT.calendarEmoji,
     UI_TEXT.appointmentConfirmed,
@@ -206,17 +225,17 @@ export const sampleNotifications = [
     UI_TEXT.labTestReminder,
     UI_TEXT.yourBloodTestIsScheduledTomorrow,
   ],
-];
+]);
 
-export const sampleHealthRecords = [
+export const sampleHealthRecords = localizedOptions(() => [
   [UI_TEXT.bloodTestReport, UI_TEXT.value20May2026],
   [UI_TEXT.xRayChest, UI_TEXT.value15Apr2026],
   [UI_TEXT.ecgReport, UI_TEXT.value10Mar2026],
   [UI_TEXT.mriScan, UI_TEXT.value05Feb2026],
-];
+]);
 
-export const sampleFamilyMembers = [
+export const sampleFamilyMembers = localizedOptions(() => [
   [UI_TEXT.srikanthReddy, UI_TEXT.self, UI_TEXT.manEmoji],
   [UI_TEXT.sujathaReddy, UI_TEXT.wife, UI_TEXT.womanEmoji],
   [UI_TEXT.chinnuReddy, UI_TEXT.daughter, UI_TEXT.girlEmoji],
-];
+]);

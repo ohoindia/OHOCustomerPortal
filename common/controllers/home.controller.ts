@@ -1,4 +1,5 @@
 import type { Appointment, Member, Verification } from "../models/customer";
+import { translate } from "../content/locale";
 import type { ApiRequest } from "../api/transport";
 import { nextAppointment } from "../utils/home";
 import { createCustomerController } from "./customer.controller";
@@ -39,7 +40,9 @@ export function createHomeController(apiRequest: ApiRequest) {
         return value;
       } catch {
         if (!signal.aborted)
-          errors.push(`${label} unavailable. Please try again later.`);
+          errors.push(
+            translate(`${label} unavailable. Please try again later.`),
+          );
         return null;
       }
     }

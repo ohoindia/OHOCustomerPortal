@@ -6,6 +6,7 @@ import { authRequest, remainingSeconds } from "./api";
 import { getSessionMember } from "./member";
 import { saveAuthSession } from "./session";
 import "./login.css";
+import { LanguageLink } from "../Language";
 
 export function Login() {
   const navigate = useNavigate();
@@ -323,6 +324,7 @@ export function Login() {
                   ? UI_TEXT.sendOtp
                   : UI_TEXT.continue}
           </button>
+          <LanguageLink button />
         </form>
         <p className="login-security">
           {UI_TEXT.yourAccountConnectsYouToYourFamilySCare}

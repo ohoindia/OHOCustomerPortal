@@ -3,7 +3,7 @@
     "name": "OHOINDIA",
     "slug": "oho-customer-mobile",
     "scheme": "ohoindia",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/oho-brand.png",
     "userInterfaceStyle": "light",
@@ -12,7 +12,7 @@
       "bundleIdentifier": "in.ohoindia.customer"
     },
     "android": {
-      "package": "in.ohoindia.customer",
+      "package": "com.ohoindia.connect",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/oho-brand.png"

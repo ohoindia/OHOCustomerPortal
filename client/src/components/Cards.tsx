@@ -1,3 +1,4 @@
+import { translate as localize } from "../../../common/content/locale";
 import { UI_TEXT } from "../../../common/content/labels";
 import { Star, ChevronRight } from "./Icons";
 import { useNavigate } from "react-router-dom";
@@ -69,7 +70,12 @@ export function BookingCard({
         <span className="status-pill">{item.status}</span>
         <h3>{item.title}</h3>
         <p>{item.subtitle}</p>
-        {item.patientName && <p>Patient: {item.patientName}</p>}
+        {item.patientName && (
+          <p>
+            {localize("Patient: ")}
+            {item.patientName}
+          </p>
+        )}
         <p className="strong">{item.date}</p>
         <button className="text-btn" onClick={onViewDetails}>
           {UI_TEXT.viewDetails}

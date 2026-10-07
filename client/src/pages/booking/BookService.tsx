@@ -1,3 +1,4 @@
+import { translate as localize } from "../../../../common/content/locale";
 import {
   serviceAccess,
   serviceAccessMessage,
@@ -48,7 +49,7 @@ export function BookService() {
           typeof result.status !== "boolean" ||
           (result.status && !Array.isArray(result.returnData))
         )
-          throw new Error("Unexpected membership response");
+          throw new Error(localize("Unexpected membership response"));
         if (!controller.signal.aborted)
           setMembership({
             card: result.status
@@ -82,11 +83,11 @@ export function BookService() {
                   setMembershipAttempt((value) => value + 1);
                 }}
               >
-                Try again
+                {localize("Try again")}
               </button>
             )}
             {access === "purchase" && (
-              <Link to="/packages">Purchase a package</Link>
+              <Link to="/packages">{localize("Purchase a package")}</Link>
             )}
           </>
         ) : !Number.isSafeInteger(hospitalId) || hospitalId <= 0 ? (

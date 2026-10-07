@@ -1,3 +1,7 @@
+import {
+  translate as localize,
+  getLocaleTag,
+} from "../../../../common/content/locale";
 import { Link } from "react-router-dom";
 import { UI_TEXT } from "../../../../common/content/labels";
 import { packageDetailsRoute } from "../../../../common/utils/purchase";
@@ -28,13 +32,19 @@ export function Packages() {
     <AppShell className="packages-page">
       <PageHeader title={UI_TEXT.packages} />
       <div className="packages-intro">
-        <span className="packages-eyebrow">OHOINDIA HEALTH PACKAGES</span>
+        <span className="packages-eyebrow">
+          {localize("OHOINDIA HEALTH PACKAGES")}
+        </span>
         <h2>
-          Care for you.
+          {localize("Care for you.")}
           <br />
-          Confidence for your family.
+          {localize("Confidence for your family.")}
         </h2>
-        <p>Explore health benefits and find a package that fits your needs.</p>
+        <p>
+          {localize(
+            "Explore health benefits and find a package that fits your needs.",
+          )}
+        </p>
         <span className="packages-intro-mark" aria-hidden="true">
           <svg viewBox="0 0 48 48" fill="none">
             <path
@@ -70,8 +80,12 @@ export function Packages() {
         )}
         {!data.loading && !data.error && groups.length === 0 && (
           <div className="packages-message">
-            <h2>More care is on the way</h2>
-            <p>No packages are available right now. Please check again soon.</p>
+            <h2>{localize("More care is on the way")}</h2>
+            <p>
+              {localize(
+                "No packages are available right now. Please check again soon.",
+              )}
+            </p>
           </div>
         )}
         {groups.map((group, index) => (
@@ -84,7 +98,9 @@ export function Packages() {
               <h2 id={`package-category-${index}`}>{group.name}</h2>
               <span>
                 {group.packages.length}{" "}
-                {group.packages.length === 1 ? "package" : "packages"}
+                {group.packages.length === 1
+                  ? localize("package")
+                  : localize("packages")}
               </span>
             </div>
             {group.packages.map((product) => {
@@ -130,10 +146,19 @@ export function Packages() {
                     <div className="catalog-package-meta">
                       {members > 0 && (
                         <span>
-                          Up to {members} {members === 1 ? "member" : "members"}
+                          {localize("Up to ")}
+                          {members}{" "}
+                          {members === 1
+                            ? localize("member")
+                            : localize("members")}
                         </span>
                       )}
-                      {validity > 0 && <span>{validity} days validity</span>}
+                      {validity > 0 && (
+                        <span>
+                          {validity}
+                          {localize(" days validity")}
+                        </span>
+                      )}
                     </div>
                   )}
                   {benefits.length > 0 && (
@@ -145,7 +170,8 @@ export function Packages() {
                   )}
                   {benefits.length > 3 && (
                     <span className="catalog-package-more">
-                      +{benefits.length - 3} more benefits
+                      +{benefits.length - 3}
+                      {localize(" more benefits")}
                     </span>
                   )}
                   <div className="catalog-package-footer">
@@ -153,17 +179,18 @@ export function Packages() {
                       {amount !== null && (
                         <>
                           <span className="catalog-package-price-label">
-                            Package price
+                            {localize("Package price")}
                           </span>
                           <strong className="catalog-package-price">
                             {UI_TEXT.currencySymbol}
-                            {amount.toLocaleString("en-IN")}
+                            {amount.toLocaleString(getLocaleTag())}
                           </strong>
                         </>
                       )}
                     </div>
                     <span className="catalog-package-cta">
-                      Purchase <span aria-hidden="true">↗</span>
+                      {localize("Purchase ")}
+                      <span aria-hidden="true">↗</span>
                     </span>
                   </div>
                 </Link>

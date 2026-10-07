@@ -1,3 +1,4 @@
+import { getLocaleTag } from "../../../common/content/locale";
 import { UI_TEXT, UI_MESSAGES } from "../../../common/content/labels";
 import { capitalizeName } from "../../../common/utils/names";
 import { useEffect, useState, type ReactNode } from "react";
@@ -18,7 +19,7 @@ import "./account-details.css";
 const date = (value?: string | null) =>
   formatHomeDate(value ?? undefined) || UI_TEXT.notProvided;
 const money = (value: number) =>
-  new Intl.NumberFormat("en-IN", {
+  new Intl.NumberFormat(getLocaleTag(), {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 0,

@@ -1,3 +1,9 @@
+import {
+  translate as localize,
+  translate,
+  getLocaleTag,
+} from "../../../../common/content/locale";
+import { LanguageLink } from "../Language";
 import { DISPLAY_FORMAT } from "../../../../common/content/config";
 import { APP_LINKS } from "../../../../common/content/config";
 import {
@@ -178,7 +184,8 @@ function Consultations({ id }: { id: number }) {
         (row) => textValue(row, "BookingConsultationId") === bookingId,
       )
     : data.rows.filter(
-        (row) => period === UI_TEXT.all || bookingPeriod(row) === period,
+        (row) =>
+          period === UI_TEXT.all || translate(bookingPeriod(row)) === period,
       );
   return (
     <AppShell className="bookings-page">
@@ -224,7 +231,8 @@ function Consultations({ id }: { id: number }) {
                   {
                     data.rows.filter(
                       (row) =>
-                        tab === UI_TEXT.all || bookingPeriod(row) === tab,
+                        tab === UI_TEXT.all ||
+                        translate(bookingPeriod(row)) === tab,
                     ).length
                   }
                 </span>
@@ -235,9 +243,11 @@ function Consultations({ id }: { id: number }) {
         {!bookingId && !data.loading && !data.error && (
           <section
             className="bookings-savings"
-            aria-label="Booking history savings"
+            aria-label={localize("Booking history savings")}
           >
-            <span>Savings from these bookings, including family visits</span>
+            <span>
+              {localize("Savings from these bookings, including family visits")}
+            </span>
             <strong>{savingsCurrency(consultationSavings(rows).total)}</strong>
           </section>
         )}
@@ -324,23 +334,29 @@ function AppointmentCard({
           className="appointment-date"
           aria-label={
             date
-              ? date.toLocaleDateString("en-IN", options)
+              ? date.toLocaleDateString(getLocaleTag(), options)
               : UI_TEXT.dateNotScheduled
           }
         >
           <span>
             {date
-              ? date.toLocaleDateString("en-IN", { ...options, month: "short" })
+              ? date.toLocaleDateString(getLocaleTag(), {
+                  ...options,
+                  month: "short",
+                })
               : UI_TEXT.dateBadge}
           </span>
           <strong>
             {date
-              ? date.toLocaleDateString("en-IN", { ...options, day: "2-digit" })
+              ? date.toLocaleDateString(getLocaleTag(), {
+                  ...options,
+                  day: "2-digit",
+                })
               : UI_TEXT.emptyValue}
           </strong>
           <small>
             {date
-              ? date.toLocaleDateString("en-IN", {
+              ? date.toLocaleDateString(getLocaleTag(), {
                   ...options,
                   weekday: "short",
                 })
@@ -353,7 +369,7 @@ function AppointmentCard({
           </h2>
           <p>
             {date
-              ? date.toLocaleDateString("en-IN", {
+              ? date.toLocaleDateString(getLocaleTag(), {
                   ...options,
                   day: "numeric",
                   month: "long",
@@ -362,14 +378,14 @@ function AppointmentCard({
               : UI_TEXT.appointmentDateToBeConfirmed}
           </p>
           <span className="appointment-patient">
-            Patient:{" "}
+            {localize("Patient:")}{" "}
             {textValue(row, "Name").trim() || UI_TEXT.patientNotProvided}
           </span>
         </div>
         <BookingQr value={qrValue} booking={booking} />
       </div>
       <div className="appointment-savings">
-        <span>Savings from this visit</span>
+        <span>{localize("Savings from this visit")}</span>
         <strong>{savingsCurrency(savings)}</strong>
       </div>
       <div className="appointment-footer">
@@ -720,6 +736,7 @@ export function AccountManagement() {
   }
   return (
     <Page title={UI_TEXT.accountManagement}>
+      <LanguageLink />
       <Link to="/myprofile">{UI_TEXT.viewPersonalDetails}</Link>
       <p>{UI_TEXT.resetYourFourDigitPasswordUsingAnOtpSent}</p>
       <button

@@ -1,3 +1,7 @@
+import {
+  formatMessage,
+  translate as localize,
+} from "../../../common/content/locale";
 import { useRef } from "react";
 import QRCode from "react-qr-code";
 import "./booking-qr.css";
@@ -23,14 +27,18 @@ export function BookingQr({
       <QRCode
         value={qrImage}
         size={size}
-        title={`Hospital check-in QR code for booking ${booking}`}
+        title={formatMessage("Hospital check-in QR code for booking {0}", [
+          booking,
+        ])}
       />
     ) : (
       <img
         src={qrSource}
         width={size}
         height={size}
-        alt={`Hospital check-in QR code for booking ${booking}`}
+        alt={formatMessage("Hospital check-in QR code for booking {0}", [
+          booking,
+        ])}
       />
     );
   return (
@@ -38,9 +46,9 @@ export function BookingQr({
       <button
         type="button"
         className="appointment-qr-code appointment-qr-thumbnail"
-        aria-label={`Enlarge QR code for booking ${booking}`}
+        aria-label={formatMessage("Enlarge QR code for booking {0}", [booking])}
         aria-haspopup="dialog"
-        title="Tap to enlarge QR code"
+        title={localize("Tap to enlarge QR code")}
         onClick={() => dialog.current?.showModal()}
       >
         {renderQr(48)}
@@ -48,23 +56,32 @@ export function BookingQr({
       <dialog
         ref={dialog}
         className="appointment-qr-dialog"
-        aria-label={`Consultation QR code for booking ${booking}`}
+        aria-label={formatMessage("Consultation QR code for booking {0}", [
+          booking,
+        ])}
         onClick={(event) => {
           if (event.target === event.currentTarget) dialog.current?.close();
         }}
       >
         <div className="appointment-qr-popup">
-          <h3>Consultation QR code</h3>
-          <p>Booking #{booking}</p>
+          <h3>{localize("Consultation QR code")}</h3>
+          <p>
+            {localize("Booking #")}
+            {booking}
+          </p>
           <div className="appointment-qr-code">{renderQr(320)}</div>
-          <p>Show this code to the hospital to scan with another mobile.</p>
+          <p>
+            {localize(
+              "Show this code to the hospital to scan with another mobile.",
+            )}
+          </p>
           <button
             type="button"
             className="outline-btn"
             autoFocus
             onClick={() => dialog.current?.close()}
           >
-            Close
+            {localize("Close")}
           </button>
         </div>
       </dialog>

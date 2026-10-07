@@ -3,8 +3,7 @@ import vm from "node:vm";
 import ts from "typescript";
 
 // Load the actual shared TypeScript with Node; inject only platform globals.
-export function loadModule(path, globals = {}) {
-  const cache = new Map();
+export function loadModule(path, globals = {}, cache = new Map()) {
   function load(url) {
     if (cache.has(url.href)) return cache.get(url.href);
     const exports = {};

@@ -1,5 +1,6 @@
+import { translate, formatMessage } from "./locale";
 // Display values shared by web and mobile. Keep platform-specific styling and navigation in the app.
-export const UI_TEXT = {
+const ENGLISH_TEXT = {
   hospitalFallback: "hospital",
   dateBadge: "DATE",
   bookingUnit: "booking",
@@ -734,28 +735,49 @@ export const UI_TEXT = {
   ohoMembershipCard: "OHO Membership Card",
 } as const;
 
+// Resolve at access time so shared utilities use the same language as screens.
+export const UI_TEXT = new Proxy(ENGLISH_TEXT, {
+  get(target, key: keyof typeof ENGLISH_TEXT) {
+    return translate(target[key]);
+  },
+}) as { [K in keyof typeof ENGLISH_TEXT]: string };
+
 // Formatting functions keep dynamic display messages consistent across platforms.
 export const UI_MESSAGES = {
-  ageInYears: (age: string | number) => `${age} years`,
-  relationshipSuffix: (relationship: string) => ` (${relationship})`,
-  appointmentPeriod: (period: string) => `${period} appointments`,
-  adultCount: (count: number) => `${count} adults`,
-  childCount: (count: number) => `${count} children`,
+  ageInYears: (age: string | number) => formatMessage("{0} years", [age]),
+  relationshipSuffix: (relationship: string) =>
+    formatMessage(" ({0})", [relationship]),
+  appointmentPeriod: (period: string) =>
+    formatMessage("{0} appointments", [period]),
+  adultCount: (count: number) => formatMessage("{0} adults", [count]),
+  childCount: (count: number) => formatMessage("{0} children", [count]),
   ohoindiaCustomerApp: (customerName: string) =>
-    `${customerName} | OHOINDIA CUSTOMER APP`,
+    formatMessage("{0} | OHOINDIA CUSTOMER APP", [customerName]),
   enterThe6DigitOtpSentTo91: (phonePrefix: string, phoneSuffix: string) =>
-    `Enter the 6-digit OTP sent to +91 ${phonePrefix} ${phoneSuffix}.`,
-  resendOtpInS: (seconds: number) => `Resend OTP in ${seconds}s`,
+    formatMessage("Enter the 6-digit OTP sent to +91 {0} {1}.", [
+      phonePrefix,
+      phoneSuffix,
+    ]),
+  resendOtpInS: (seconds: number) =>
+    formatMessage("Resend OTP in {0}s", [seconds]),
   freeConsultationCouponAvailable: (count: number, pluralSuffix: string) =>
-    `${count} free consultation coupon${pluralSuffix} available`,
-  showOnMap: (hospitalName: unknown) => `Show ${hospitalName} on map`,
+    formatMessage("{0} free consultation coupon{1} available", [
+      count,
+      pluralSuffix,
+    ]),
+  showOnMap: (hospitalName: unknown) =>
+    formatMessage("Show {0} on map", [hospitalName]),
   yourMembershipCardIs: (status: string, action: string) =>
-    `Your membership card is ${status}. ${action}`,
+    formatMessage("Your membership card is {0}. {1}", [status, action]),
   reviewRenewalOptionsInPackages2: (packageName: string, status: string) =>
-    `${packageName}: ${status}. Review renewal options in Packages.`,
-  membership2: (status: string) => `Membership ${status}`,
-  noBookingsFound2: (period: string) => `No ${period} bookings found.`,
+    formatMessage("{0}: {1}. Review renewal options in Packages.", [
+      packageName,
+      status,
+    ]),
+  membership2: (status: string) => formatMessage("Membership {0}", [status]),
+  noBookingsFound2: (period: string) =>
+    formatMessage("No {0} bookings found.", [period]),
   aadhaarPan: (aadhaarStatus: string, panStatus: string) =>
-    `Aadhaar: ${aadhaarStatus}. PAN: ${panStatus}.`,
-  remove: (label: string) => `Remove ${label}`,
+    formatMessage("Aadhaar: {0}. PAN: {1}.", [aadhaarStatus, panStatus]),
+  remove: (label: string) => formatMessage("Remove {0}", [label]),
 };

@@ -9,6 +9,8 @@ import {
   subscribeAuthSession,
 } from "./pages/auth/session";
 import { Splash } from "./pages/auth/Splash";
+import { Language } from "./pages/Language";
+import { useLocale } from "./localization";
 import { Login } from "./pages/auth/Login";
 import { OTP } from "./pages/auth/OTP";
 import Home from "./pages/Home";
@@ -71,6 +73,10 @@ function ProductDetailsRoute() {
 }
 
 export default function App() {
+  const locale = useLocale();
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
   const location = useLocation();
   const token = useSyncExternalStore(
     subscribeAuthSession,
@@ -87,7 +93,11 @@ export default function App() {
     const checkExpiry = () => {
       const remaining = expiresAt - Date.now();
       if (remaining <= 0) clearAuthSession();
-      else timeout = window.setTimeout(checkExpiry, Math.min(remaining, 2147483647));
+      else
+        timeout = window.setTimeout(
+          checkExpiry,
+          Math.min(remaining, 2147483647),
+        );
     };
     checkExpiry();
     return () => window.clearTimeout(timeout);
@@ -101,10 +111,11 @@ export default function App() {
     document.title = customerName
       ? UI_MESSAGES.ohoindiaCustomerApp(capitalizeName(customerName))
       : UI_TEXT.ohoindiaCustomerApp2;
-  }, [location, token]);
+  }, [location, token, locale]);
 
   return (
-    <Routes>
+    <Routes key={locale}>
+      <Route path="/language" element={<Language />} />
       <Route path="/splash" element={<Splash />} />
       <Route path="/login" element={<Login />} />
       <Route path="/otp" element={<OTP />} />

@@ -1,4 +1,9 @@
 import {
+  formatMessage,
+  translate as localize,
+  getLocaleTag,
+} from "../../../common/content/locale";
+import {
   homeServices,
   membershipAttentionStatuses,
   renewalStatuses,
@@ -162,10 +167,9 @@ export default function Home() {
       (appointment ? UI_TEXT.booked : UI_TEXT.emptyValue),
     icon: UI_TEXT.doctorEmoji,
   };
-  const name =
-    capitalizeName(
-      member?.Name?.trim() || sessionStorage.getItem("FullName") || UI_TEXT.guest,
-    );
+  const name = capitalizeName(
+    member?.Name?.trim() || sessionStorage.getItem("FullName") || UI_TEXT.guest,
+  );
   const initials = name
     .split(/\s+/)
     .slice(0, 2)
@@ -211,16 +215,18 @@ export default function Home() {
           {savings
             ? savingsCurrency(savings.remaining)
             : appointments === null
-              ? "Unavailable"
-              : "Loading…"}
+              ? localize("Unavailable")
+              : localize("Loading…")}
         </strong>
         <span className="home-vault-value-label">
-          Remaining health benefit value
+          {localize("Remaining health benefit value")}
         </span>
         {savings && (
           <p>
-            Your family has saved {savingsCurrency(savings.total)} on successful
-            visits. <Link to="/wallet">View savings</Link>
+            {localize("Your family has saved ")}
+            {savingsCurrency(savings.total)}
+            {localize(" on successful visits. ")}
+            <Link to="/wallet">{localize("View savings")}</Link>
           </p>
         )}
         {showPackageBenefits && (
@@ -323,12 +329,12 @@ export default function Home() {
               className="primary-btn"
               onClick={() => navigate("/packages")}
             >
-              Purchase a package
+              {localize("Purchase a package")}
             </button>
           )}
           <button
             className="text-btn"
-            aria-label="Dismiss"
+            aria-label={localize("Dismiss")}
             onClick={() => setServiceMessage("")}
           >
             {UI_TEXT.dismissIcon}
@@ -342,7 +348,7 @@ export default function Home() {
       />
       {pending.error && (
         <aside className="home-action-notice" role="alert">
-          <p>Unable to load pending orders.</p>
+          <p>{localize("Unable to load pending orders.")}</p>
           <button className="outline-btn" onClick={pending.retry}>
             {UI_TEXT.tryAgain}
           </button>
@@ -354,7 +360,7 @@ export default function Home() {
           aria-labelledby="pending-orders-heading"
         >
           <div className="section-title">
-            <h2 id="pending-orders-heading">Pending Orders</h2>
+            <h2 id="pending-orders-heading">{localize("Pending Orders")}</h2>
             <span>{pending.rows.length}</span>
             {pending.rows.length > 1 && (
               <button
@@ -366,8 +372,8 @@ export default function Home() {
                 }
               >
                 {pendingOrdersExpanded
-                  ? "Collapse"
-                  : `View all (${pending.rows.length})`}
+                  ? localize("Collapse")
+                  : formatMessage("View all ({0})", [pending.rows.length])}
               </button>
             )}
           </div>
@@ -380,19 +386,24 @@ export default function Home() {
                 <Link to={`/purchase/${textValue(order, "OrdersId")}/payment`}>
                   <span className="home-pending-order-details">
                     <strong>
-                      {textValue(order, "ProductName") || "Package purchase"}
+                      {textValue(order, "ProductName") ||
+                        localize("Package purchase")}
                     </strong>
                     <small>
-                      Order #{textValue(order, "OrdersId")} · Pending
+                      {localize("Order #")}
+                      {textValue(order, "OrdersId")}
+                      {localize(" · Pending")}
                     </small>
                     <small>{textValue(order, "FullName")}</small>
                   </span>
                   <span className="home-pending-order-action">
                     <strong>
                       {UI_TEXT.currencySymbol}
-                      {Number(order.PayableAmount).toLocaleString("en-IN")}
+                      {Number(order.PayableAmount).toLocaleString(
+                        getLocaleTag(),
+                      )}
                     </strong>
-                    <span>Continue purchase →</span>
+                    <span>{localize("Continue purchase →")}</span>
                   </span>
                 </Link>
               </li>

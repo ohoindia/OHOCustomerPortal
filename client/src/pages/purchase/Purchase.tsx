@@ -1,3 +1,7 @@
+import {
+  translate as localize,
+  getLocaleTag,
+} from "../../../../common/content/locale";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
@@ -72,7 +76,7 @@ const relationships = [
   "Sister",
 ];
 const currency = (value: unknown) =>
-  `₹${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+  `₹${Number(value).toLocaleString(getLocaleTag(), { maximumFractionDigits: 2 })}`;
 const dateInput = (value: unknown) => {
   if (typeof value !== "string") return "";
   if (!value.includes("T")) return value.slice(0, 10);
@@ -104,7 +108,7 @@ function useData<T>(path: string) {
             error:
               error instanceof Error
                 ? error.message
-                : "Unable to load purchase.",
+                : localize("Unable to load purchase."),
           });
       });
     return () => controller.abort();
@@ -117,10 +121,10 @@ function useData<T>(path: string) {
 function Notice({ error, retry }: { error?: string; retry?: () => void }) {
   return (
     <div className="purchase-notice" role={error ? "alert" : "status"}>
-      {error || "Loading your purchase…"}
+      {error || localize("Loading your purchase…")}
       {error && retry && (
         <button className="outline-btn" onClick={retry}>
-          Try again
+          {localize("Try again")}
         </button>
       )}
     </div>
@@ -155,7 +159,7 @@ function PersonFields({
   return (
     <div className="purchase-form-grid">
       <label className="purchase-full">
-        Full name
+        {localize("Full name")}
         <input
           required
           maxLength={100}
@@ -165,7 +169,7 @@ function PersonFields({
         />
       </label>
       <label>
-        Date of birth
+        {localize("Date of birth")}
         <input
           required
           type="date"
@@ -175,38 +179,43 @@ function PersonFields({
         />
       </label>
       <label>
-        Gender
+        {localize("Gender")}
         <select
           required
           value={value.gender}
           onChange={(event) => field("gender", event.target.value)}
         >
-          <option value="">Select gender</option>
+          <option value="">{localize("Select gender")}</option>
           {["Male", "Female", "Other"].map((gender) => (
-            <option key={gender}>{gender}</option>
+            <option key={gender} value={gender}>
+              {localize(gender)}
+            </option>
           ))}
         </select>
       </label>
       {!primary && (
         <label>
-          Relationship
+          {localize("Relationship")}
           <select
             required
             value={spouse ? "Spouse" : value.relationship}
             disabled={spouse}
             onChange={(event) => field("relationship", event.target.value)}
           >
-            <option value="">Select relationship</option>
+            <option value="">{localize("Select relationship")}</option>
             {[...relationships, ...(nominee ? ["Other"] : [])].map(
               (relation) => (
-                <option key={relation}>{relation}</option>
+                <option key={relation} value={relation}>
+                  {localize(relation)}
+                </option>
               ),
             )}
           </select>
         </label>
       )}
       <label>
-        Mobile number{!primary && " (optional)"}
+        {localize("Mobile number")}
+        {!primary && localize(" (optional)")}
         <input
           required={primary}
           readOnly={primary}
@@ -241,9 +250,9 @@ export function PurchaseDetails() {
     <Details id={id} />
   ) : (
     <AppShell>
-      <PageHeader title="Package details" />
-      <p>Select a package to continue.</p>
-      <Link to="/packages">Browse packages</Link>
+      <PageHeader title={localize("Package details")} />
+      <p>{localize("Select a package to continue.")}</p>
+      <Link to="/packages">{localize("Browse packages")}</Link>
     </AppShell>
   );
 }
@@ -283,7 +292,7 @@ function Details({ id }: { id: number }) {
       setError(
         error instanceof Error
           ? error.message
-          : "Unable to create your purchase.",
+          : localize("Unable to create your purchase."),
       );
     } finally {
       submitting.current = false;
@@ -294,14 +303,15 @@ function Details({ id }: { id: number }) {
   const amount = product ? packageAmount(product) : null;
   return (
     <AppShell className="purchase-page">
-      <PageHeader title="Package details" />
+      <PageHeader title={localize("Package details")} />
       {!product ? (
         <Notice error={data.error} retry={data.reload} />
       ) : (
         <>
           <section className="purchase-summary">
             <span className="purchase-eyebrow">
-              {textValue(product, "ProductCategoryName") || "HEALTH PACKAGE"}
+              {textValue(product, "ProductCategoryName") ||
+                localize("HEALTH PACKAGE")}
             </span>
             <h2>{textValue(product, "ProductName")}</h2>
             <p>{textValue(product, "ShortDescription")}</p>
@@ -309,34 +319,51 @@ function Details({ id }: { id: number }) {
               <strong className="purchase-price">{currency(amount)}</strong>
             )}
             <small>
-              Inclusive of applicable taxes · Final price depends on age
-              eligibility
+              {localize(
+                "Inclusive of applicable taxes · Final price depends on age eligibility",
+              )}
             </small>
             <div className="catalog-package-meta">
               {Number(product.MaximumMembers) > 0 && (
-                <span>Up to {String(product.MaximumMembers)} members</span>
+                <span>
+                  {localize("Up to ")}
+                  {String(product.MaximumMembers)}
+                  {localize(" members")}
+                </span>
               )}
               {Number(product.ValidForDays) > 0 && (
-                <span>{String(product.ValidForDays)} days validity</span>
+                <span>
+                  {String(product.ValidForDays)}
+                  {localize(" days validity")}
+                </span>
               )}
             </div>
             <details className="purchase-pricing">
-              <summary>Premium breakdown & eligibility</summary>
+              <summary>{localize("Premium breakdown & eligibility")}</summary>
               {product.InsurancePremiums.map((premium, i) => (
                 <div className="purchase-premium" key={i}>
                   <b>
-                    Ages {String(premium.MinimumAge)}–
-                    {String(premium.MaximumAge)}
+                    {localize("Ages ")}
+                    {String(premium.MinimumAge)}–{String(premium.MaximumAge)}
                   </b>
-                  <span>Base premium {currency(premium.BasePremium)}</span>
-                  <span>GST {String(premium.GST)}%</span>
-                  <strong>Total {currency(premium.TotalAmount)}</strong>
+                  <span>
+                    {localize("Base premium ")}
+                    {currency(premium.BasePremium)}
+                  </span>
+                  <span>
+                    {localize("GST ")}
+                    {String(premium.GST)}%
+                  </span>
+                  <strong>
+                    {localize("Total ")}
+                    {currency(premium.TotalAmount)}
+                  </strong>
                 </div>
               ))}
             </details>
           </section>
           <section className="purchase-panel">
-            <h2>Package benefits</h2>
+            <h2>{localize("Package benefits")}</h2>
             <ul className="catalog-package-benefits">
               {cleanText(
                 textValue(product, "KeyFeatures") ||
@@ -347,7 +374,7 @@ function Details({ id }: { id: number }) {
             </ul>
             {product.includedProducts.length > 0 && (
               <>
-                <h3>Included in your package</h3>
+                <h3>{localize("Included in your package")}</h3>
                 <ul className="purchase-included">
                   {product.includedProducts.map((row) => (
                     <li key={textValue(row, "ProductsId")}>
@@ -361,27 +388,37 @@ function Details({ id }: { id: number }) {
           <section className="purchase-panel">
             <h2>
               {missingDetails
-                ? "Add your customer details"
-                : "Confirm your details"}
+                ? localize("Add your customer details")
+                : localize("Confirm your details")}
             </h2>
             <p>
               {missingDetails
-                ? "Complete the missing details below to continue purchasing your package."
-                : "Your Account Details are filled in below. Review them before continuing."}
+                ? localize(
+                    "Complete the missing details below to continue purchasing your package.",
+                  )
+                : localize(
+                    "Your Account Details are filled in below. Review them before continuing.",
+                  )}
             </p>
-            <p>We’ll use these details for your package and payment.</p>
+            <p>
+              {localize(
+                "We’ll use these details for your package and payment.",
+              )}
+            </p>
             <form onSubmit={purchase}>
               <PersonFields value={purchaser} onChange={setPerson} primary />
               {error && <Notice error={error} />}
               <button className="purchase-primary" disabled={busy}>
-                {busy ? "Creating purchase…" : "Save details and continue"}
+                {busy
+                  ? localize("Creating purchase…")
+                  : localize("Save details and continue")}
                 <span aria-hidden="true">→</span>
               </button>
               <small className="purchase-help">
-                Next:{" "}
+                {localize("Next:")}{" "}
                 {Number(product.MaximumMembers) > 1
-                  ? "family members, then payment"
-                  : "complete your package details and payment"}
+                  ? localize("family members, then payment")
+                  : localize("complete your package details and payment")}
                 .
               </small>
             </form>
@@ -399,8 +436,8 @@ export function PurchaseFlow() {
     <OrderFlow key={`${id}/${step}`} id={id} step={step || "payment"} />
   ) : (
     <AppShell>
-      <PageHeader title="Purchase" />
-      <Link to="/packages">Browse packages</Link>
+      <PageHeader title={localize("Purchase")} />
+      <Link to="/packages">{localize("Browse packages")}</Link>
     </AppShell>
   );
 }
@@ -424,12 +461,15 @@ function OrderFlow({ id, step }: { id: number; step: string }) {
         : "Payment";
   return (
     <AppShell className="purchase-page">
-      <PageHeader title={label} />
+      <PageHeader title={localize(label)} />
       {!snapshot ? (
         <Notice error={data.error} retry={data.reload} />
       ) : (
         <>
-          <div className="purchase-steps" aria-label="Purchase progress">
+          <div
+            className="purchase-steps"
+            aria-label={localize("Purchase progress")}
+          >
             {["family", "nominees", "payment"].map((item, i) => (
               <span
                 key={item}
@@ -438,15 +478,18 @@ function OrderFlow({ id, step }: { id: number; step: string }) {
               >
                 <b>{i + 1}</b>
                 {item === "family"
-                  ? "Family"
+                  ? localize("Family")
                   : item === "nominees"
-                    ? "Nominees"
-                    : "Payment"}
+                    ? localize("Nominees")
+                    : localize("Payment")}
               </span>
             ))}
           </div>
           <section className="purchase-order">
-            <span>Order #{id}</span>
+            <span>
+              {localize("Order #")}
+              {id}
+            </span>
             <h2>{textValue(snapshot.product, "ProductName")}</h2>
             <strong>{currency(snapshot.order.PayableAmount)}</strong>
             <p>{textValue(snapshot.order, "FullName")}</p>
@@ -503,7 +546,9 @@ function FamilyStep({
       reload();
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Unable to add family member.",
+        error instanceof Error
+          ? error.message
+          : localize("Unable to add family member."),
       );
     } finally {
       setBusy(false);
@@ -522,7 +567,7 @@ function FamilyStep({
       setError(
         error instanceof Error
           ? error.message
-          : "Unable to remove family member.",
+          : localize("Unable to remove family member."),
       );
     } finally {
       setBusy(false);
@@ -530,22 +575,32 @@ function FamilyStep({
   }
   return (
     <section className="purchase-panel">
-      <h2>{spouseRequired ? "Add your spouse" : "Add your family"}</h2>
-      <p>
-        Your package covers up to {limit + 1} members, including you.{" "}
+      <h2>
         {spouseRequired
-          ? "Spouse details are required for this package."
-          : "Add the family members you want to include, or continue with yourself."}
+          ? localize("Add your spouse")
+          : localize("Add your family")}
+      </h2>
+      <p>
+        {localize("Your package covers up to ")}
+        {limit + 1}
+        {localize(" members, including you.")}{" "}
+        {spouseRequired
+          ? localize("Spouse details are required for this package.")
+          : localize(
+              "Add the family members you want to include, or continue with yourself.",
+            )}
       </p>
       <ul className="purchase-people">
         <li>
           <div>
             <b>{textValue(snapshot.order, "FullName")}</b>
             <small>
-              Primary member · {textValue(snapshot.order, "Age")} years
+              {localize("Primary member · ")}
+              {textValue(snapshot.order, "Age")}
+              {localize(" years")}
             </small>
           </div>
-          <span className="purchase-tag">You</span>
+          <span className="purchase-tag">{localize("You")}</span>
         </li>
         {snapshot.family.map((member) => (
           <li key={textValue(member, "OrdersId")}>
@@ -553,7 +608,7 @@ function FamilyStep({
               <b>{textValue(member, "FullName")}</b>
               <small>
                 {textValue(member, "Relationship")} · {textValue(member, "Age")}{" "}
-                years
+                {localize(" years")}
               </small>
             </div>
             <button
@@ -561,7 +616,7 @@ function FamilyStep({
               disabled={busy}
               onClick={() => void remove(Number(member.OrdersId))}
             >
-              Remove
+              {localize("Remove")}
             </button>
           </li>
         ))}
@@ -570,7 +625,7 @@ function FamilyStep({
         <form onSubmit={add}>
           {dependents.rows.length > 0 && (
             <label className="purchase-existing">
-              Use an existing family member
+              {localize("Use an existing family member")}
               <select
                 defaultValue=""
                 onChange={(event) => {
@@ -587,7 +642,7 @@ function FamilyStep({
                     });
                 }}
               >
-                <option value="">Select a family member</option>
+                <option value="">{localize("Select a family member")}</option>
                 {dependents.rows.map((row) => (
                   <option
                     key={textValue(row, "CustomerId")}
@@ -605,7 +660,7 @@ function FamilyStep({
             spouse={spouseRequired}
           />
           <button className="purchase-secondary" disabled={busy}>
-            {busy ? "Saving…" : "Add member"}
+            {busy ? localize("Saving…") : localize("Add member")}
           </button>
         </form>
       )}
@@ -619,7 +674,8 @@ function FamilyStep({
           )
         }
       >
-        Continue<span aria-hidden="true">→</span>
+        {localize("Continue")}
+        <span aria-hidden="true">→</span>
       </button>
     </section>
   );
@@ -652,7 +708,7 @@ function NomineeMemberCard({
         <div>
           <h3>{name}</h3>
           <span className="nominee-relation">
-            {textValue(member, "Relationship") || "Primary member"}
+            {textValue(member, "Relationship") || localize("Primary member")}
           </span>
         </div>
         {onSelect && (
@@ -663,36 +719,44 @@ function NomineeMemberCard({
       </div>
       <dl className="nominee-member-details">
         <div>
-          <dt>Age</dt>
-          <dd>{textValue(member, "Age")} years</dd>
-        </div>
-        <div>
-          <dt>Gender</dt>
-          <dd>{textValue(member, "Gender") || "Not provided"}</dd>
-        </div>
-        <div>
-          <dt>Date of birth</dt>
+          <dt>{localize("Age")}</dt>
           <dd>
-            {birthday
-              ? new Date(birthday + "T00:00:00").toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })
-              : "Not provided"}
+            {textValue(member, "Age")}
+            {localize(" years")}
           </dd>
         </div>
         <div>
-          <dt>Mobile number</dt>
-          <dd>{textValue(member, "MobileNumber") || "Not provided"}</dd>
+          <dt>{localize("Gender")}</dt>
+          <dd>{textValue(member, "Gender") || localize("Not provided")}</dd>
+        </div>
+        <div>
+          <dt>{localize("Date of birth")}</dt>
+          <dd>
+            {birthday
+              ? new Date(birthday + "T00:00:00").toLocaleDateString(
+                  getLocaleTag(),
+                  {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  },
+                )
+              : localize("Not provided")}
+          </dd>
+        </div>
+        <div>
+          <dt>{localize("Mobile number")}</dt>
+          <dd>
+            {textValue(member, "MobileNumber") || localize("Not provided")}
+          </dd>
         </div>
       </dl>
       <span className="nominee-card-caption">
         {onSelect
           ? selected
-            ? "Selected"
-            : "Tap to select"
-          : "You · Primary member"}
+            ? localize("Selected")
+            : localize("Tap to select")
+          : localize("You · Primary member")}
       </span>
     </>
   );
@@ -768,7 +832,9 @@ function NomineeStep({
       reload();
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Unable to save your nominee.",
+        error instanceof Error
+          ? error.message
+          : localize("Unable to save your nominee."),
       );
     } finally {
       setBusy(false);
@@ -776,16 +842,20 @@ function NomineeStep({
   }
   return (
     <section className="purchase-panel nominee-panel">
-      <span className="purchase-eyebrow">FAMILY FIRST</span>
+      <span className="purchase-eyebrow">{localize("FAMILY FIRST")}</span>
       <h2>
         {allAdded && !editing
-          ? "Your nominee details"
-          : "Protect the people who matter"}
+          ? localize("Your nominee details")
+          : localize("Protect the people who matter")}
       </h2>
       <p>
         {allAdded && !editing
-          ? "Your nominee is saved. You can review or change your selection before payment."
-          : "Choose one family member as your nominee. Their saved details will be used for all products in this package that require a nominee."}
+          ? localize(
+              "Your nominee is saved. You can review or change your selection before payment.",
+            )
+          : localize(
+              "Choose one family member as your nominee. Their saved details will be used for all products in this package that require a nominee.",
+            )}
       </p>
       {allAdded && !editing && (
         <>
@@ -814,16 +884,16 @@ function NomineeStep({
             className="purchase-secondary"
             onClick={() => setEditing(true)}
           >
-            Change nominee
+            {localize("Change nominee")}
           </button>
         </>
       )}
       {showSelection && (
         <form onSubmit={save}>
           <fieldset className="nominee-card-fieldset" disabled={busy}>
-            <legend>Your family members</legend>
+            <legend>{localize("Your family members")}</legend>
             <p className="nominee-selection-help">
-              Select a card to choose your nominee.
+              {localize("Select a card to choose your nominee.")}
             </p>
             <div className="nominee-member-grid">
               <NomineeMemberCard member={snapshot.order} />
@@ -842,24 +912,29 @@ function NomineeStep({
           </fieldset>
           {snapshot.family.length === 0 && (
             <div className="purchase-notice">
-              <strong>Add a family member to choose your nominee</strong>
+              <strong>
+                {localize("Add a family member to choose your nominee")}
+              </strong>
               <span>
-                Your nominee must be a family member included in this package.
+                {localize(
+                  "Your nominee must be a family member included in this package.",
+                )}
               </span>
               <Link
                 className="purchase-secondary"
                 to={`/purchase/${id}/family`}
               >
-                Add a family member
+                {localize("Add a family member")}
               </Link>
             </div>
           )}
           {minor && (
             <fieldset className="nominee-card-fieldset" disabled={busy}>
-              <legend>Choose an adult guardian</legend>
+              <legend>{localize("Choose an adult guardian")}</legend>
               <p className="nominee-selection-help">
-                A nominee under 18 needs an adult guardian. Select a family
-                member below.
+                {localize(
+                  "A nominee under 18 needs an adult guardian. Select a family member below.",
+                )}
               </p>
               <div className="nominee-member-grid">
                 {guardians.map((member) => (
@@ -876,7 +951,9 @@ function NomineeStep({
               </div>
               {guardians.length === 0 && (
                 <p>
-                  Add an adult family member before choosing a minor nominee.
+                  {localize(
+                    "Add an adult family member before choosing a minor nominee.",
+                  )}
                 </p>
               )}
             </fieldset>
@@ -887,7 +964,8 @@ function NomineeStep({
               <div>
                 <b>{textValue(selected, "FullName")}</b>
                 <small>
-                  Your selected nominee · {textValue(selected, "Relationship")}
+                  {localize("Your selected nominee · ")}
+                  {textValue(selected, "Relationship")}
                 </small>
               </div>
             </div>
@@ -897,7 +975,9 @@ function NomineeStep({
             className="purchase-primary"
             disabled={busy || !selectedMember || Boolean(minor && !guardianId)}
           >
-            {busy ? "Saving nominee…" : "Save nominee and continue"}
+            {busy
+              ? localize("Saving nominee…")
+              : localize("Save nominee and continue")}
             <span aria-hidden="true">→</span>
           </button>
         </form>
@@ -907,7 +987,8 @@ function NomineeStep({
           className="purchase-primary"
           onClick={() => navigate(`/purchase/${id}/payment`)}
         >
-          Continue to payment<span aria-hidden="true">→</span>
+          {localize("Continue to payment")}
+          <span aria-hidden="true">→</span>
         </button>
       )}
     </section>
@@ -958,7 +1039,7 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
       setError(
         error instanceof Error
           ? error.message
-          : "Unable to verify payment status.",
+          : localize("Unable to verify payment status."),
       );
     } finally {
       checking.current = false;
@@ -987,7 +1068,7 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
           setError(
             error instanceof Error
               ? error.message
-              : "Unable to verify payment.",
+              : localize("Unable to verify payment."),
           );
       } finally {
         inFlight = false;
@@ -1026,7 +1107,9 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
       setStatus(result.status);
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Unable to start payment.",
+        error instanceof Error
+          ? error.message
+          : localize("Unable to start payment."),
       );
     } finally {
       setBusy(false);
@@ -1036,17 +1119,19 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
     return (
       <section className="purchase-panel purchase-success">
         <span aria-hidden="true">✓</span>
-        <h2>Payment received</h2>
+        <h2>{localize("Payment received")}</h2>
         <p>
           {status === "COMPLETED"
-            ? "Your package purchase is complete."
-            : "Your payment is verified. We’re activating your package; this page will update automatically."}
+            ? localize("Your package purchase is complete.")
+            : localize(
+                "Your payment is verified. We’re activating your package; this page will update automatically.",
+              )}
         </p>
         <Link className="purchase-primary" to="/PurchasedPackages">
-          View my packages
+          {localize("View my packages")}
         </Link>
         <Link className="purchase-text" to="/home">
-          Back to home
+          {localize("Back to home")}
         </Link>
         {error && <Notice error={error} />}
       </section>
@@ -1054,15 +1139,20 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
   const active = link && status === "ACTIVE" && remainingSeconds !== 0;
   return (
     <section className="purchase-panel">
-      <h2>{active ? "Scan to pay with Cashfree" : "Complete your purchase"}</h2>
+      <h2>
+        {active
+          ? localize("Scan to pay with Cashfree")
+          : localize("Complete your purchase")}
+      </h2>
       <p>
-        Choose how you’d like to pay. Your payment is handled securely by
-        Cashfree.
+        {localize(
+          "Choose how you’d like to pay. Your payment is handled securely by Cashfree.",
+        )}
       </p>
       <div className="purchase-payment-total">
-        <span>Amount to pay</span>
+        <span>{localize("Amount to pay")}</span>
         <strong>{currency(snapshot.order.PayableAmount)}</strong>
-        <small>Inclusive of applicable taxes</small>
+        <small>{localize("Inclusive of applicable taxes")}</small>
       </div>
       {!active &&
         snapshot.paymentMethods.map((row) => (
@@ -1083,8 +1173,8 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
               <b>{textValue(row, "PaymentTypeName")}</b>
               <small>
                 {isPaymentLink(row)
-                  ? "Continue to secure online checkout"
-                  : "Not available in the customer app"}
+                  ? localize("Continue to secure online checkout")
+                  : localize("Not available in the customer app")}
               </small>
             </span>
           </label>
@@ -1094,8 +1184,8 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
         <>
           {remainingSeconds !== null && (
             <div className="purchase-payment-qr">
-              <span>QR code expires in</span>
-              <strong aria-label="Payment time remaining">
+              <span>{localize("QR code expires in")}</span>
+              <strong aria-label={localize("Payment time remaining")}>
                 {String(Math.floor(remainingSeconds / 60)).padStart(2, "0")}:
                 {String(remainingSeconds % 60).padStart(2, "0")}
               </strong>
@@ -1105,18 +1195,24 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
             <div className="purchase-payment-qr">
               <img
                 src={link.qrCode}
-                alt="Cashfree payment QR code"
+                alt={localize("Cashfree payment QR code")}
                 onError={() => setFailedQr(link.qrCode ?? null)}
               />
               <p>
-                Scan this QR code to open Cashfree and complete your payment.
+                {localize(
+                  "Scan this QR code to open Cashfree and complete your payment.",
+                )}
               </p>
             </div>
           ) : (
             <p className="purchase-help" role="status">
               {link.qrCode
-                ? "The Cashfree QR code could not load. Use the secure payment link below."
-                : "Cashfree did not return a QR code. Use the secure payment link below."}
+                ? localize(
+                    "The Cashfree QR code could not load. Use the secure payment link below.",
+                  )
+                : localize(
+                    "Cashfree did not return a QR code. Use the secure payment link below.",
+                  )}
             </p>
           )}
           <a
@@ -1125,19 +1221,21 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Open secure payment<span aria-hidden="true">↗</span>
+            {localize("Open secure payment")}
+            <span aria-hidden="true">↗</span>
           </a>
           <p className="purchase-help">
-            Payment opens in a new tab. Return here after paying to see your
-            confirmation. Link expires at{" "}
-            {new Date(link.expiresAt).toLocaleTimeString("en-IN", {
+            {localize(
+              "Payment opens in a new tab. Return here after paying to see your confirmation. Link expires at",
+            )}{" "}
+            {new Date(link.expiresAt).toLocaleTimeString(getLocaleTag(), {
               hour: "2-digit",
               minute: "2-digit",
             })}
             .
           </p>
           <button className="purchase-secondary" onClick={() => void check()}>
-            Check payment status
+            {localize("Check payment status")}
           </button>
         </>
       ) : (
@@ -1154,25 +1252,28 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
             onClick={() => void pay()}
           >
             {busy
-              ? "Preparing payment…"
+              ? localize("Preparing payment…")
               : link
-                ? "Create a new payment link"
-                : "Continue to secure payment"}
+                ? localize("Create a new payment link")
+                : localize("Continue to secure payment")}
             <span aria-hidden="true">→</span>
           </button>
           {!snapshot.paymentMethods.some(isPaymentLink) && (
             <p className="purchase-help">
-              No payment methods are currently available. Please contact
-              support.
+              {localize(
+                "No payment methods are currently available. Please contact support.",
+              )}
             </p>
           )}
           {(status === "EXPIRED" ||
             status === "CANCELLED" ||
             remainingSeconds === 0) && (
             <p className="purchase-help">
-              The previous payment link{" "}
-              {remainingSeconds === 0 ? "expired" : status.toLowerCase()}. You
-              can create a new one.
+              {localize("The previous payment link")}{" "}
+              {remainingSeconds === 0
+                ? localize("expired")
+                : status.toLowerCase()}
+              {localize(". You can create a new one.")}
             </p>
           )}
         </>
@@ -1182,13 +1283,13 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
         className="purchase-secondary"
         onClick={() => navigate("/home")}
       >
-        Cancel
+        {localize("Cancel")}
       </button>
       <Link
         className="purchase-text"
         to={`/purchase/${id}/${snapshot.nomineeProducts.length ? "nominees?review=1" : "family"}`}
       >
-        Review purchase details
+        {localize("Review purchase details")}
       </Link>
     </section>
   );
