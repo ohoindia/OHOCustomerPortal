@@ -11,6 +11,13 @@ export function clientBootstrap(options: Bootstrap) {
   const config = JSON.stringify(options).replace(/</g, "\\u003c");
   return `(() => {
     const config = ${config};
+    // The native SafeAreaView already reserves space for system navigation.
+    // Avoid reserving that same bottom inset again inside the document.
+    if (config.native) {
+      const style = document.createElement('style');
+      style.textContent = '.bottom-nav { height: 56px; padding-bottom: 0; } .phone-content { padding-bottom: 72px; }';
+      document.head.appendChild(style);
+    }
     const send = value => {
       const message = JSON.stringify(value);
       if (config.native) window.ReactNativeWebView.postMessage(message);

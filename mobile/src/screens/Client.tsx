@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Platform } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import ClientView from "../components/ClientView";
 import type { ClientViewProps } from "../components/ClientView";
@@ -58,9 +59,13 @@ export default function Client({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generation, onRestart]);
   if (!props) return <Startup />;
-  return (
+  const content = (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <ClientView {...props} />
     </SafeAreaView>
   );
+  if (Platform.OS === "web") return content;
+  // Native stack screens can already be inset from the Android system bars.
+  // Measure this screen's remaining overlap instead of reusing root insets.
+  return <SafeAreaProvider>{content}</SafeAreaProvider>;
 }
