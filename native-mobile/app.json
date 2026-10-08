@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "OHOINDIA Native",
+    "slug": "oho-customer-native",
+    "scheme": "ohoindia-native",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/oho-brand.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "in.ohoindia.customer.nativeapp"
+    },
+    "android": {
+      "package": "com.ohoindia.customer.nativeapp",
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/oho-brand.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/oho-brand.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/oho-brand.png",
+          "imageWidth": 150,
+          "resizeMode": "contain",
+          "backgroundColor": "#0094C6"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow OHOINDIA to find nearby network hospitals."
+        }
+      ]
+    ],
+    "extra": {
+      "router": {}
+    }
+  }
+}

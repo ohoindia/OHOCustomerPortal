@@ -21,7 +21,14 @@
     "mobile:typecheck": "npm --prefix mobile run typecheck",
     "mobile:install": "npm --prefix mobile ci",
     "mobile:lint": "npm --prefix mobile run lint",
-    "mobile:test": "npm --prefix mobile test"
+    "mobile:test": "npm --prefix mobile test",
+    "native:install": "npm --prefix native-mobile ci",
+    "native:start": "npm --prefix native-mobile start",
+    "native:android": "npm --prefix native-mobile run android",
+    "native:ios": "npm --prefix native-mobile run ios",
+    "native:typecheck": "npm --prefix native-mobile run typecheck",
+    "native:lint": "npm --prefix native-mobile run lint",
+    "native:tunnel": "npm --prefix native-mobile run start:tunnel"
   },
   "devDependencies": {
     "prettier": "^3.9.9"
