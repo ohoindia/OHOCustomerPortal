@@ -20,6 +20,8 @@ test("wallet uses 24 OPDs during card validity and counts family visits within t
               StartDate: "2026-01-01",
               EndDate: "2026-12-31",
               IsValid: valid,
+              IsActivated: 1,
+              HasStarted: 1,
             },
           ];
         }
@@ -62,6 +64,12 @@ test("wallet uses 24 OPDs during card validity and counts family visits within t
       availableOpds: 21,
       cardValid: true,
       cardExpiry: "2026-12-31",
+      subscriptionCredit: {
+        date: "2026-01-01",
+        reference: "CARD",
+        opds: 24,
+        labAndMedicines: 25000,
+      },
       members: [
         { customerId: 12, name: "Self", usedOpds: 1, utilizedAmount: 500 },
         { customerId: 15, name: "Spouse", usedOpds: 2, utilizedAmount: 1000 },
@@ -89,6 +97,31 @@ test("wallet without a card has no available OPDs and does not count historical 
   assert.equal(wallet.totalOpds, 0);
   assert.equal(wallet.availableOpds, 0);
   assert.equal(wallet.cardValid, false);
+  assert.equal(wallet.subscriptionCredit, null);
+});
+
+test("subscription credits require an activated card with a recorded start date that has arrived", async () => {
+  const card = {
+    OHOCardnumber: "CARD",
+    StartDate: "2026-01-01",
+    EndDate: "2026-12-31",
+    IsActivated: 1,
+    HasStarted: 1,
+    IsValid: 1,
+  };
+  const service = new ConsultationsService(
+    { rows: async (sql) => (sql.includes("FROM OHOCards") ? [card] : []) },
+    {},
+  );
+  assert.equal((await service.walletOpds(12))[0].subscriptionCredit.opds, 24);
+  card.IsActivated = 0;
+  assert.equal((await service.walletOpds(12))[0].subscriptionCredit, null);
+  card.IsActivated = 1;
+  card.HasStarted = 0;
+  assert.equal((await service.walletOpds(12))[0].subscriptionCredit, null);
+  card.HasStarted = 1;
+  card.StartDate = null;
+  assert.equal((await service.walletOpds(12))[0].subscriptionCredit, null);
 });
 
 test("consultations include primary-account bookings and linked family customer bookings without duplicate joins", async () => {

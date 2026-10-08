@@ -970,6 +970,13 @@ button {
   color: #626098;
   background: #f0eff9;
 }
+.health-ledger-credit .health-ledger-icon {
+  color: #19734f;
+  background: #eaf7f0;
+}
+.health-ledger-credit .health-ledger-debit strong {
+  color: #19734f;
+}
 .health-ledger-description {
   min-width: 0;
   flex: 1;
