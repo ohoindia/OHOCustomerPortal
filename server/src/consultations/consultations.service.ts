@@ -10,8 +10,9 @@ export class ConsultationsService {
   ) {}
   async walletOpds(customerId: number) {
     const cards = await this.db.rows(
-      `SELECT OHOCardnumber, DATE_FORMAT(StartDate, '%Y-%m-%d') AS StartDate,
+      `SELECT OHOCardnumber, IsActivated, DATE_FORMAT(StartDate, '%Y-%m-%d') AS StartDate,
       DATE_FORMAT(EndDate, '%Y-%m-%d') AS EndDate,
+      (StartDate IS NOT NULL AND DATE(StartDate) <= DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+05:30'))) AS HasStarted,
       (IsActivated = TRUE AND DATE(EndDate) >= DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+05:30'))
       AND (StartDate IS NULL OR DATE(StartDate) <= DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+05:30')))) AS IsValid
       FROM OHOCards WHERE CustomerId = ? ORDER BY IsValid DESC, EndDate DESC, OHOCardsId DESC LIMIT 1`,
@@ -83,6 +84,17 @@ export class ConsultationsService {
         availableOpds: cardValid ? Math.max(0, totalOpds - usedOpds) : 0,
         cardValid,
         cardExpiry: card?.EndDate ?? null,
+        subscriptionCredit:
+          card?.StartDate &&
+          Number(card.IsActivated) === 1 &&
+          Number(card.HasStarted) === 1
+            ? {
+                date: card.StartDate,
+                reference: String(card.OHOCardnumber ?? ""),
+                opds: totalOpds,
+                labAndMedicines: 25000,
+              }
+            : null,
         members,
       },
     ];
