@@ -54,6 +54,14 @@ If prompted for Android signing credentials, generate a new keystore for a new a
 
 The build hook installs the client dependencies and bundles the latest shared interface automatically. When the build finishes, open the APK download link provided by EAS on your Android phone, download it, allow installation from that source if prompted, and install it. The installed APK runs without Metro or Expo Go; backend data and map tiles require connectivity.
 
+Preview and production builds automatically increment the remote Android version code. With `cli.appVersionSource: "remote"`, editing a local `android.versionCode` does not control EAS builds. If the phone has a build with a higher version code, synchronize the remote counter using `npx eas-cli@latest build:version:set --platform android --profile preview` before rebuilding.
+
+If Android says the package appears invalid, get the exact installer error before changing signing credentials. Download the original `.apk` directly from the completed EAS build, then, with Android platform tools and USB debugging enabled, run `adb install -r "C:\Downloads\ohoindia.apk"`. `INSTALL_FAILED_UPDATE_INCOMPATIBLE` indicates a signing conflict with the installed app; `INSTALL_FAILED_VERSION_DOWNGRADE` indicates a lower version code; `INSTALL_FAILED_OLDER_SDK` indicates an unsupported Android version. A parse or certificate error requires checking the downloaded APK and its signature. Share the full error when troubleshooting.
+
+The preview profile sets `APP_VARIANT=preview` and installs as **OHOINDIA Preview**, with Android package `com.ohoindia.connect.preview` and scheme `ohoindia-preview`. This lets testers install it alongside existing OHOINDIA apps without a signing collision. It has separate local data and requires a separate sign-in. Production retains `com.ohoindia.connect`. If using a package-restricted native Google Maps key, register the preview package and its signing certificate separately.
+
+Generate a keystore only for the first build of the preview package; reuse that key for every subsequent preview build. Generating a replacement key prevents in-place updates of already installed previews. A different signing key does not by itself prevent installation on a phone without that package installed. If a fresh install still fails, obtain the exact `adb install` error using the command above. For updates of the Play-installed production app, use the Play internal testing track when Play App Signing uses a different app signing certificate from the EAS keystore.
+
 ## Update the existing Google Play app
 
 The Android package is `com.ohoindia.connect`, matching the original app in
@@ -121,7 +129,7 @@ cd mobile
 npx eas-cli@latest build --platform android --profile preview
 ```
 
-Download and install the new APK from its new build link. Starting Expo or refreshing Metro does not update an already installed standalone APK. Update `expo.version` and `expo.android.versionCode` in `mobile/app.json` when assigning a new release version; keep the Android package name and signing keystore unchanged for in-place updates.
+Download and install the new APK from its new build link. Starting Expo or refreshing Metro does not update an already installed standalone APK. Update `expo.version` in `mobile/app.json` when assigning a new release version; EAS increments the remote Android version code automatically. Keep the Android package name and signing keystore unchanged for in-place updates.
 
 The installed version is checked after sign-in and when the mobile app returns to the foreground. In `ConfigValues`, set `BizManageVersion` to the latest numeric release (for example `1.1.0`) and `BizManageAppLocation` to its HTTPS download page, APK URL, or store listing. Publish the downloadable release before raising `BizManageVersion`. A newer release displays an update message; **Update now** opens that location, and **Later** dismisses the message for that version during the current app session. Missing/invalid configuration or a failed request leaves the app usable. The existing authenticated `api/ConfigValues/all` endpoint exposes these two settings alongside dashboard settings; deploy the server change with the mobile release. The browser preview does not check for native updates.
 
