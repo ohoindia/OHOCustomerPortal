@@ -158,3 +158,9 @@ node tests/purchase.browser.cjs <path-to-playwright-module>
 The purchase browser check exercises Packages using mocked backend responses through the native bridge: package details, primary member, family member, nominee selection, payment-link handoff and completed payment confirmation. No real payment is made.
 
 Feature/data availability matches the client. Package purchase uses the purchase backend; wallet, notifications and the other demo catalog screens remain samples. OPD and account screens use the existing backend endpoints. The map uses the client's Leaflet/OpenStreetMap implementation; map tiles and API data need connectivity. Images and Inter/Plus Jakarta Sans fonts are bundled, with font licenses in `client/src/assets/fonts/`.
+
+To publish to eas use :
+
+```powershell
+npx eas-cli@latest build --platform android --profile preview
+```
