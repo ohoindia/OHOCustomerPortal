@@ -39,17 +39,17 @@ export function Profile() {
           subtitle={UI_TEXT.manageFamilyMembers}
           onClick={() => nav("/family")}
         />
-        <MenuRow
+        {/* <MenuRow
           icon={UI_TEXT.recordsEmoji}
           title={UI_TEXT.myHealthRecords}
           subtitle={UI_TEXT.viewReportsPrescriptions}
           onClick={() => nav("/records")}
-        />
+        /> */}
         <MenuRow
           icon={UI_TEXT.medalEmoji}
           title={UI_TEXT.membership}
           subtitle={UI_TEXT.goldWellnessCard}
-          onClick={() => nav("/membership")}
+          onClick={() => nav("/account-details")}
         />
         <MenuRow
           icon={UI_TEXT.purseEmoji}
@@ -57,12 +57,12 @@ export function Profile() {
           subtitle={UI_TEXT.cashbackOffersCoupons}
           onClick={() => nav("/wallet")}
         />
-        <MenuRow
+        {/* <MenuRow
           icon={UI_TEXT.paymentCardEmoji}
           title={UI_TEXT.paymentMethods}
           subtitle={UI_TEXT.cardsUpiWallets}
-        />
-        <MenuRow
+        /> */}
+        {/* <MenuRow
           icon={UI_TEXT.supportEmoji}
           title={UI_TEXT.support2}
           subtitle={UI_TEXT.helpSupport2}
@@ -72,7 +72,7 @@ export function Profile() {
           title={UI_TEXT.moreServices}
           subtitle={UI_TEXT.membershipKycHospitalNetworkWellness}
           onClick={() => nav("/menu")}
-        />
+        /> */}
       </div>
       <MenuRow
         icon={UI_TEXT.logoutIcon}

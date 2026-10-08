@@ -44,6 +44,7 @@ export function QuickActions({
         </button>
         <button
           type="button"
+          disabled
           onClick={() => {
             if (allowService()) navigate("/payment");
           }}
@@ -59,6 +60,7 @@ export function QuickActions({
         </button>
         <button
           type="button"
+          disabled
           onClick={() => {
             if (allowService()) navigate("/pharmacy");
           }}

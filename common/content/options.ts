@@ -86,13 +86,18 @@ export const pharmacyCategoryIcons = localizedOptions(() => [
   UI_TEXT.watchEmoji,
 ]);
 
+// export const homeServices = localizedOptions(() => [
+//   [UI_TEXT.hospitalEmoji, UI_TEXT.hospitals, "/hospitals"],
+//   [UI_TEXT.labEmoji, UI_TEXT.labTests, "/lab-tests"],
+//   [UI_TEXT.medicineEmoji, UI_TEXT.pharmacy, "/pharmacy"],
+//   [UI_TEXT.stethoscopeEmoji, UI_TEXT.healthCheckups, "/packages"],
+// ]);
 export const homeServices = localizedOptions(() => [
   [UI_TEXT.hospitalEmoji, UI_TEXT.hospitals, "/hospitals"],
-  [UI_TEXT.labEmoji, UI_TEXT.labTests, "/lab-tests"],
-  [UI_TEXT.medicineEmoji, UI_TEXT.pharmacy, "/pharmacy"],
-  [UI_TEXT.stethoscopeEmoji, UI_TEXT.healthCheckups, "/packages"],
+  [UI_TEXT.labEmoji, UI_TEXT.labTests, ""],
+  [UI_TEXT.medicineEmoji, UI_TEXT.pharmacy, ""],
+  [UI_TEXT.stethoscopeEmoji, UI_TEXT.healthCheckups, ""],
 ]);
-
 export const membershipAttentionStatuses: string[] = localizedOptions(() => [
   UI_TEXT.expired,
   UI_TEXT.expiresToday,
