@@ -149,6 +149,9 @@ export function Wallet() {
                   {used} {localize("used")} &middot; {entitled}{" "}
                   {localize("included")}
                 </p>
+                <p>
+                  {savingsCurrency(500)} {localize("benefit per OPD visit")}
+                </p>
               </div>
               <div>
                 <span>{localize("Lab & medicine benefit")}</span>
@@ -281,6 +284,11 @@ export function Wallet() {
                                 ? localize("Not recorded")
                                 : `\u2212${savingsCurrency(saved)}`}
                           </strong>
+                          {isOpd && (
+                            <small>
+                              {savingsCurrency(500)} {localize("Benefit applied")}
+                            </small>
+                          )}
                           <small>
                             {localize("Used")}{" "}
                             <span aria-hidden="true">
