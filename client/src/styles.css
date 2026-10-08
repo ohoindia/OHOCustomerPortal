@@ -791,6 +791,293 @@ button {
   gap: 7px;
   font-size: 11px;
 }
+.health-account-content {
+  display: grid;
+  gap: 20px;
+  padding-bottom: 24px;
+}
+.health-account-content p {
+  color: #607080;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 8px 0;
+}
+.health-balance-summary {
+  background: #123d63;
+  color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 18px #123d6312;
+}
+.health-balance-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.health-account-status {
+  background: #ffffff16;
+  border: 1px solid #ffffff25;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+.health-balance-accounts {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  margin: 22px 0 16px;
+}
+.health-balance-accounts > div {
+  min-width: 0;
+}
+.health-balance-accounts > div + div {
+  border-left: 1px solid #ffffff30;
+  padding-left: 20px;
+}
+.health-balance-accounts > div > span {
+  color: #d1e5f4;
+  font-size: 11px;
+}
+.health-balance-accounts strong {
+  display: block;
+  font-size: clamp(23px, 4vw, 32px);
+  font-weight: 700;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.health-balance-accounts strong small {
+  font-size: 12px;
+  font-weight: 400;
+  margin-left: 7px;
+}
+.health-account-content .health-balance-accounts p {
+  color: #c1d8e9;
+  font-size: 10px;
+  margin: 7px 0 0;
+}
+.health-balance-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  border-top: 1px solid #ffffff25;
+  padding-top: 14px;
+  color: #c1d8e9;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.health-account-content .health-account-note {
+  color: #f9dfa5;
+  font-size: 11px;
+  margin-bottom: 0;
+}
+.health-statement,
+.health-family {
+  background: #fff;
+  border: 1px solid #e2e8ef;
+  border-radius: 12px;
+  padding: 18px;
+  min-width: 0;
+}
+.health-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.health-section-heading h3 {
+  font-size: 15px;
+  color: #19364e;
+  margin: 0;
+}
+.health-statement-count,
+.health-family .health-section-heading > span {
+  color: #607080;
+  font-size: 10px;
+}
+.health-transaction-filters {
+  display: flex;
+  overflow-x: auto;
+  gap: 6px;
+  padding: 2px 2px 10px;
+  margin: 14px -2px 0;
+}
+.health-transaction-filters button {
+  flex-shrink: 0;
+  font: inherit;
+  font-size: 11px;
+  border: 1px solid #dce5eb;
+  border-radius: 20px;
+  background: #fff;
+  color: #526577;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.health-transaction-filters button[aria-pressed="true"] {
+  background: #123d63;
+  border-color: #123d63;
+  color: #fff;
+}
+.health-transaction-filters button:focus-visible,
+.health-ledger-row:focus-visible {
+  outline: 2px solid #207ba7;
+  outline-offset: 2px;
+}
+.health-transactions,
+.health-family ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.health-ledger-date {
+  margin: 0 -18px;
+  background: #f4f7fa;
+  padding: 10px 18px;
+  color: #526577;
+  font-size: 10px;
+  font-weight: 600;
+  border-top: 1px solid #e8edf2;
+  border-bottom: 1px solid #e8edf2;
+}
+.health-ledger-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 0;
+  border: 0;
+  border-bottom: 1px solid #eef1f5;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.health-ledger-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  color: #246788;
+  background: #edf6fb;
+}
+.health-ledger-icon.shared {
+  color: #626098;
+  background: #f0eff9;
+}
+.health-ledger-description {
+  min-width: 0;
+  flex: 1;
+}
+.health-ledger-description > strong {
+  display: block;
+  color: #19364e;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.health-ledger-description > span {
+  display: block;
+  color: #607080;
+  font-size: 10px;
+  line-height: 1.6;
+  margin-top: 3px;
+}
+.health-ledger-description > small {
+  display: block;
+  font-size: 9px;
+  color: #7a8794;
+  margin-top: 4px;
+}
+.health-ledger-debit {
+  text-align: right;
+  flex-shrink: 0;
+  max-width: 35%;
+}
+.health-ledger-debit strong {
+  display: block;
+  color: #19364e;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.health-ledger-debit small {
+  display: block;
+  color: #7a8794;
+  font-size: 10px;
+  margin-top: 6px;
+}
+.health-ledger-detail {
+  background: #f7f9fc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.health-ledger-detail dl {
+  margin: 0;
+  font-size: 11px;
+}
+.health-ledger-detail dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px 0;
+}
+.health-ledger-detail dt {
+  color: #607080;
+}
+.health-ledger-detail dd {
+  color: #19364e;
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.health-statement-empty {
+  padding: 26px 12px;
+  text-align: center;
+  background: #f7fafb;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #19364e;
+}
+.health-family li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid #e7edf1;
+  font-size: 12px;
+}
+.health-family ul {
+  margin-top: 16px;
+}
+.health-family li span {
+  color: #607080;
+  flex-shrink: 0;
+}
+@media (max-width: 380px) {
+  .health-balance-summary {
+    padding: 16px;
+  }
+  .health-balance-accounts > div + div {
+    padding-left: 12px;
+  }
+  .health-balance-accounts strong {
+    font-size: 23px;
+  }
+  .health-ledger-row {
+    gap: 8px;
+  }
+  .health-ledger-icon {
+    width: 30px;
+    height: 30px;
+  }
+}
 .day-label {
   font-size: 10px;
   color: var(--muted);
