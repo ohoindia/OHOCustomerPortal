@@ -167,3 +167,24 @@ test("invalid amounts cannot inflate savings and remaining value stays nonnegati
     0,
   );
 });
+
+const { transactionBalances } = loadModule("../../common/utils/savings.ts");
+test("transaction balances apply credits and keep OPD and shared balances separate", () => {
+  const entries = [
+    { credit: true, saved: 12000, visits: 24, isOpd: true },
+    { credit: true, saved: 25000, visits: 0, isOpd: false },
+    { credit: false, saved: 500, visits: 1, isOpd: true },
+    { credit: false, saved: 300, visits: 1, isOpd: false },
+    { credit: false, saved: 100, visits: 1, isOpd: false },
+  ];
+  assert.deepEqual(transactionBalances(entries, 0, 0).map((row) => row.remainingAmount),
+    [12000, 25000, 11500, 24700, 24600]);
+});
+test("missing shared amounts leave later shared balances unknown without affecting OPDs", () => {
+  const result = transactionBalances([
+    { credit: false, saved: null, visits: 1, isOpd: false },
+    { credit: false, saved: 500, visits: 1, isOpd: true },
+    { credit: false, saved: 100, visits: 1, isOpd: false },
+  ], 2, 25000);
+  assert.deepEqual(result.map((row) => row.remainingAmount), [null, 500, null]);
+});

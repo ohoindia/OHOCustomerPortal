@@ -1,17 +1,19 @@
+import HealthBalanceCard from "../../components/HealthBalanceCard";
 import { useState } from "react";
+import "../booking/bookings.css";
 import {
   getLocaleTag,
   translate as localize,
 } from "../../../../common/content/locale";
 import {
   consultationSavings,
-  LAB_MEDICINE_BENEFIT_VALUE,
   savingsCurrency,
-  walletBalances,
+  transactionBalances,
+  LAB_MEDICINE_BENEFIT_VALUE,
 } from "../../../../common/utils/savings";
 import { AppShell, PageHeader } from "../../components/Layout";
 import { getSessionMember } from "../auth/member";
-import { childRows, textValue, usePortalData } from "../portal/usePortalData";
+import { textValue, usePortalData } from "../portal/usePortalData";
 import type { PortalRow } from "../portal/usePortalData";
 
 const categories = [
@@ -28,7 +30,7 @@ type StatementEntry = {
   credit: boolean;
   visits: number;
 };
-function displayDate(value: unknown) {
+function displayDate(value: unknown, includeTime = false) {
   if (!value) return localize("Date unavailable");
   const date = new Date(String(value));
   return Number.isNaN(date.getTime())
@@ -37,6 +39,13 @@ function displayDate(value: unknown) {
         day: "numeric",
         month: "short",
         year: "numeric",
+        ...(includeTime
+          ? {
+              hour: "numeric" as const,
+              minute: "2-digit" as const,
+              hour12: true,
+            }
+          : {}),
         timeZone: "Asia/Kolkata",
       }).format(date);
 }
@@ -67,11 +76,7 @@ export function Wallet() {
     customerId: memberId,
   });
   const summary = opds.rows[0];
-  const used = Number(summary?.usedOpds ?? 0);
-  const remaining = Number(summary?.availableOpds ?? 0);
-  const entitled = Number(summary?.totalOpds ?? 0);
   const savings = consultationSavings(data.rows);
-  const balances = walletBalances(remaining, savings);
   const grant = summary?.subscriptionCredit as PortalRow | null | undefined;
   const credits: StatementEntry[] = grant
     ? [
@@ -145,7 +150,15 @@ export function Wallet() {
         Date.parse(String(row.AppointmentDate || row.BookingDate || "")) || 0;
       return timestamp(b.row) - timestamp(a.row);
     });
-  const visible = transactions.filter(
+  const statement = transactionBalances(
+    [...transactions].reverse().map((entry) => ({
+      ...entry,
+      isOpd: entry.category === categories[1],
+    })),
+    grant ? 0 : Number(summary?.totalOpds ?? 0),
+    grant ? 0 : LAB_MEDICINE_BENEFIT_VALUE,
+  ).reverse();
+  const visible = statement.filter(
     (transaction) =>
       filter === categories[0] ||
       transaction.category === filter ||
@@ -156,7 +169,7 @@ export function Wallet() {
   const error = data.error || opds.error;
   return (
     <AppShell className="health-account-page">
-      <PageHeader title={localize("Health Account")} back={false} />
+      <PageHeader title={localize("Wallet & Balance")} />
       {data.loading || opds.loading ? (
         <p role="status">{localize("Loading wallet...")}</p>
       ) : error ? (
@@ -173,61 +186,7 @@ export function Wallet() {
         </div>
       ) : (
         <div className="health-account-content">
-          <section
-            className="health-balance-summary"
-            aria-label={localize("Available health benefits")}
-          >
-            <div className="health-balance-heading">
-              <span>{localize("Available health benefits")}</span>
-              <span className="health-account-status">
-                {localize("Family account")}
-              </span>
-            </div>
-            <div className="health-balance-accounts">
-              <div>
-                <span>{localize("Available OPDs")}</span>
-                <strong>
-                  {remaining}
-                  <small>{localize("visits")}</small>
-                </strong>
-                <p>
-                  {used} {localize("used")} &middot; {entitled}{" "}
-                  {localize("included")}
-                </p>
-                <p>
-                  {savingsCurrency(500)} {localize("benefit per OPD visit")}
-                </p>
-              </div>
-              <div>
-                <span>{localize("Lab & medicine benefit")}</span>
-                <strong>{savingsCurrency(balances.labAndMedicines)}</strong>
-                <p>
-                  {localize("Shared allowance")} &middot;{" "}
-                  {savingsCurrency(LAB_MEDICINE_BENEFIT_VALUE)}
-                </p>
-              </div>
-            </div>
-            <div className="health-balance-footer">
-              <span>
-                {localize("Lab used")}:{" "}
-                {savingsCurrency(savings.labInvestigation)} &middot;{" "}
-                {localize("Medicine used")}:{" "}
-                {savingsCurrency(savings.pharmacyDiscount)}
-              </span>
-              {Boolean(summary?.cardExpiry) && (
-                <span>
-                  {localize("Valid until")} {displayDate(summary?.cardExpiry)}
-                </span>
-              )}
-            </div>
-            {summary?.cardValid === false && (
-              <p className="health-account-note">
-                {localize(
-                  "An active card is required to use remaining benefits.",
-                )}
-              </p>
-            )}
-          </section>
+          <HealthBalanceCard summary={summary} savings={savings} />
           <section
             className="health-statement"
             aria-labelledby="health-statement-title"
@@ -271,18 +230,25 @@ export function Wallet() {
             ) : (
               <ol className="health-transactions">
                 {visible.map(
-                  ({ row, category, saved, credit, visits }, index) => {
+                  ({ row, category, saved, credit, visits, remainingAmount, remainingOpds }, index) => {
                     const id = `${textValue(row, "BookingConsultationId")}-${index}`;
                     const date = displayDate(
                       row.AppointmentDate || row.BookingDate,
+                      true,
                     );
-                    const previous = visible[index - 1]?.row;
-                    const showDate =
-                      !previous ||
-                      date !==
-                        displayDate(
-                          previous.AppointmentDate || previous.BookingDate,
-                        );
+                    const parsedDate = new Date(
+                      String(row.AppointmentDate || row.BookingDate || ""),
+                    );
+                    const badgeDate = Number.isFinite(parsedDate.getTime())
+                      ? parsedDate
+                      : null;
+                    const datePart = (options: Intl.DateTimeFormatOptions) =>
+                      badgeDate
+                        ? new Intl.DateTimeFormat(getLocaleTag(), {
+                            ...options,
+                            timeZone: "Asia/Kolkata",
+                          }).format(badgeDate)
+                        : "?";
                     const isOpd = category === categories[1];
                     const open = expanded === id;
                     return (
@@ -290,11 +256,6 @@ export function Wallet() {
                         key={id}
                         className={`health-ledger-entry${credit ? " health-ledger-credit" : ""}`}
                       >
-                        {showDate && (
-                          <div className="health-ledger-date">
-                            <time>{date}</time>
-                          </div>
-                        )}
                         <button
                           className="health-ledger-row"
                           type="button"
@@ -303,12 +264,27 @@ export function Wallet() {
                           onClick={() => setExpanded(open ? null : id)}
                         >
                           <span
-                            className={`health-ledger-icon ${isOpd ? "opd" : "shared"}`}
-                            aria-hidden="true"
+                            className="appointment-date health-ledger-date-card"
+                            aria-label={date}
                           >
-                            {credit ? "+" : isOpd ? "\u22121" : "\u20b9"}
+                            <span>{datePart({ month: "short" })}</span>
+                            <strong>{datePart({ day: "2-digit" })}</strong>
+                            <small>{datePart({ weekday: "short" })}</small>
+                            <time className="health-ledger-time">
+                              {datePart({
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </time>
                           </span>
                           <span className="health-ledger-description">
+                            <span
+                              className={`appointment-badge health-ledger-service ${isOpd ? "opd" : category === categories[2] ? "lab" : category === categories[3] ? "medicine" : "shared"}`}
+                            >
+                              <i aria-hidden="true" />
+                              {localize(category)}
+                            </span>
                             <strong>
                               {credit
                                 ? localize("Subscription benefits added")
@@ -317,7 +293,6 @@ export function Wallet() {
                                   localize(category)}
                             </strong>
                             <span>
-                              {localize(category)} &middot;{" "}
                               {credit
                                 ? localize("Family account")
                                 : textValue(row, "Name") ||
@@ -347,6 +322,11 @@ export function Wallet() {
                                 )}
                               </small>
                             )}
+                            <small>
+                              {localize("Remaining")}: {remainingAmount === null
+                                ? localize("Not recorded")
+                                : savingsCurrency(remainingAmount)}
+                            </small>
                             <small>
                               {localize(credit ? "Added" : "Used")}{" "}
                               <span aria-hidden="true">
@@ -402,6 +382,12 @@ export function Wallet() {
                                     : savingsCurrency(saved)}
                                 </dd>
                               </div>
+                              <div>
+                                <dt>{localize(isOpd ? "Remaining OPD benefit" : "Remaining lab & medicine benefit")}</dt>
+                                <dd>{remainingAmount === null ? localize("Not recorded") : savingsCurrency(remainingAmount)}
+                                  {remainingOpds !== null && ` (${remainingOpds} ${localize("OPDs")})`}
+                                </dd>
+                              </div>
                               {!isOpd && !credit && (
                                 <>
                                   <div>
@@ -424,7 +410,7 @@ export function Wallet() {
               </ol>
             )}
           </section>
-          {childRows(summary, "members").length > 0 && (
+          {/* {childRows(summary, "members").length > 0 && (
             <section className="health-family">
               <div className="health-section-heading">
                 <h3>{localize("Family OPD usage")}</h3>
@@ -441,7 +427,7 @@ export function Wallet() {
                 ))}
               </ul>
             </section>
-          )}
+          )} */}
         </div>
       )}
     </AppShell>

@@ -803,7 +803,7 @@ button {
   margin: 8px 0;
 }
 .health-balance-summary {
-  background: #123d63;
+  background: #008ec6;
   color: #fff;
   border-radius: 16px;
   padding: 20px;
@@ -852,10 +852,11 @@ button {
   font-weight: 400;
   margin-left: 7px;
 }
-.health-account-content .health-balance-accounts p {
+.health-balance-summary .health-balance-accounts p {
   color: #c1d8e9;
   font-size: 10px;
   margin: 7px 0 0;
+  line-height: 1.6;
 }
 .health-balance-footer {
   display: flex;
@@ -867,10 +868,12 @@ button {
   font-size: 10px;
   line-height: 1.6;
 }
-.health-account-content .health-account-note {
+.health-balance-summary .health-account-note {
   color: #f9dfa5;
   font-size: 11px;
   margin-bottom: 0;
+  margin-top: 8px;
+  line-height: 1.6;
 }
 .health-statement,
 .health-family {
@@ -931,16 +934,6 @@ button {
   margin: 0;
   padding: 0;
 }
-.health-ledger-date {
-  margin: 0 -18px;
-  background: #f4f7fa;
-  padding: 10px 18px;
-  color: #526577;
-  font-size: 10px;
-  font-weight: 600;
-  border-top: 1px solid #e8edf2;
-  border-bottom: 1px solid #e8edf2;
-}
 .health-ledger-row {
   display: flex;
   width: 100%;
@@ -954,32 +947,48 @@ button {
   text-align: left;
   cursor: pointer;
 }
-.health-ledger-icon {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  font-size: 13px;
-  font-weight: 700;
-  color: #246788;
-  background: #edf6fb;
-}
-.health-ledger-icon.shared {
-  color: #626098;
-  background: #f0eff9;
-}
-.health-ledger-credit .health-ledger-icon {
-  color: #19734f;
-  background: #eaf7f0;
-}
 .health-ledger-credit .health-ledger-debit strong {
   color: #19734f;
 }
 .health-ledger-description {
   min-width: 0;
   flex: 1;
+}
+.health-account-page .health-ledger-date-card {
+  width: 58px;
+  padding: 5px 3px;
+  border-radius: 10px;
+}
+.health-account-page .health-ledger-date-card strong {
+  margin: 1px 0;
+}
+.health-ledger-date-card .health-ledger-time {
+  display: block;
+  margin-top: 2px;
+  color: #526577;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.health-ledger-description > .health-ledger-service {
+  display: inline-flex;
+  margin: 0 0 5px;
+  padding: 3px 7px;
+  line-height: 1.4;
+}
+.health-ledger-description > .health-ledger-service.opd {
+  color: #007ca8;
+  background: #e7f6fc;
+}
+.health-ledger-description > .health-ledger-service.lab {
+  color: #148360;
+  background: #e7f7ef;
+}
+.health-ledger-description > .health-ledger-service.medicine,
+.health-ledger-description > .health-ledger-service.shared {
+  color: #626098;
+  background: #f0eff9;
 }
 .health-ledger-description > strong {
   display: block;

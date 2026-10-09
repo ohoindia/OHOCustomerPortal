@@ -2,6 +2,27 @@ import { getLocaleTag } from "../content/locale";
 export const HEALTH_BENEFIT_VALUE = 37000;
 export const LAB_MEDICINE_BENEFIT_VALUE = 25000;
 
+export function transactionBalances<T extends {
+  credit: boolean;
+  saved: number | null;
+  visits: number;
+  isOpd: boolean;
+}>(entries: readonly T[], openingOpds: number, openingShared: number) {
+  let opds = openingOpds;
+  let shared: number | null = openingShared;
+  return entries.map((entry) => {
+    const direction = entry.credit ? 1 : -1;
+    if (entry.isOpd) opds = Math.max(0, opds + direction * entry.visits);
+    else if (entry.saved === null || shared === null) shared = null;
+    else shared = Math.max(0, Math.round((shared + direction * entry.saved) * 100) / 100);
+    return {
+      ...entry,
+      remainingAmount: entry.isOpd ? opds * 500 : shared,
+      remainingOpds: entry.isOpd ? opds : null,
+    };
+  });
+}
+
 export function walletBalances(
   availableOpds: number,
   savings: { labInvestigation: number; pharmacyDiscount: number },

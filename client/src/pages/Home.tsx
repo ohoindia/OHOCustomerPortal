@@ -13,6 +13,7 @@ import { capitalizeName } from "../../../common/utils/names";
 import { Link, useNavigate } from "react-router-dom";
 import { Logo, AppShell } from "../components/Layout";
 import { BookingCard } from "../components/Cards";
+import HealthBalanceCard from "../components/HealthBalanceCard";
 import { QuickActions } from "../components/QuickActions";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
@@ -23,17 +24,12 @@ import {
   formatHomeDate,
   expiryStatus,
   cardStatus,
-  latestActivePackage,
   nextAppointment,
   appointmentState as getAppointmentState,
-  vaultMembershipStatus as getVaultMembershipStatus,
   type Appointment,
 } from "../services/home";
 import "./home-member.css";
-import {
-  consultationSavings,
-  savingsCurrency,
-} from "../../../common/utils/savings";
+import { consultationSavings } from "../../../common/utils/savings";
 import {
   serviceAccess,
   serviceAccessMessage,
@@ -81,21 +77,23 @@ export default function Home() {
   const member = data?.customer ?? sessionMember;
   const [serviceMessage, setServiceMessage] = useState("");
   const access = serviceAccess(data);
-  const showPackageBenefits =
-    access === "purchase" &&
-    (data?.hasMember === false || data?.products != null) &&
-    !latestActivePackage(data?.products ?? []);
   function allowService() {
     if (access === "available") return true;
     setServiceMessage(serviceAccessMessage(access));
     return false;
   }
   const card = data?.card ?? null;
-  const savings = appointments ? consultationSavings(appointments) : null;
+  const walletTransactions = usePortalData(
+    "api/BookingConsultation/PendingAndSuccessConsultationList",
+    { customerId: memberId },
+  );
+  const savings = consultationSavings(walletTransactions.rows);
+  const wallet = usePortalData("api/BookingConsultation/walletOpds", {
+    customerId: memberId,
+  });
   const appointment = appointments ? nextAppointment(appointments) : null;
   const appointmentState = getAppointmentState(memberId, appointments);
   const status = cardStatus(card);
-  const vaultMembershipStatus = getVaultMembershipStatus(card);
   const profileMessages = data
     ? [
         !member?.DateofBirth || !member?.Age || !member?.Gender
@@ -197,112 +195,18 @@ export default function Home() {
           </h1>
         </div>
       </div>
-      <section
-        className="home-family-vault"
-        aria-labelledby="home-family-vault-title"
-      >
-        <div className="home-vault-heading">
-          <h2 id="home-family-vault-title">
-            {UI_TEXT.familyHealthAccountVault}
-          </h2>
-          <span className="home-vault-badge">
-            {access === "purchase"
-              ? UI_TEXT.packageRequired
-              : UI_TEXT.liquidity}
-          </span>
-        </div>
-        <strong className="home-vault-value">
-          {savings
-            ? savingsCurrency(savings.remaining)
-            : appointments === null
-              ? localize("Unavailable")
-              : localize("Loading…")}
-        </strong>
-        <span className="home-vault-value-label">
-          {localize("Remaining health benefit value")}
-        </span>
-        {savings && (
-          <p>
-            {localize("Your family has saved ")}
-            {savingsCurrency(savings.total)}
-            {localize(" on successful visits. ")}
-            <Link to="/wallet">{localize("View savings")}</Link>
-          </p>
-        )}
-        {showPackageBenefits && (
-          <>
-            <p>{UI_TEXT.purchaseHealthBenefitsDescription}</p>
-            <ul
-              className="home-vault-benefits"
-              aria-label={UI_TEXT.membershipBenefits}
-            >
-              <li>{UI_TEXT.vaultBenefitOpd}</li>
-              <li>{UI_TEXT.vaultBenefitPharmacy}</li>
-              <li>{UI_TEXT.vaultBenefitCheckups}</li>
-            </ul>
-            <small className="home-vault-benefits-note">
-              {UI_TEXT.vaultPackageBenefitsNote}
-            </small>
-          </>
-        )}
-        {(access === "loading" || access === "unavailable") && (
-          <p role="status">{serviceAccessMessage(access)}</p>
-        )}
-        {card && formatHomeDate(card.EndDate) && (
-          <div className="home-vault-validity">
-            <span>{UI_TEXT.validUntil}</span>
-            <strong>
-              {formatHomeDate(card.EndDate) || UI_TEXT.notProvided}
-            </strong>
-          </div>
-        )}
-        {access === "purchase" && (
-          <div className="home-vault-purchase">
-            <button
-              className="outline-btn"
-              onClick={() => navigate("/packages")}
-            >
-              {UI_TEXT.choosePackage}
-            </button>
-          </div>
-        )}
-        <div className="home-vault-pattern" aria-hidden="true">
-          <svg
-            viewBox="0 0 180 140"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="5"
-          >
-            <path d="M20 25h20m-10-10v20M125 95h24m-12-12v24M65 75h22m-11-11v22" />
-            <rect x="55" y="54" width="42" height="42" rx="7" />
-            <path d="M68 54v-8h16v8M105 27h12l7-12 10 26 7-14h15M30 112h18m-9-9v18" />
-            <rect
-              x="117"
-              y="76"
-              width="40"
-              height="40"
-              rx="7"
-              transform="rotate(-12 137 96)"
-            />
-            <circle cx="158" cy="53" r="12" />
-          </svg>
-        </div>
-        <div className="home-vault-actions">
-          {vaultMembershipStatus && (
-            <span
-              className={`home-vault-status${vaultMembershipStatus === UI_TEXT.expired ? " is-expired" : ""}`}
-              aria-label={UI_MESSAGES.membership2(
-                vaultMembershipStatus.toLowerCase(),
-              )}
-            >
-              {vaultMembershipStatus}
-            </span>
-          )}
-          <button type="button" onClick={() => navigate("/account-details")}>
-            {UI_TEXT.accountDetails2}
+      {wallet.loading || walletTransactions.loading ? (
+        <p role="status">{localize("Loading wallet...")}</p>
+      ) : wallet.error || walletTransactions.error ? (
+        <aside className="home-action-notice" role="alert">
+          <p>{wallet.error || walletTransactions.error}</p>
+          <button onClick={() => { wallet.retry(); walletTransactions.retry(); }}>
+            {UI_TEXT.tryAgain}
           </button>
-        </div>
-      </section>
+        </aside>
+      ) : (
+        <HealthBalanceCard summary={wallet.rows[0]} savings={savings} />
+      )}
       {/* <section className="home-welcome" aria-labelledby="home-welcome-title">
         <span>CARE FOR THE WHOLE FAMILY</span>
         <h2 id="home-welcome-title">
