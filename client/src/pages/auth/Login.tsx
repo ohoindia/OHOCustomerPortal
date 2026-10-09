@@ -19,6 +19,11 @@ export function Login() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const lookup = useRef<AbortController | null>(null);
+  const passwordInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (exists === true) passwordInput.current?.focus();
+  }, [exists]);
 
   useEffect(() => {
     if (getSessionMember()) navigate("/home", { replace: true });
@@ -249,6 +254,7 @@ export function Login() {
               <div className="phone-input">
                 <input
                   id="password"
+                  ref={passwordInput}
                   type={visible ? "text" : "password"}
                   inputMode="numeric"
                   autoComplete="current-password"
