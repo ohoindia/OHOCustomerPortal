@@ -1357,3 +1357,7 @@ body {
       radial-gradient(ellipse at top left, #e0f2fe, transparent 55%), #f4f8fc;
   }
 }
+
+.profile-page {
+  font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
+}

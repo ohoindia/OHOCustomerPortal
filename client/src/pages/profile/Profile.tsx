@@ -4,10 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Settings } from "../../components/Icons";
 import { AppShell } from "../../components/Layout";
 import { MenuRow } from "../../components/Cards";
-import { LanguageLink } from "../Language";
+import { translate } from "../../../../common/content/locale";
 import { clearSession } from "../auth/logout";
 import { getSessionMember } from "../auth/member";
-import { textValue, usePortalData } from "../portal/usePortalData";
 
 export function Profile() {
   const nav = useNavigate();
@@ -19,7 +18,7 @@ export function Profile() {
     .map((part) => part[0])
     .join("");
   return (
-    <AppShell>
+    <AppShell className="profile-page">
       <section className="profile-hero">
         <div className="profile-photo">{initials}</div>
         <div>
@@ -28,11 +27,13 @@ export function Profile() {
         </div>
         <Settings />
       </section>
-      {Number(member?.MemberId) > 0 && (
-        <ProfileFamily id={Number(member?.MemberId)} />
-      )}
       <div className="menu-list">
-        <LanguageLink />
+        <MenuRow
+          icon={"\u{1F310}"}
+          title={translate("Change Language")}
+          subtitle={translate("Choose your language")}
+          onClick={() => nav("/language")}
+        />
         <MenuRow
           icon={UI_TEXT.familyIcon}
           title={UI_TEXT.myFamily}
@@ -84,44 +85,5 @@ export function Profile() {
         }}
       />
     </AppShell>
-  );
-}
-
-function ProfileFamily({ id }: { id: number }) {
-  const data = usePortalData(`api/Customer/GetDependentsByCustomerId/${id}`);
-  return (
-    <section aria-labelledby="profile-family-title">
-      <h2 id="profile-family-title">{UI_TEXT.familyDetails}</h2>
-      {data.loading && <p role="status">{UI_TEXT.loadingFamilyDetails}</p>}
-      {data.error && (
-        <div role="alert">
-          <p>{data.error}</p>
-          <button className="outline-btn" onClick={data.retry}>
-            {UI_TEXT.tryAgain}
-          </button>
-        </div>
-      )}
-      {data.rows.map((row) => (
-        <article className="family-row" key={textValue(row, "CustomerId")}>
-          <div>
-            <b>{textValue(row, "Name") || UI_TEXT.nameNotProvided}</b>
-            <small>
-              {textValue(row, "Relationship") || UI_TEXT.familyMember}
-            </small>
-            <small>
-              {[
-                textValue(row, "Gender"),
-                textValue(row, "DateofBirth").split("T")[0],
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </small>
-          </div>
-        </article>
-      ))}
-      {!data.loading && !data.error && !data.rows.length && (
-        <p>{UI_TEXT.noFamilyMembersHaveBeenAdded}</p>
-      )}
-    </section>
   );
 }

@@ -3,6 +3,7 @@ import {
   translate,
   getLocaleTag,
 } from "../../../../common/content/locale";
+import { capitalizeName } from "../../../../common/utils/names";
 import { LanguageLink } from "../Language";
 import { DISPLAY_FORMAT } from "../../../../common/content/config";
 import { APP_LINKS } from "../../../../common/content/config";
@@ -128,7 +129,7 @@ export function FamilyMembers() {
   return id ? (
     <DependentList id={id} />
   ) : (
-    <Page title={UI_TEXT.familyMembers2}>
+    <Page title={UI_TEXT.myFamily}>
       <p>{UI_TEXT.noIndividualCustomerMembershipIsLinkedToThisAccount}</p>
     </Page>
   );
@@ -136,13 +137,47 @@ export function FamilyMembers() {
 function DependentList({ id }: { id: number }) {
   const data = usePortalData(`api/Customer/GetDependentsByCustomerId/${id}`);
   return (
-    <Page title={UI_TEXT.familyMembers2}>
+    <Page title={UI_TEXT.myFamily}>
       <Status data={data} />
-      {data.rows.map((row) => (
-        <article className="portal-card" key={textValue(row, "CustomerId")}>
-          <Fields row={row} fields={familyMemberFields} />
-        </article>
-      ))}
+      <div className="family-cards">
+        {data.rows.map((row) => {
+          const name = capitalizeName(
+            textValue(row, "Name") || UI_TEXT.nameNotProvided,
+          );
+          const initials = name
+            .split(/\s+/)
+            .slice(0, 2)
+            .map((part) => part[0])
+            .join("");
+          return (
+            <article
+              className="family-member-card"
+              key={textValue(row, "CustomerId")}
+            >
+              <header className="family-member-header">
+                <span className="family-member-avatar" aria-hidden="true">
+                  {initials}
+                </span>
+                <div>
+                  <h2>{name}</h2>
+                  <p>
+                    {textValue(row, "Relationship") || UI_TEXT.familyMember}
+                  </p>
+                </div>
+              </header>
+              <Fields
+                row={{
+                  ...row,
+                  DateofBirth: textValue(row, "DateofBirth").split("T")[0],
+                }}
+                fields={familyMemberFields.filter(
+                  ([key]) => key !== "Name" && key !== "Relationship",
+                )}
+              />
+            </article>
+          );
+        })}
+      </div>
       {!data.loading && !data.error && !data.rows.length && (
         <p>{UI_TEXT.noFamilyMembersHaveBeenAdded}</p>
       )}
