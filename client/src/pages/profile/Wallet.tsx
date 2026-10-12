@@ -326,6 +326,7 @@ export function Wallet() {
                               {localize("Remaining")}: {remainingAmount === null
                                 ? localize("Not recorded")
                                 : savingsCurrency(remainingAmount)}
+                              {remainingOpds !== null && ` (${remainingOpds} ${localize("OPDs")})`}
                             </small>
                             <small>
                               {localize(credit ? "Added" : "Used")}{" "}
@@ -383,7 +384,7 @@ export function Wallet() {
                                 </dd>
                               </div>
                               <div>
-                                <dt>{localize(isOpd ? "Remaining OPD benefit" : "Remaining lab & medicine benefit")}</dt>
+                                <dt>{localize(isOpd ? "Remaining OPD benefit" : "Remaining lab & medicine subsidy")}</dt>
                                 <dd>{remainingAmount === null ? localize("Not recorded") : savingsCurrency(remainingAmount)}
                                   {remainingOpds !== null && ` (${remainingOpds} ${localize("OPDs")})`}
                                 </dd>

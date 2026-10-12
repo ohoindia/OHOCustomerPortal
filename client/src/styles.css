@@ -825,7 +825,7 @@ button {
 }
 .health-balance-accounts {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   margin: 22px 0 16px;
 }
 .health-balance-accounts > div {
@@ -852,6 +852,12 @@ button {
   font-weight: 400;
   margin-left: 7px;
 }
+.health-opd-label b {
+  font-size: clamp(23px, 4vw, 32px);
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
 .health-balance-summary .health-balance-accounts p {
   color: #c1d8e9;
   font-size: 10px;
@@ -860,6 +866,7 @@ button {
 }
 .health-balance-footer {
   display: flex;
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px 20px;
   border-top: 1px solid #ffffff25;
@@ -1084,6 +1091,9 @@ button {
     padding-left: 12px;
   }
   .health-balance-accounts strong {
+    font-size: 23px;
+  }
+  .health-opd-label b {
     font-size: 23px;
   }
   .health-ledger-row {

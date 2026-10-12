@@ -108,6 +108,7 @@ export function savingsCurrency(amount: number) {
   return new Intl.NumberFormat(getLocaleTag(), {
     style: "currency",
     currency: "INR",
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })
     .format(amount)

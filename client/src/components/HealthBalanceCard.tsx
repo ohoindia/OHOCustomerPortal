@@ -6,7 +6,6 @@ import {
   walletBalances,
 } from "../../../common/utils/savings";
 import type { PortalRow } from "../pages/portal/usePortalData";
-import { formatHomeDate } from "../services/home";
 
 type Props = {
   summary?: PortalRow;
@@ -30,11 +29,10 @@ export default function HealthBalanceCard({ summary, savings }: Props) {
       </div>
       <div className="health-balance-accounts">
         <div>
-          <span>{localize("Available OPDs")}</span>
-          <strong>
-            {remaining}
-            <small>{localize("visits")}</small>
-          </strong>
+          <span className="health-opd-label">
+            <b>{remaining}</b> {localize("Available OPDs")}
+          </span>
+          <strong>{savingsCurrency(balances.consultation)}</strong>
           <p>
             {used} {localize("used")} &middot; {entitled} {localize("included")}
           </p>
@@ -43,27 +41,13 @@ export default function HealthBalanceCard({ summary, savings }: Props) {
           </p>
         </div>
         <div>
-          <span>{localize("Lab & medicine benefit")}</span>
+          <span>{localize("Lab & medicine subsidy")}</span>
           <strong>{savingsCurrency(balances.labAndMedicines)}</strong>
           <p>
             {localize("Shared allowance")} &middot;{" "}
             {savingsCurrency(LAB_MEDICINE_BENEFIT_VALUE)}
           </p>
         </div>
-      </div>
-      <div className="health-balance-footer">
-        <span>
-          {localize("Lab used")}: {savingsCurrency(savings.labInvestigation)}{" "}
-          &middot; {localize("Medicine used")}:{" "}
-          {savingsCurrency(savings.pharmacyDiscount)}
-        </span>
-        {Boolean(summary?.cardExpiry) && (
-          <span>
-            {localize("Valid until")}{" "}
-            {formatHomeDate(String(summary?.cardExpiry)) ||
-              localize("Date unavailable")}
-          </span>
-        )}
       </div>
       {summary?.cardValid === false && (
         <p className="health-account-note">
