@@ -32,8 +32,10 @@ export default function AppVersionCheck() {
         const values = new Map(entries.map((entry) => [
           entry.ConfigKey.toLowerCase(), entry.ConfigValue,
         ]));
-        const latest = values.get("bizmanageversion")?.trim();
-        const location = appUpdateUrl(values.get("bizmanageapplocation") ?? "");
+        const latest = values.get(Platform.OS === "android" ? "ohoconnectversion" : "bizmanageversion")?.trim();
+        const location = Platform.OS === "android"
+          ? "https://play.google.com/store/apps/details?id=com.ohoindia.connect&hl=en_IN"
+          : appUpdateUrl(values.get("bizmanageapplocation") ?? "");
         if (controller.signal.aborted || !latest || !location ||
             !isNewerVersion(latest, installed!) || prompted.current === latest) return;
         prompted.current = latest;

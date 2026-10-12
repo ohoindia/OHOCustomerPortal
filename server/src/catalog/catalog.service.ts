@@ -7,7 +7,7 @@ export class CatalogService {
   configValues(dto: PaginationDto) {
     // Only settings consumed by the customer app may leave the server.
     return this.paginate(
-      "SELECT ConfigKey, ConfigValue FROM ConfigValues WHERE ConfigKey IN ('HealthTip', 'OHOCareMobileNumber', 'BizManageVersion', 'BizManageAppLocation') ORDER BY ConfigValuesId",
+      "SELECT ConfigKey, ConfigValue FROM ConfigValues WHERE ConfigKey IN ('HealthTip', 'OHOCareMobileNumber', 'OHOConnectVersion', 'BizManageVersion', 'BizManageAppLocation') ORDER BY ConfigValuesId",
       dto,
     );
   }
