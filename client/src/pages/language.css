@@ -46,6 +46,10 @@
   display: inline-block;
   color: #007d99;
   margin: 12px 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
 }
 .login-page .language-action {
   display: flex;
@@ -76,4 +80,96 @@ html[lang="hi"] body {
   font-family:
     "Inter", "Nirmala UI", "Noto Sans Telugu", "Noto Sans Devanagari",
     sans-serif;
+}
+
+.language-popup {
+  width: min(380px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: 1px solid #e2edf5;
+  border-radius: 24px;
+  color: var(--text);
+  background: #fff;
+  box-shadow: 0 24px 80px rgb(20 35 68 / 24%);
+}
+.language-popup::backdrop {
+  background: rgb(15 23 42 / 48%);
+  backdrop-filter: blur(4px);
+}
+.language-popup-content {
+  padding: 24px;
+}
+.language-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.language-popup-globe {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: #eaf8fe;
+  font-size: 24px;
+}
+.language-popup-close {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: #f4f8fc;
+  color: var(--muted);
+  font-size: 26px;
+}
+.language-popup h2 {
+  margin: 20px 0 8px;
+  font-size: 22px;
+}
+.language-popup p {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.language-popup .language-options {
+  gap: 12px;
+  justify-content: stretch;
+}
+.language-popup .language-options button {
+  width: 100%;
+  min-height: 58px;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--text);
+  font-size: 17px;
+}
+.language-popup .language-options button[aria-pressed="true"] {
+  border-color: var(--brand);
+  background: #eaf8fe;
+  color: #007ca8;
+  font-weight: 600;
+}
+.language-option-check {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 14px;
+}
+[aria-pressed="true"] .language-option-check {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+.language-popup .language-popup-save {
+  width: 100%;
+  margin-top: 24px;
+}
+.language-popup p[role="alert"] {
+  margin: 16px 0 0;
+  color: #b42318;
 }

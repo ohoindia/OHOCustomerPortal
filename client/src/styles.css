@@ -44,7 +44,8 @@ button {
   box-shadow: 0 8px 28px rgb(15 55 70 / 18%);
 }
 .phone-content {
-  padding: 18px 16px calc(92px + env(safe-area-inset-bottom, 0px));
+  padding: 18px 16px
+    calc(112px + var(--footer-safe-inset, env(safe-area-inset-bottom, 0px)));
 }
 .logo {
   text-align: center;
@@ -90,14 +91,17 @@ button {
 }
 .bottom-nav {
   position: fixed;
-  bottom: 0;
+  bottom: calc(
+    16px + var(--footer-safe-inset, env(safe-area-inset-bottom, 0px))
+  );
   left: 50%;
   transform: translateX(-50%);
-  width: min(100%, 430px);
-  height: calc(70px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  width: min(calc(100% - 32px), 398px);
+  height: 72px;
+  padding: 6px;
   background: #fff;
-  border-top: 1px solid var(--line);
+  border: 1px solid #e2edf5;
+  border-radius: 24px;
   display: flex;
   justify-content: space-around;
   z-index: 4;
@@ -110,8 +114,50 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 3px;
   width: 20%;
+  min-width: 0;
+  border-radius: 18px;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+.bottom-nav-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 28px;
+}
+.bottom-nav a > span:last-child {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: center;
+  line-height: 1.2;
+}
+.bottom-nav a.bottom-nav-featured {
+  position: relative;
+  justify-content: flex-end;
+  padding-bottom: 7px;
+}
+.bottom-nav-featured .bottom-nav-icon {
+  position: absolute;
+  top: -23px;
+  width: 56px;
+  height: 56px;
+  border: 5px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(145deg, #00baf2, #007ca8);
+  box-shadow: 0 5px 12px rgb(0 148 198 / 25%);
+}
+.bottom-nav a:focus-visible {
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav a {
+    transition: none;
+  }
 }
 .bottom-nav a.active {
   color: var(--brand-active);
@@ -1203,10 +1249,9 @@ button {
 
 @media (max-width: 767px) {
   .phone-content {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  }
-  .bottom-nav {
-    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(
+      112px + var(--footer-safe-inset, env(safe-area-inset-bottom, 0px))
+    );
   }
   .bottom-nav a {
     gap: 3px;
@@ -1225,7 +1270,9 @@ button {
     overflow: hidden;
   }
   .bottom-nav {
-    border-radius: 0 0 30px 30px;
+    bottom: calc(
+      32px + var(--footer-safe-inset, env(safe-area-inset-bottom, 0px))
+    );
   }
 }
 
@@ -1306,15 +1353,22 @@ body {
   background: #142344;
 }
 .bottom-nav {
-  border-top-color: var(--line);
-  box-shadow: 0 -4px 18px rgb(20 35 68 / 4%);
+  box-shadow: 0 8px 30px rgb(20 35 68 / 14%);
 }
 .bottom-nav a.active {
-  color: var(--brand-strong);
-  background: #f0f9ff;
+  color: #007ca8;
+  background: #eaf8fe;
 }
 .bottom-nav a {
   font-size: 11px;
+  font-weight: 600;
+}
+.bottom-nav a:hover {
+  color: #007ca8;
+  background: #f0f9ff;
+}
+.bottom-nav-featured.active .bottom-nav-icon {
+  background: linear-gradient(145deg, #0094c6, #005c80);
 }
 .section-title h2 {
   font-size: 16px;

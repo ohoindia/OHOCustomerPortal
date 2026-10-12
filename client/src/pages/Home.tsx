@@ -200,7 +200,12 @@ export default function Home() {
       ) : wallet.error || walletTransactions.error ? (
         <aside className="home-action-notice" role="alert">
           <p>{wallet.error || walletTransactions.error}</p>
-          <button onClick={() => { wallet.retry(); walletTransactions.retry(); }}>
+          <button
+            onClick={() => {
+              wallet.retry();
+              walletTransactions.retry();
+            }}
+          >
             {UI_TEXT.tryAgain}
           </button>
         </aside>
@@ -208,13 +213,13 @@ export default function Home() {
         <HealthBalanceCard summary={wallet.rows[0]} savings={savings} />
       )}
       {/* <section className="home-welcome" aria-labelledby="home-welcome-title">
-        <span>CARE FOR THE WHOLE FAMILY</span>
+        <span>{localize("CARE FOR THE WHOLE FAMILY")}</span>
         <h2 id="home-welcome-title">
           Your health. Your account.
           <br />
           All in one place.
         </h2>
-        <p>Access your benefits and find care close to home.</p>
+        <p>{localize("Access your benefits and find care close to home.")}</p>
         <button onClick={() => navigate("/hospitals")}>
           Explore your care network <span aria-hidden="true">→</span>
         </button>

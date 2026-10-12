@@ -15,7 +15,7 @@ export function clientBootstrap(options: Bootstrap) {
     // Avoid reserving that same bottom inset again inside the document.
     if (config.native) {
       const style = document.createElement('style');
-      style.textContent = '.bottom-nav { height: 56px; padding-bottom: 0; } .phone-content { padding-bottom: 72px; }';
+      style.textContent = ':root { --footer-safe-inset: 0px; }';
       document.head.appendChild(style);
     }
     const send = value => {

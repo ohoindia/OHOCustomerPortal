@@ -7,9 +7,12 @@ import { MenuRow } from "../../components/Cards";
 import { translate } from "../../../../common/content/locale";
 import { clearSession } from "../auth/logout";
 import { getSessionMember } from "../auth/member";
+import { useState } from "react";
+import { LanguagePopup } from "../Language";
 
 export function Profile() {
   const nav = useNavigate();
+  const [languageOpen, setLanguageOpen] = useState(false);
   const member = getSessionMember();
   const name = capitalizeName(member?.Name?.trim() || UI_TEXT.myProfile);
   const initials = name
@@ -32,7 +35,7 @@ export function Profile() {
           icon={"\u{1F310}"}
           title={translate("Change Language")}
           subtitle={translate("Choose your language")}
-          onClick={() => nav("/language")}
+          onClick={() => setLanguageOpen(true)}
         />
         <MenuRow
           icon={UI_TEXT.familyIcon}
@@ -75,6 +78,7 @@ export function Profile() {
           onClick={() => nav("/menu")}
         /> */}
       </div>
+      {languageOpen && <LanguagePopup onClose={() => setLanguageOpen(false)} />}
       <MenuRow
         icon={UI_TEXT.logoutIcon}
         title={UI_TEXT.logout}

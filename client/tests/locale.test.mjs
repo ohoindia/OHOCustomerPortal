@@ -77,3 +77,51 @@ test("every shared label has bundled Telugu and Hindi translations with matching
   }
   assert.equal(UI_MESSAGES.ageInYears(30), "30 years");
 });
+
+test("screen translation calls have bundled translations on web and mobile", async () => {
+  const { readdirSync, readFileSync } = await import("node:fs");
+  const { default: ts } = await import("typescript");
+  const dictionaries = ["te", "hi"].map((locale) => [
+    locale,
+    loadModule(`../../common/content/locales/${locale}.ts`).default,
+  ]);
+  function scan(directory) {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const file = new URL(entry.name, directory);
+      if (entry.isDirectory()) {
+        if (entry.name !== "generated")
+          scan(new URL(`${entry.name}/`, directory));
+        continue;
+      }
+      if (!/\.tsx?$/.test(entry.name)) continue;
+      const source = ts.createSourceFile(
+        file.pathname,
+        readFileSync(file, "utf8"),
+        ts.ScriptTarget.Latest,
+        true,
+      );
+      function visit(node) {
+        if (
+          ts.isCallExpression(node) &&
+          /^(translate|localize|formatMessage)$/.test(
+            node.expression.getText(source),
+          )
+        ) {
+          const argument = node.arguments[0];
+          if (argument && ts.isStringLiteral(argument)) {
+            for (const [locale, dictionary] of dictionaries) {
+              assert.ok(
+                dictionary[argument.text]?.trim(),
+                `Missing ${locale}: ${argument.text} in ${file.pathname}`,
+              );
+            }
+          }
+        }
+        ts.forEachChild(node, visit);
+      }
+      visit(source);
+    }
+  }
+  for (const path of ["../src/", "../../common/", "../../mobile/src/"])
+    scan(new URL(path, import.meta.url));
+});
