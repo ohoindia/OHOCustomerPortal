@@ -3,7 +3,7 @@
     "name": "OHOINDIA",
     "slug": "oho-customer-mobile",
     "scheme": "ohoindia",
-    "version": "1.0.2",
+    "version": "1.1.7",
     "orientation": "portrait",
     "icon": "./assets/oho-brand.png",
     "userInterfaceStyle": "light",
