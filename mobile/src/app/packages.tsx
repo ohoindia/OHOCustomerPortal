@@ -1,1 +1,1 @@
-export { default } from "../screens/Packages";
+export { default } from "../screens/Client";

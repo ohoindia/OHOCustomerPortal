@@ -1,1 +1,1 @@
-export { PurchaseRoute as default } from "../../../screens/Purchase";
+export { default } from "../../../screens/Client";

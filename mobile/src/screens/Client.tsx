@@ -2,18 +2,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, usePathname, useSegments } from "expo-router";
 import ClientView from "../components/ClientView";
 import type { ClientViewProps } from "../components/ClientView";
 import Startup from "../components/Startup";
 import { getSession, restoreSession } from "../lib/session";
 import { localKey } from "../lib/client-host";
+import { clientRoute } from "../lib/navigation";
 import { authSessionValues } from "../../../common/utils/session";
 
 export default function Client({
   initialRoute,
 }: { initialRoute?: string } = {}) {
   const params = useLocalSearchParams<{ path?: string[] }>();
+  const pathname = usePathname();
+  const segments = useSegments();
   const [props, setProps] = useState<ClientViewProps | null>(null);
   const [generation, setGeneration] = useState(0);
   const restartRoute = useRef<string | null>(null);
@@ -36,13 +39,7 @@ export default function Client({
       } catch {
         /* Discard invalid local data. */
       }
-      const { path, ...query } = params;
-      const search = new URLSearchParams();
-      for (const [key, value] of Object.entries(query))
-        if (typeof value === "string") search.set(key, value);
-      const route =
-        initialRoute ??
-        `/${path?.join("/") ?? ""}${search.size ? `?${search}` : ""}`;
+      const route = initialRoute ?? clientRoute(pathname, segments, params);
       if (!cancelled)
         setProps({
           apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
