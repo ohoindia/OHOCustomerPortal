@@ -371,7 +371,7 @@ test("payment blocks missing nominees, missing spouses, and price changes", asyn
     /price has changed/,
   );
 });
-test("repeated payment requests reuse an active link without contacting the provider", async () => {
+test("repeated payment requests verify and reuse an active link without creating another", async () => {
   const result = harness({
     links: [
       {
@@ -382,34 +382,40 @@ test("repeated payment requests reuse an active link without contacting the prov
       },
     ],
   });
-  result.service.gateway = () => assert.fail("Must reuse existing link");
+  result.service.gateway = async (path, body) => {
+    assert.equal(path, "/existing");
+    assert.equal(body, undefined, "Must not create another payment link");
+    return { link_id: "existing", link_amount: 2999, link_currency: "INR", link_status: "ACTIVE" };
+  };
   assert.equal((await result.service.payment(12, 50, 4)).linkId, "existing");
 });
-test("new payments preserve the legacy webhook's order-history contract and never mark orders paid", async () => {
-  const { service, calls } = harness();
-  let payload;
-  service.gateway = async (_path, body) => {
-    payload = body;
-    return {
-      link_id: body.link_id,
-      cf_link_id: "provider-id",
-      link_status: "ACTIVE",
-      link_amount: 2999,
-      link_url: "https://payments-test.cashfree.com/links/new",
-      link_expiry_time: new Date(Date.now() + 60000).toISOString(),
+for (const methodName of ["PaymentLink", "Cashfree"]) {
+  test(`${methodName} payments preserve the legacy webhook's order-history contract and never mark orders paid`, async () => {
+    const { service, calls } = harness({ methodName });
+    let payload;
+    service.gateway = async (_path, body) => {
+      payload = body;
+      return {
+        link_id: body.link_id,
+        cf_link_id: "provider-id",
+        link_status: "ACTIVE",
+        link_amount: 2999,
+        link_url: "https://payments-test.cashfree.com/links/new",
+        link_expiry_time: new Date(Date.now() + 60000).toISOString(),
+      };
     };
-  };
-  const link = await service.payment(12, 50, 4);
-  assert.equal(link.status, "ACTIVE");
-  assert.equal(payload.link_amount, 2999);
-  assert.equal(payload.link_partial_payments, false);
-  assert.equal(payload.link_notify.send_sms, false);
-  const history = calls.find((call) =>
-    call.sql?.startsWith("INSERT INTO PaymentLinkHistory"),
-  );
-  assert.deepEqual(history.values.slice(1, 3), [50, 50]);
-  assert.ok(!calls.some((call) => call.sql?.includes("Status = 'Completed'")));
-});
+    const link = await service.payment(12, 50, 4);
+    assert.equal(link.status, "ACTIVE");
+    assert.equal(payload.link_amount, 2999);
+    assert.equal(payload.link_partial_payments, false);
+    assert.equal(payload.link_notify.send_sms, false);
+    const history = calls.find((call) =>
+      call.sql?.startsWith("INSERT INTO PaymentLinkHistory"),
+    );
+    assert.deepEqual(history.values.slice(1, 3), [50, 50]);
+    assert.ok(!calls.some((call) => call.sql?.includes("Status = 'Completed'")));
+  });
+}
 test("expired payment links are verified before regenerating to prevent duplicate payments", async () => {
   const { service } = harness({
     links: [
@@ -491,6 +497,7 @@ test("Cashfree payment link options are enabled and static QR is disabled", asyn
   for (const methodName of [
     "QR Code",
     "Static QRCode",
+    "Cashfree Static QRCode",
     "UPI",
     "Cash",
     "Online payment",
@@ -512,6 +519,8 @@ test("Cashfree payment link options are enabled and static QR is disabled", asyn
     assert.equal(snapshot.paymentMethods[0].enabled, false);
   }
   for (const methodName of [
+    "Cashfree",
+    " CASHFREE ",
     "Payment Link",
     "Cashfree Payment Link",
     "Cashfree PaymentLink and QRCode",
@@ -527,7 +536,11 @@ test("Cashfree payment link options are enabled and static QR is disabled", asyn
         },
       ],
     });
-    service.gateway = () => assert.fail("Must reuse the active payment");
+    service.gateway = async (path, body) => {
+      assert.equal(path, "/existing");
+      assert.equal(body, undefined, "Must not create another payment link");
+      return { link_id: "existing", link_amount: 2999, link_currency: "INR", link_status: "ACTIVE" };
+    };
     const snapshot = await service.snapshot(12, 50);
     assert.equal(snapshot.paymentMethods[0].enabled, true, methodName);
     assert.equal(
