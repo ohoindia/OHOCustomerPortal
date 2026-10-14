@@ -35,7 +35,7 @@ exports.capture = async function ({
   await button("English ✓").waitFor();
   await shot("language", "Choose your language");
   await button("Continue").click();
-  await input("Mobile number").fill(member.MobileNumber);
+  await input("Enter Mobile Number (+91)").fill(member.MobileNumber);
   await input("4-digit password").waitFor();
   await shot("login", "Sign in");
   await button("Forgot password?").click();
@@ -58,9 +58,9 @@ exports.capture = async function ({
     "/packages",
     "packages",
     "Health packages",
-    "Care for you. Confidence for your family.",
+    "Care for you.\nConfidence for your family.",
   );
-  await button("View benefits & purchase").click();
+  await button("Family Health Package").click();
   await button("Save details and continue").waitFor();
   await shot("package-details", "Package details & pricing");
   await input("Full name").scrollIntoViewIfNeeded();

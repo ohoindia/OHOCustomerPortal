@@ -1,4 +1,4 @@
-// node tests/purchase.browser.cjs <path-to-playwright>
+// node tests/purchase.browser.cjs <path-to-playwright> [path-to-chromium]
 const { chromium } = require(process.argv[2] || "playwright");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -64,7 +64,8 @@ const snapshot = {
   nomineeProducts: product.includedProducts,
   paymentMethods: [
     { PaymentTypeId: 9, PaymentTypeName: "Static QRCode" },
-    { PaymentTypeId: 5, PaymentTypeName: "Cashfree Payment Link" },
+    { PaymentTypeId: 5, PaymentTypeName: "Cashfree" },
+    { PaymentTypeId: 11, PaymentTypeName: "Cashfree Payment Link" },
     { PaymentTypeId: 10, PaymentTypeName: "Cashfree PaymentLink and QRCode" },
     { PaymentTypeId: 2, PaymentTypeName: "Cash" },
   ],
@@ -134,7 +135,10 @@ function response(message) {
 }
 
 (async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    ...(process.argv[3] ? { executablePath: process.argv[3] } : {}),
+  });
   try {
     const page = await browser.newPage({
       viewport: { width: 390, height: 844 },
@@ -169,6 +173,7 @@ function response(message) {
           local: {},
           route,
           native: true,
+          appVersion: "2.4.6",
           session: {
             accessToken: "test-token",
             tokenExpiresAt: new Date(Date.now() + 3600000).toISOString(),
@@ -181,6 +186,8 @@ function response(message) {
       route.fulfill({ contentType: "text/html", body: html }),
     );
     await page.goto("https://oho-mobile.invalid/");
+    assert.equal(await page.locator(".bottom-nav-featured").count(), 0);
+    assert.equal(await page.locator(".mobile-profile-version").count(), 0);
     await page.getByRole("link", { name: /Family Health Package/ }).click();
     await page.getByRole("heading", { name: "Confirm your details" }).waitFor();
     await page.getByLabel("Full name", { exact: true }).waitFor();
@@ -226,9 +233,13 @@ function response(message) {
     );
     assert.equal(
       await page
-        .getByRole("radio", { name: /Cashfree Payment Link/ })
+        .getByRole("radio", { name: /^Cashfree Continue to secure/ })
         .isChecked(),
       true,
+    );
+    assert.equal(
+      await page.getByRole("radio", { name: /Cashfree Payment Link/ }).isDisabled(),
+      false,
     );
     assert.equal(
       await page
@@ -245,6 +256,14 @@ function response(message) {
     paid = true;
     await page.getByRole("button", { name: "Check payment status" }).click();
     await page.getByRole("heading", { name: "Payment received" }).waitFor();
+    if (process.argv.includes("--payment-only")) {
+      await page.getByRole("link", { name: "Profile", exact: true }).click();
+      await page.getByText("App version 2.4.6", { exact: true }).waitFor();
+      assert.equal(await page.locator(".bottom-nav-featured").count(), 0);
+      assert.equal(errors.length, 0, errors.join("\n"));
+      console.log("PASS: mobile Cashfree selection, secure payment link, native external opening and payment confirmation.");
+      return;
+    }
     {
       const account = { ...member, MemberId: 0, CommunityCustomerId: 9 };
       html = documentFor(account, "/product-details?productId=278&purchase=1");

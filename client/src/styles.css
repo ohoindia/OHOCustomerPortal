@@ -135,22 +135,6 @@ button {
   text-align: center;
   line-height: 1.2;
 }
-.bottom-nav a.bottom-nav-featured {
-  position: relative;
-  justify-content: flex-end;
-  padding-bottom: 7px;
-}
-.bottom-nav-featured .bottom-nav-icon {
-  position: absolute;
-  top: -23px;
-  width: 56px;
-  height: 56px;
-  border: 5px solid #fff;
-  border-radius: 50%;
-  color: #fff;
-  background: linear-gradient(145deg, #00baf2, #007ca8);
-  box-shadow: 0 5px 12px rgb(0 148 198 / 25%);
-}
 .bottom-nav a:focus-visible {
   outline-offset: 1px;
 }
@@ -1366,9 +1350,6 @@ body {
 .bottom-nav a:hover {
   color: #007ca8;
   background: #f0f9ff;
-}
-.bottom-nav-featured.active .bottom-nav-icon {
-  background: linear-gradient(145deg, #0094c6, #005c80);
 }
 .section-title h2 {
   font-size: 16px;

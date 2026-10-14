@@ -20,15 +20,35 @@ export default function HealthBalanceCard({
   return (
     <View
       style={{
-        backgroundColor: "#142f55",
-        borderRadius: 22,
+        backgroundColor: "#008ec6",
+        borderRadius: 16,
         padding: 20,
         gap: 20,
       }}
     >
-      <Text style={{ color: "#fff", fontWeight: "700", fontSize: 17 }}>
-        {translate("Available health benefits")}
-      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>
+          {translate("Available health benefits")}
+        </Text>
+        <Text
+          style={{
+            color: "#fff",
+            backgroundColor: "#ffffff16",
+            padding: 6,
+            borderRadius: 6,
+            fontSize: 10,
+          }}
+        >
+          {translate("Family account")}
+        </Text>
+      </View>
       <View style={{ flexDirection: "row", gap: 14 }}>
         <View style={{ flex: 1, gap: 8 }}>
           <Text style={{ color: "#b8dfec" }}>
@@ -50,7 +70,7 @@ export default function HealthBalanceCard({
             flex: 1,
             gap: 8,
             borderLeftWidth: 1,
-            borderColor: "#496482",
+            borderColor: "#ffffff30",
             paddingLeft: 14,
           }}
         >

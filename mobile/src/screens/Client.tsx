@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
+import { nativeApplicationVersion } from "expo-application";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, usePathname, useSegments } from "expo-router";
 import ClientView from "../components/ClientView";
@@ -42,6 +44,9 @@ export default function Client({
       const route = initialRoute ?? clientRoute(pathname, segments, params);
       if (!cancelled)
         setProps({
+          appVersion: Constants.appOwnership === "expo"
+            ? Constants.expoConfig?.version
+            : nativeApplicationVersion ?? Constants.expoConfig?.version,
           apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
           session,
           local,

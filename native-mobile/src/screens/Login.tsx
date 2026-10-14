@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Text } from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { translate } from "../lib/localization";
 import { UI_TEXT, remainingSeconds } from "../../../common";
 import {
   Brand,
@@ -182,24 +184,57 @@ export default function Login() {
   }
   return (
     <Page>
-      <Brand />
+      <View style={{ alignItems: "center", paddingVertical: 10 }}>
+        <Brand />
+      </View>
+      {!flow && (
+        <View style={design.intro}>
+          <Text style={design.eyebrow}>{UI_TEXT.yourFamilySHealthAccount}</Text>
+          <Text style={design.title}>
+            {UI_TEXT.everydayCare}
+            {"\n"}
+            <Text style={{ color: "#007ca8" }}>
+              {UI_TEXT.extraordinaryPeaceOfMind}
+            </Text>
+          </Text>
+          <Text style={[s.copy, { textAlign: "center", fontSize: 13 }]}>
+            {
+              UI_TEXT.manageYourFamilySRoutineHealthcareMembershipsAndAppointments
+            }
+          </Text>
+          <Pressable
+            accessibilityRole="link"
+            onPress={() =>
+              void Linking.openURL("https://www.ohoindialife.com/concept")
+            }
+          >
+            <Text style={design.link}>
+              {UI_TEXT.discoverHowOhoindiaWorks} ↗
+            </Text>
+          </Pressable>
+        </View>
+      )}
       <Card>
+        <Text style={design.eyebrow}>{UI_TEXT.memberAccess}</Text>
         <Heading>
           {flow
             ? flow.verified && flow.reset
               ? UI_TEXT.setNewPassword
               : UI_TEXT.verifyOtp
-            : "Welcome to OHOINDIA"}
+            : exists === false
+              ? UI_TEXT.joinTheOhoFamily
+              : UI_TEXT.welcomeToOhoindia}
         </Heading>
         <Copy>
           {flow
             ? `Verify your mobile number +91 ${phone}`
-            : "Your family’s health, all in one place."}
+            : UI_TEXT.enterYourMobileNumberToSignInOrCreate}
         </Copy>
         {!flow ? (
           <>
             <Field
-              label={UI_TEXT.mobileNumber}
+              label={`${UI_TEXT.enterMobileNumber.trim()} (+91)`}
+              placeholder={UI_TEXT.enterMobileNumber2}
               keyboardType="phone-pad"
               maxLength={10}
               value={phone}
@@ -209,7 +244,8 @@ export default function Login() {
             {checking && <Copy>Checking mobile number…</Copy>}
             {exists === false && (
               <Field
-                label={UI_TEXT.name}
+                label={UI_TEXT.fullNameAsPerAadhar}
+                placeholder={UI_TEXT.enterFullNameAsPerAadhar}
                 value={name}
                 onChangeText={setName}
                 editable={!busy}
@@ -240,11 +276,17 @@ export default function Login() {
                   ? UI_TEXT.pleaseWait
                   : exists === false
                     ? "Send OTP"
-                    : "Login"
+                    : exists === true
+                      ? UI_TEXT.login
+                      : UI_TEXT.continue
               }
-              disabled={busy || checking || exists === null}
+              disabled={busy || checking}
               onPress={() =>
-                exists === false ? void send(false) : void submit()
+                exists === null
+                  ? void changePhone(phone)
+                  : exists === false
+                    ? void send(false)
+                    : void submit()
               }
             />
             {!!error && exists === null && phone.length === 10 && (
@@ -330,15 +372,87 @@ export default function Login() {
             />
           </>
         )}
+        {!flow && (
+          <Button
+            title="Change Language"
+            secondary
+            onPress={() => router.push("/language")}
+          />
+        )}
         {!!error && (
           <Text accessibilityRole="alert" style={s.error}>
             {error}
           </Text>
         )}
+        <Text
+          style={[
+            design.footer,
+            { borderTopWidth: 1, borderColor: "#e2e8f0", paddingTop: 18 },
+          ]}
+        >
+          {UI_TEXT.yourAccountConnectsYouToYourFamilySCare}
+        </Text>
       </Card>
-      <Copy>
-        By continuing, you agree to OHOINDIA’s terms and privacy policy.
-      </Copy>
+      <View style={design.network}>
+        <Text style={design.eyebrow}>
+          {UI_TEXT.ourNetworkPartneredHospitalServicesAreAvailableIn}
+        </Text>
+        <Copy>
+          {
+            UI_TEXT.hyderabadRangareddyMedchalMalkajgiriSangareddyKhammamWarangalSiddipetAnd
+          }
+        </Copy>
+      </View>
+      <Text style={design.footer}>
+        {UI_TEXT.allRightsReservedOhoindia}
+        {"\n"}
+        {UI_TEXT.poweredByOhoindiaTechnologyV10}
+      </Text>
+      <Pressable
+        accessibilityRole="link"
+        onPress={() =>
+          void Linking.openURL("https://www.ohoindialife.com/privacy")
+        }
+      >
+        <Text style={design.link}>{translate("Privacy Policy")}</Text>
+      </Pressable>
     </Page>
   );
 }
+const design = StyleSheet.create({
+  intro: { alignItems: "center", gap: 14, paddingVertical: 12 },
+  eyebrow: {
+    fontFamily: "InterSemiBold",
+    color: "#007ca8",
+    fontSize: 10,
+    letterSpacing: 1.2,
+    lineHeight: 16,
+  },
+  title: {
+    fontFamily: "JakartaBold",
+    fontSize: 29,
+    lineHeight: 36,
+    color: "#142344",
+    textAlign: "center",
+  },
+  link: {
+    color: "#007ca8",
+    fontFamily: "InterSemiBold",
+    fontSize: 12,
+    textAlign: "center",
+    paddingVertical: 8,
+  },
+  network: {
+    borderTopWidth: 1,
+    borderColor: "#e2e8f0",
+    paddingTop: 20,
+    gap: 8,
+    alignItems: "center",
+  },
+  footer: {
+    fontSize: 10,
+    lineHeight: 18,
+    color: "#64748b",
+    textAlign: "center",
+  },
+});

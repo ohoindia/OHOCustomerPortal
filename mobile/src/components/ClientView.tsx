@@ -8,6 +8,7 @@ import { Button, Copy, Page } from "./ui";
 import Startup from "./Startup";
 
 export type ClientViewProps = {
+  appVersion?: string;
   apiBaseUrl: string;
   session: Record<string, string>;
   local: Record<string, string>;
@@ -23,7 +24,7 @@ export default function ClientView(props: ClientViewProps) {
   const [failed, setFailed] = useState(false);
   const currentRoute = useRef(props.route);
   const host = useRef<ReturnType<typeof createClientHost> | null>(null);
-  const { apiBaseUrl, session, local, route } = props;
+  const { apiBaseUrl, session, local, route, appVersion } = props;
   async function restart() {
     await host.current?.flush();
     props.onRestart(currentRoute.current);
@@ -32,11 +33,11 @@ export default function ClientView(props: ClientViewProps) {
     () => ({
       html: bundledHtml.replace(
         "<!--OHO_BOOTSTRAP-->",
-        `<script>${clientBootstrap({ apiBaseUrl, session, local, route, native: true })}</script>`,
+        `<script>${clientBootstrap({ apiBaseUrl, session, local, route, appVersion, native: true })}</script>`,
       ),
       baseUrl: "https://oho-mobile.invalid/",
     }),
-    [apiBaseUrl, session, local, route, bundledHtml],
+    [apiBaseUrl, session, local, route, appVersion, bundledHtml],
   );
 
   useEffect(() => {
