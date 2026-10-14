@@ -4,6 +4,7 @@ type Bootstrap = {
   local: Record<string, string>;
   route: string;
   native: boolean;
+  appVersion?: string;
 };
 
 // Embedded before React runs; this works reliably on both Android and iOS.
@@ -11,6 +12,7 @@ export function clientBootstrap(options: Bootstrap) {
   const config = JSON.stringify(options).replace(/</g, "\\u003c");
   return `(() => {
     const config = ${config};
+    window.ohoAppVersion = config.appVersion || '';
     // The native SafeAreaView already reserves space for system navigation.
     // Avoid reserving that same bottom inset again inside the document.
     if (config.native) {

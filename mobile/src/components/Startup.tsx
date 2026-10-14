@@ -1,9 +1,6 @@
 import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
-import Constants from "expo-constants";
-import { nativeApplicationVersion } from "expo-application";
 
 export default function Startup() {
-  const version = nativeApplicationVersion ?? Constants.expoConfig?.version;
   return (
     <View style={styles.container}>
       <View style={styles.circle}>
@@ -20,7 +17,6 @@ export default function Startup() {
         accessibilityLabel="Loading your account"
       />
       <Text style={styles.copy}>Loading your account…</Text>
-      {version && <Text style={styles.copy}>Version {version}</Text>}
     </View>
   );
 }

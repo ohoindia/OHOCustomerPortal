@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Button, Card, Copy, Heading, Page, Status } from "../components/ui";
+import { Pressable, Text, View } from "react-native";
+import DateBadge from "../components/DateBadge";
+import { translate } from "../lib/localization";
+import { Card, Copy, Heading, Page, Status } from "../components/ui";
 import { Choice } from "../components/Choice";
 import HealthBalanceCard from "../components/HealthBalanceCard";
 import { getSession } from "../lib/session";
 import { useData, value, type Row } from "../lib/data";
 import { categories, walletStatement } from "../lib/wallet";
 import { savingsCurrency } from "../../../common/utils/savings";
-import { formatHomeDate } from "../../../common";
+
 export default function Wallet() {
   const customerId = getSession()!.member.MemberId;
   const data = useData<Row[]>(
@@ -42,7 +45,20 @@ export default function Wallet() {
       {!loading && !error && (
         <>
           <HealthBalanceCard summary={summary} rows={data.data ?? []} />
-          <Heading>Transaction statement</Heading>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            <Heading>Transaction statement</Heading>
+            <Copy>
+              {statement.length} {translate("transactions")}
+            </Copy>
+          </View>
           <Copy>Benefit credits and usage - Latest first</Copy>
           <Choice
             label="Filter transactions"
@@ -51,50 +67,118 @@ export default function Wallet() {
             onSelect={setFilter}
           />
           {!statement.length && (
-            <Copy>
-              Subscription credits and completed care will appear here.
-            </Copy>
+            <Card>
+              <Heading>No transactions yet</Heading>
+              <Copy>
+                Subscription credits and completed care will appear here.
+              </Copy>
+            </Card>
           )}
           {statement.map((entry, i) => {
             const id = `${value(entry.row, "BookingConsultationId")}:${i}`;
             return (
               <Card key={id}>
-                <Copy>
-                  {formatHomeDate(
-                    value(entry.row, "AppointmentDate") ||
-                      value(entry.row, "BookingDate"),
-                  )}
-                </Copy>
-                <Heading>
-                  {entry.credit
-                    ? "Subscription benefits added"
-                    : value(entry.row, "HospitalName") ||
-                      value(entry.row, "ServiceName")}
-                </Heading>
-                <Copy>
-                  {entry.category} · {value(entry.row, "Name")}
-                </Copy>
-                <Heading>
-                  {entry.isOpd
-                    ? `${entry.credit ? "+" : "−"}${entry.visits} OPD`
-                    : entry.saved === null
-                      ? "Not recorded"
-                      : `${entry.credit ? "+" : "−"}${savingsCurrency(entry.saved)}`}
-                </Heading>
-                <Copy>
-                  Remaining:{" "}
-                  {entry.remainingAmount === null
-                    ? "Not recorded"
-                    : savingsCurrency(entry.remainingAmount)}
-                  {entry.remainingOpds !== null
-                    ? ` (${entry.remainingOpds} OPDs)`
-                    : ""}
-                </Copy>
-                <Button
-                  title={expanded === id ? "Hide details" : "View details"}
-                  secondary
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: expanded === id }}
                   onPress={() => setExpanded(expanded === id ? null : id)}
-                />
+                  style={{ gap: 12 }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <DateBadge
+                      value={
+                        value(entry.row, "AppointmentDate") ||
+                        value(entry.row, "BookingDate")
+                      }
+                      time
+                    />
+                    <View style={{ flex: 1, gap: 6 }}>
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          color: "#007ca8",
+                          backgroundColor: "#e7f6fc",
+                          padding: 6,
+                          borderRadius: 6,
+                          alignSelf: "flex-start",
+                        }}
+                      >
+                        {translate(entry.category)}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontFamily: "InterSemiBold",
+                          color: "#142344",
+                        }}
+                      >
+                        {entry.credit
+                          ? translate("Subscription benefits added")
+                          : value(entry.row, "HospitalName") ||
+                            value(entry.row, "ServiceName") ||
+                            translate(entry.category)}
+                      </Text>
+                      <Copy>
+                        {entry.credit
+                          ? "Family account"
+                          : value(entry.row, "Name") || "Family member"}
+                      </Copy>
+                      <Text style={{ fontSize: 10, color: "#64748b" }}>
+                        {translate(
+                          entry.credit
+                            ? "Subscription credit"
+                            : entry.isOpd
+                              ? "OPD benefit used"
+                              : "Shared benefit used",
+                        )}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={{ alignItems: "flex-end", gap: 5 }}>
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        fontFamily: "JakartaBold",
+                        color: entry.credit ? "#168572" : "#142344",
+                      }}
+                    >
+                      {entry.isOpd
+                        ? `${entry.credit ? "+" : "−"}${entry.visits} ${translate("OPD")}`
+                        : entry.saved === null
+                          ? translate("Not recorded")
+                          : `${entry.credit ? "+" : "−"}${savingsCurrency(entry.saved)}`}
+                    </Text>
+                    {entry.isOpd && (
+                      <Copy>
+                        {savingsCurrency(
+                          entry.credit ? entry.visits * 500 : 500,
+                        )}{" "}
+                        {translate(
+                          entry.credit ? "Benefit value" : "Benefit applied",
+                        )}
+                      </Copy>
+                    )}
+                    <Copy>
+                      {translate("Remaining")}:{" "}
+                      {entry.remainingAmount === null
+                        ? translate("Not recorded")
+                        : savingsCurrency(entry.remainingAmount)}
+                      {entry.remainingOpds !== null
+                        ? ` (${entry.remainingOpds} ${translate("OPDs")})`
+                        : ""}
+                    </Copy>
+                    <Text style={{ fontSize: 11, color: "#64748b" }}>
+                      {translate(entry.credit ? "Added" : "Used")}{" "}
+                      {expanded === id ? "⌃" : "⌄"}
+                    </Text>
+                  </View>
+                </Pressable>
                 {expanded === id && (
                   <>
                     <Copy>

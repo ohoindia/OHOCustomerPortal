@@ -74,14 +74,7 @@ export function BottomNav() {
           key={to}
           to={to}
           end={to === "/home"}
-          className={({ isActive }) =>
-            [
-              to === "/wallet" ? "bottom-nav-featured" : "",
-              isActive ? "active" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")
-          }
+          className={({ isActive }) => (isActive ? "active" : "")}
         >
           <span className="bottom-nav-icon" aria-hidden="true">
             <Icon size={22} />

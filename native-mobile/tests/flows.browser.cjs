@@ -371,7 +371,9 @@ const server = http.createServer((req, res) => {
     await page.goto(`${origin}/packages`);
     await button("English ✓").waitFor();
     await button("Continue").click();
-    await input("Mobile number").fill(member.MobileNumber);
+    await page.getByText("Everyday care.", { exact: false }).waitFor();
+    await page.screenshot({ path: path.join(output, "login.png") });
+    await input("Enter Mobile Number (+91)").fill(member.MobileNumber);
     await input("4-digit password").fill("1234");
     await button("Login").click();
     await page.waitForURL("**/home");
@@ -380,7 +382,9 @@ const server = http.createServer((req, res) => {
       .waitFor();
     await page.screenshot({ path: path.join(output, "home.png") });
     await page.getByRole("tab", { name: "Packages", exact: true }).click();
-    await button("View benefits & purchase").click();
+    await button("Family Health Package").waitFor();
+    await page.screenshot({ path: path.join(output, "packages.png") });
+    await button("Family Health Package").click();
     await button("Save details and continue").click();
     await page.waitForURL("**/purchase/42/family");
     assert.equal(
@@ -423,7 +427,9 @@ const server = http.createServer((req, res) => {
     await page.getByText("Transaction statement", { exact: true }).waitFor();
     await page.screenshot({ path: path.join(output, "wallet.png") });
     await page.getByRole("tab", { name: "Bookings", exact: true }).click();
-    await button("View details").click();
+    await button("View details →").waitFor();
+    await page.screenshot({ path: path.join(output, "bookings.png") });
+    await button("View details →").click();
     await page
       .getByRole("button", { name: "Enlarge QR code for booking 88" })
       .click();
@@ -506,9 +512,9 @@ const server = http.createServer((req, res) => {
     await page.getByRole("tab", { name: "Home", exact: true }).waitFor();
     await go("/profile");
     await button("Logout").click();
-    await input("Mobile number").waitFor();
-    await input("Mobile number").fill("9999999999");
-    await input("Name").fill("New Member");
+    await input("Enter Mobile Number (+91)").waitFor();
+    await input("Enter Mobile Number (+91)").fill("9999999999");
+    await input("Full Name (as per Aadhar)").fill("New Member");
     await button("Send OTP").click();
     await input("6-digit OTP").fill("123456");
     await button("Verify & continue").click();
