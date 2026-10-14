@@ -995,7 +995,7 @@ function NomineeStep({
   );
 }
 const isPaymentLink = (row: PortalRow) =>
-  /^(cashfree)?paymentlink(andqrcode)?$/.test(
+  /^(cashfree|(?:cashfree)?paymentlink(?:andqrcode)?)$/.test(
     String(row.PaymentTypeName ?? "")
       .replace(/[\s_-]/g, "")
       .toLowerCase(),

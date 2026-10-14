@@ -19,7 +19,7 @@ import { NomineeDto, PersonDto, PurchaseDto } from "./purchase.dto";
 import { flag, personAge, premiums, quote } from "./purchase.utils";
 
 const isPaymentLink = (name: unknown) =>
-  /^(cashfree)?paymentlink(andqrcode)?$/.test(
+  /^(cashfree|(?:cashfree)?paymentlink(?:andqrcode)?)$/.test(
     String(name ?? "")
       .replace(/[\s_-]/g, "")
       .toLowerCase(),
