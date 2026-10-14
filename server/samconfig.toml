@@ -12,3 +12,15 @@ image_repositories = []
 
 [default.global.parameters]
 region = "ap-south-1"
+
+[prod.deploy.parameters]
+stack_name = "oho-customer-api-prod"
+resolve_s3 = true
+s3_prefix = "oho-customer-api-prod"
+region = "ap-south-1"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "ApiStageName=\"prod\" AllowedFrontendOrigins=\"*\" ApiReservedConcurrency=\"20\" VpcSubnetIds=\"\" VpcSecurityGroupIds=\"\" OnboardingSmsQueueArn=\"\""
+image_repositories = []
+
+[prod.global.parameters]
+region = "ap-south-1"

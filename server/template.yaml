@@ -3,6 +3,11 @@ Transform: AWS::Serverless-2016-10-31
 Description: OHO customer NestJS API on Lambda and API Gateway HTTP API
 
 Parameters:
+  ApiStageName:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, prod]
+    Description: API Gateway stage included in the API base URL
   AllowedFrontendOrigins:
     Type: CommaDelimitedList
     Default: "http://localhost:5173"
@@ -47,7 +52,7 @@ Resources:
   CustomerHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: "$default"
+      StageName: !Ref ApiStageName
       # Handle preflight without consuming Lambda slots. Gateway responses must
       # also be readable when an integration fails before Nest can add headers.
       CorsConfiguration:
@@ -100,6 +105,6 @@ Resources:
 Outputs:
   ApiBaseUrl:
     Description: Base URL for VITE_API_BASE_URL
-    Value: !Sub "https://${CustomerHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
+    Value: !Sub "https://${CustomerHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${ApiStageName}"
   FunctionName:
     Value: !Ref CustomerApiFunction

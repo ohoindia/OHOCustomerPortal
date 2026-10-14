@@ -64,6 +64,44 @@ test("Lambda forwards JSON bodies through the normal Nest validation and error f
   assert.equal(JSON.parse(response.body).status, false);
 });
 
+test("Lambda removes named stage prefixes and accepts already unprefixed paths", async () => {
+  for (const stage of ["dev", "prod"]) {
+    for (const path of [`/${stage}/health`, "/health"]) {
+      const request = event(path);
+      request.requestContext.stage = stage;
+      request.rawQueryString = "probe=1";
+      const response = await handler(
+        request,
+        { getRemainingTimeInMillis: () => 29000 },
+        () => {},
+      );
+      assert.equal(response.statusCode, 200, `${stage}: ${path}`);
+      assert.equal(JSON.parse(response.body).service, "oho-customer-server");
+      assert.equal(request.rawPath, path);
+      assert.equal(request.requestPath, undefined);
+    }
+    const request = event(`/${stage}/api/Customer/memberlogin`, "POST", {
+      mobileNumber: "invalid",
+      Password: "1234",
+    });
+    request.requestContext.stage = stage;
+    const response = await handler(
+      request,
+      { getRemainingTimeInMillis: () => 29000 },
+      () => {},
+    );
+    assert.equal(response.statusCode, 400);
+    const unrelated = event(`/${stage}other/health`);
+    unrelated.requestContext.stage = stage;
+    const missing = await handler(
+      unrelated,
+      { getRemainingTimeInMillis: () => 29000 },
+      () => {},
+    );
+    assert.equal(missing.statusCode, 404);
+  }
+});
+
 test("Lambda serves Swagger UI, its assets and the OpenAPI document without a JWT", async () => {
   for (const path of ["/swagger", "/swagger/swagger-ui.css", "/swagger-json"]) {
     const response = await handler(

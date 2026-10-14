@@ -82,6 +82,8 @@ sam deploy --guided --template-file template.yaml --stack-name oho-customer-api-
 
 During the prompts:
 
+Choose `ApiStageName=dev` for the dev stack and `ApiStageName=prod` for the production stack.
+
 1. Enter your VPC subnet/security group IDs, or, for a public database, press Enter without typing anything at each prompt showing `[]`. Do not type `""`: guided input treats those quotes as literal characters.
 2. Enter the optional onboarding queue ARN, or press Enter without typing anything at its `[]` prompt if unused.
 3. Allow SAM to create the execution role; keep CloudFormation rollback enabled.
@@ -98,10 +100,10 @@ aws cloudformation describe-stacks --stack-name oho-customer-api-dev --region ap
 
 Open the function identified by `FunctionName`, choose **Configuration â†’ Environment variables â†’ Edit**, add the database keys from step 2 and save. No SMS or application settings need to be added to Lambda environment variables. See [AWS Lambda environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html).
 
-The base URL has no `/Prod` or `/api` suffix because this template uses the HTTP API `$default` stage. Example:
+The base URL includes the selected API Gateway stage (`/dev` or `/prod`), without an `/api` suffix. Example:
 
 ```text
-https://abc123.execute-api.ap-south-1.amazonaws.com
+https://abc123.execute-api.ap-south-1.amazonaws.com/dev
 ```
 
 ## 6. Verify and connect the frontend
@@ -109,7 +111,7 @@ https://abc123.execute-api.ap-south-1.amazonaws.com
 Replace the example URL below with the `ApiBaseUrl` output:
 
 ```powershell
-$customerApiBase = 'https://abc123.execute-api.ap-south-1.amazonaws.com'
+$customerApiBase = 'https://abc123.execute-api.ap-south-1.amazonaws.com/dev'
 Invoke-RestMethod -Uri "$customerApiBase/health"
 ```
 
@@ -118,12 +120,24 @@ Expect `{ "status": true, "service": "oho-customer-server" }`. Health checks do 
 Set the frontend build environment variable to the API base URL:
 
 ```dotenv
-VITE_API_BASE_URL=https://abc123.execute-api.ap-south-1.amazonaws.com
+VITE_API_BASE_URL=https://abc123.execute-api.ap-south-1.amazonaws.com/dev
 ```
 
 Restart Vite for local use. For a hosted frontend, set this value in its build environment, rebuild with `npm run build` from the repository root, then publish the resulting frontend `client/dist` using your existing hosting process. Vite embeds this URL at build time.
 
 ## 7. Redeploy after code or dependency changes
+
+When updating an existing stack from the previous `$default` stage, use guided deployment once to save `ApiStageName=dev`, then update the dev frontend's `VITE_API_BASE_URL` to the new `/dev` URL and rebuild it. Review the stage replacement in the change set; the previous stage URL will stop working after the update.
+
+For production, use a separate stack and saved configuration:
+
+```powershell
+sam deploy --guided --template-file template.yaml --config-env prod --stack-name oho-customer-api-prod --region ap-south-1 --capabilities CAPABILITY_IAM
+```
+
+Select `ApiStageName=prod`, production origins/networking/queue parameters, and keep rollback enabled. Subsequent production releases use `--config-env prod`. Set the production frontend's `VITE_API_BASE_URL` to the production stack's `ApiBaseUrl`, including `/prod`. Both stacks can use the same AWS profile.
+
+`samconfig.toml` is ignored by Git. GitHub Actions must supply the appropriate stage and other deployment parameters explicitly, or use a committed configuration containing only non-secret settings.
 
 From the `server` folder, with the original `samconfig.toml` and AWS profile:
 
