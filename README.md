@@ -39,6 +39,8 @@ npm run server:test
 
 The web build is written to `client/dist/`. You can also run the frontend commands directly from `client/`.
 
+The fully native React Native app lives in `native-mobile/`, with all client routes, native screens, shared API logic, and Android APK/AAB profiles. Start it with `npm run native:start`; see [the native app guide](native-mobile/README.md) for setup, Android builds, and validation. The existing `mobile/` WebView app remains available separately.
+
 Additional customer services are available from **Profile → More Services** (`/menu`). The existing routes and bottom navigation are preserved. The added screens cover purchased memberships and policies, health products, consultations, hospital network/details/benefits, customer profile, family and nominee records, KYC status, OTP password reset, support, privacy/terms, and wellness tools. Reference-portal URLs such as `/PurchasedPackages`, `/ConsultationList`, `/CustomerProductDetails`, and `/policies/:policyId` are available directly after login.
 
 All added data requests use the same `VITE_API_BASE_URL` and `/api` namespace as the existing app. There are no `lambdaAPI` or `apiLambda` routes. Family and nominee screens display existing records; KYC checks existing verification status. Step and nutrition entries are manually recorded and stored per account and day in this browser, rather than synced to the backend.

@@ -107,6 +107,38 @@ Download the AAB from the completed EAS build and upload it to the existing app'
 internal testing track before releasing to production. Changing the Android package
 requires a new binary; previously built AABs with `in.ohoindia.customer` cannot be used.
 
+## Google Play photo and video permissions rejection
+
+The app does not need broad access to the device photo library. The Android
+configuration blocks `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`,
+`READ_MEDIA_VISUAL_USER_SELECTED`, `READ_EXTERNAL_STORAGE` and
+`WRITE_EXTERNAL_STORAGE`, including permissions contributed by native libraries.
+WebView file inputs use Android's system content picker (`ACTION_GET_CONTENT`);
+do not add a photo-library permission request for individual file selection.
+Run `npm --prefix mobile test` to verify the generated manifest removal directives
+for both production and preview variants.
+
+These native permission changes require a **new production AAB**; an OTA update
+or resubmitting an old AAB cannot fix the rejected binary. Build from `mobile`:
+
+```powershell
+npx eas-cli@latest build --platform android --profile production --clear-cache
+```
+
+Ensure the remote version code exceeds rejected version code 2 and every other
+previously uploaded version. Before submitting, inspect the new bundle's permissions
+in Play Console's App Bundle Explorer and confirm that the blocked permissions are
+absent. Test on an Android device to confirm there is no Photos/Videos or storage
+permission prompt.
+
+Replace or deactivate noncompliant releases across production, internal, closed
+and open testing tracks, including any retained version code 2. Update the photo
+and video permissions declaration to reflect that the app does not request broad
+access, then resubmit through Publishing overview. Changes here do not modify
+existing releases in Play Console.
+
+Policy: https://support.google.com/googleplay/android-developer/answer/14115180
+
 ## Rebuild after making changes
 
 To include changes to screens, styles, assets, navigation, dependencies, native configuration or the API URL in an installed APK, build and install a new APK. Reuse the existing Expo project and signing credentials; login and initialization are only needed if your account or project setup has changed.

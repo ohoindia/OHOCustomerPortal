@@ -1,0 +1,13 @@
+node_modules/
+.expo/
+dist/
+dist-web/
+test-results/
+screenshots/
+native-app-screenshots.zip
+android/
+ios/
+*.local
+credentials.json
+*.jks
+*.keystore
