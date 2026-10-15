@@ -6,7 +6,7 @@ resolve_s3 = true
 s3_prefix = "oho-customer-api-dev"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-disable_rollback = true
+disable_rollback = false
 parameter_overrides = "ApiStageName=\"dev\" VpcSubnetIds=\"\" VpcSecurityGroupIds=\"\" OnboardingSmsQueueArn=\"\" AllowedFrontendOrigins=\"http://localhost:5173,https://develop.d1fysopts5fr14.amplifyapp.com\" ApiReservedConcurrency=\"20\""
 image_repositories = []
 
@@ -31,7 +31,7 @@ resolve_s3 = true
 s3_prefix = "oho-customer-api-dev"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-disable_rollback = true
+disable_rollback = false
 parameter_overrides = "ApiStageName=\"dev\" VpcSubnetIds=\"\" VpcSecurityGroupIds=\"\" OnboardingSmsQueueArn=\"\" AllowedFrontendOrigins=\"http://localhost:5173,https://develop.d1fysopts5fr14.amplifyapp.com\" ApiReservedConcurrency=\"20\""
 image_repositories = []
 

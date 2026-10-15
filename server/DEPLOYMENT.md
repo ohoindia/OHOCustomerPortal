@@ -186,7 +186,11 @@ npm run package:lambda
 sam deploy --template-file template.yaml --config-env dev --disable-rollback --no-fail-on-empty-changeset
 ```
 
-After recovery succeeds, set `disable_rollback = false` in both the `default` and `dev` profiles for subsequent releases. Let CloudFormation manage the failed stage cleanup rather than manually deleting the API.
+After recovery succeeds, set `disable_rollback = false` in both the `default` and `dev` profiles for subsequent releases.
+
+If an earlier failed cleanup was skipped and recovery reports `Stage already exists`, inspect `CustomerHttpApiStage` with `describe-stack-resource` and the existing stage with `apigatewayv2 get-stage`. A failed resource without a physical ID can conflict with an orphaned stage. In this dev stack, the custom-domain mapping `api.ohoindialife.com/dev` (mapping ID `95fzvs`) also references the stage. Before removing an orphaned `dev` stage, temporarily update only that mapping to the same API's working `$default` stage, then delete the orphaned stage and retry the deployment. After `UPDATE_COMPLETE`, update the mapping back to `dev` and verify both URLs. Do not delete the API or modify mappings for other environments. Re-read the current IDs and mappings before any future recovery.
+
+During the migration, move mappings back to `dev` as soon as that stage reaches `CREATE_COMPLETE`, so CloudFormation can delete `$default` during cleanup. The additional root mapping on `devnodeapi.ohoindialife.com` (ID `2797ks`) must also point to `dev`. That hostname did not resolve from the recovery machine; its DNS must be configured separately if it is intended for use. The verified custom-domain health URL is `https://api.ohoindialife.com/dev/health`.
 
 See [API Gateway management ARN formats](https://docs.aws.amazon.com/apigateway/latest/developerguide/arn-format-reference.html) and [SAM deploy rollback options](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-deploy.html).
 
