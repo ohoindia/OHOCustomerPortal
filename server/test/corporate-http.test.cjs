@@ -75,6 +75,27 @@ test("corporate HTTP routes reject anonymous requests, customer JWTs and invalid
     );
   }
 });
+
+test("corporate admin HTTP routes reject anonymous, customer and corporate sessions", async () => {
+  for (const path of ["access", "provision", "roles/save", "users/save"]) {
+    const tokens = ["customer.jwt.token", "a".repeat(64)];
+    if (path === "access") tokens.push(undefined);
+    for (const token of tokens) {
+      const response = await fetch(
+        `${base}/api/corporate-admin/groups/30/${path}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({}),
+        },
+      );
+      assert.equal(response.status, 401);
+    }
+  }
+});
 test("valid corporate session reads only its company and cannot enter customer APIs", async () => {
   const response = await call("workspace", undefined, "a".repeat(64));
   assert.equal(response.status, 200);
@@ -91,6 +112,7 @@ test("valid corporate session reads only its company and cannot enter customer A
 test("viewer cannot mutate employees, roles, users or inventory over HTTP", async () => {
   const cases = [
     ["employees/remove", { id: 1 }],
+    ["employees/provision", { id: 1 }],
     ["roles/save", { name: "Admin", permissions: ["access"] }],
     ["inventory/save", { name: "Kit", sku: "KIT", quantity: 1 }],
     [
@@ -106,6 +128,19 @@ test("viewer cannot mutate employees, roles, users or inventory over HTTP", asyn
   ];
   for (const [path, body] of cases)
     assert.equal((await call(path, body, "a".repeat(64))).status, 403);
+});
+
+test("employee enrollment validates nested family data and scopes customer details", async () => {
+  const body = {
+    name: "Employee", mobile: "9876543210", email: "employee@example.test",
+    employeeCode: "EMP-1", department: "Sales", joinedOn: "2026-10-15", status: "Active",
+    productsId: 1, dateofBirth: "1990-01-01", gender: "Male",
+    requestId: "11111111-1111-4111-8111-111111111111",
+    family: [{ fullName: "Child", dateofBirth: "invalid", gender: "Female", relationship: "Daughter" }],
+  };
+  assert.equal((await call("employees/save", body, "a".repeat(64))).status, 400);
+  assert.equal((await call("employees/customer", { id: 999 }, "a".repeat(64))).status, 404);
+  assert.equal((await call("employees/customer", { id: 999, companyId: 7 }, "a".repeat(64))).status, 400);
 });
 test("HTTP validation rejects unrecognized permissions and client supplied company identifiers", async () => {
   assert.equal(

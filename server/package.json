@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "corporate:admin": "node scripts/corporate-admin.cjs",
+    "corporate:configure:dev": "node scripts/configure-corporate-admin-dev.cjs --apply-ohoindiadev",
     "corporate:migrate:dev": "node scripts/migrate-corporate-dev.cjs --apply-ohoindiadev",
     "build": "nest build",
     "package:lambda": "npm run build && node scripts/package-lambda.cjs",

@@ -1,4 +1,4 @@
-export type Permission = "employees" | "inventory" | "invoices" | "access";
+export type Permission = "employees" | "invoices" | "access";
 export interface Employee {
   id: number;
   customerId: number | null;
@@ -10,13 +10,6 @@ export interface Employee {
   department: string;
   joinedOn: string;
   status: "Active" | "Pending" | "Removed";
-}
-export interface Inventory {
-  id: number;
-  name: string;
-  sku: string;
-  quantity: number;
-  assigned: number;
 }
 export interface Invoice {
   id: number;
@@ -42,6 +35,7 @@ export interface PortalUser {
   status: string;
 }
 export interface Workspace {
+  products: { id: number; name: string; maximumMembers: number; requiresSpouse: boolean; nominees: { id: number; name: string }[] }[];
   company: { id: number; name: string; groupId: number };
   identity: {
     userId: number;
@@ -52,11 +46,17 @@ export interface Workspace {
     permissions: Permission[];
   };
   employees: Employee[];
-  inventory: Inventory[];
   invoices: Invoice[];
   roles: Role[];
   users: PortalUser[];
   activity: { action: string; actor: string; createdAt: string }[];
+}
+export interface EmployeeCustomer {
+  customerId: number | null;
+  onboarding: { orderId: number; status: string } | null;
+  cards: { number: string; startDate: string | null; endDate: string | null; active: boolean }[];
+  products: { id: number; name: string; issuedOn: string | null; validTill: string | null }[];
+  family: { id: number; name: string; relationship: string; cardHolderType?: string; dateofBirth: string; gender: string }[];
 }
 let accessToken = "";
 const base = (import.meta.env.VITE_CORPORATE_API_BASE_URL || "").replace(

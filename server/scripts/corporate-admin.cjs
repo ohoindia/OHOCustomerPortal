@@ -30,52 +30,12 @@ async function main() {
         throw Error(
           "Provide groupId, companyName, name, email, password (12–128 characters).",
         );
-      const password = await hashPassword(data.password);
-      const id = await db.transaction(async (c) => {
-        const [group] = await db.rows(
-          "SELECT GroupId FROM `Group` WHERE GroupId=?",
-          [data.groupId],
-          c,
-        );
-        if (!group) throw Error("Create the Group in OHOINDIA first.");
-        const result = await db.execute(
-          "INSERT INTO CorporateCompany (GroupId,Name) VALUES (?,?)",
-          [data.groupId, data.companyName.trim()],
-          c,
-        );
-        const companyId = result.insertId;
-        let adminId;
-        for (const [name, permissions] of [
-          ["Admin", ["employees", "inventory", "invoices", "access"]],
-          ["HR", ["employees", "inventory"]],
-          ["Finance", ["invoices"]],
-          ["Viewer", []],
-        ]) {
-          const role = await db.execute(
-            "INSERT INTO CorporateRole (CompanyId,Name,Permissions,IsSystem) VALUES (?,?,?,1)",
-            [companyId, name, JSON.stringify(permissions)],
-            c,
-          );
-          if (name === "Admin") adminId = role.insertId;
-        }
-        await db.execute(
-          "INSERT INTO CorporateUser (CompanyId,RoleId,Name,Email,PasswordHash,Status) VALUES (?,?,?,?,?,'Active')",
-          [
-            companyId,
-            adminId,
-            data.name.trim(),
-            data.email.trim().toLowerCase(),
-            password,
-          ],
-          c,
-        );
-        await db.execute(
-          "INSERT INTO CorporateAudit (CompanyId,UserId,ActorName,Action) VALUES (?,0,'OHOINDIA','Company portal provisioned')",
-          [companyId],
-          c,
-        );
-        return companyId;
-      });
+      const {
+        CorporateAdminService,
+      } = require("../dist/corporate/corporate-admin");
+      const { companyId: id } = await app
+        .get(CorporateAdminService)
+        .provision(data.groupId, data, "OHOINDIA operator");
       console.log(JSON.stringify({ companyId: id }));
     } else if (data.action === "invoice") {
       if (
@@ -116,7 +76,10 @@ async function main() {
         );
       });
       console.log(JSON.stringify({ success: true }));
-    } else throw Error("Unknown action: use provision, list-access, save-user or invoice.");
+    } else
+      throw Error(
+        "Unknown action: use provision, list-access, save-user or invoice.",
+      );
   } finally {
     await app.close();
   }

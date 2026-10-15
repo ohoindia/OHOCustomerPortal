@@ -11,8 +11,15 @@ import {
   UseGuards,
   UnauthorizedException,
 } from "@nestjs/common";
+import { CorporateOnboardingService } from "./corporate-onboarding";
+import { checkPermission } from "./corporate.service";
 import { Public } from "../auth/jwt-auth.guard";
 import { CorporateService, CorporateIdentity } from "./corporate.service";
+import {
+  CorporateAdminController,
+  CorporateAdminGuard,
+  CorporateAdminService,
+} from "./corporate-admin";
 import {
   AssignDto,
   CorporateLoginDto,
@@ -56,7 +63,7 @@ class CorporateLoginController {
 @UseGuards(CorporateGuard)
 @Controller("api/corporate")
 class CorporateController {
-  constructor(private readonly service: CorporateService) {}
+  constructor(private readonly service: CorporateService, private readonly onboarding: CorporateOnboardingService) {}
   @Get("workspace") workspace(@Req() r: CorporateRequest) {
     return this.service.workspace(r.corporate);
   }
@@ -68,6 +75,13 @@ class CorporateController {
     @Body() b: EmployeeDto,
   ) {
     return this.service.employee(r.corporate, b);
+  }
+  @Post("employees/customer") customer(@Req() r: CorporateRequest, @Body() b: IdDto) {
+    return this.onboarding.details(r.corporate, b.id);
+  }
+  @Post("employees/provision") provision(@Req() r: CorporateRequest, @Body() b: IdDto) {
+    checkPermission(r.corporate, "employees");
+    return this.onboarding.complete(r.corporate, b.id);
   }
   @Post("employees/remove") remove(
     @Req() r: CorporateRequest,
@@ -95,7 +109,17 @@ class CorporateController {
   }
 }
 @Module({
-  controllers: [CorporateController, CorporateLoginController],
-  providers: [CorporateService, CorporateGuard],
+  controllers: [
+    CorporateController,
+    CorporateLoginController,
+    CorporateAdminController,
+  ],
+  providers: [
+    CorporateService,
+    CorporateOnboardingService,
+    CorporateGuard,
+    CorporateAdminGuard,
+    CorporateAdminService,
+  ],
 })
 export class CorporateModule {}

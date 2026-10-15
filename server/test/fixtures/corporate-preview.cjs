@@ -2,6 +2,7 @@
 const { createServer } = require("node:http");
 const permissions = ["employees", "inventory", "invoices", "access"];
 const workspace = {
+  products: [{ id: 10, name: "Example group family plan", maximumMembers: 4, requiresSpouse: false, nominees: [] }],
   company: { id: 1, name: "Example Company", groupId: 100 },
   identity: {
     userId: 1,
@@ -97,13 +98,27 @@ createServer(async (req, res) => {
         workspace.employees.find((e) => e.id === body.id),
         body,
       );
-    else
-      workspace.employees.push({
+    else {
+      const employee = {
         ...body,
         id: workspace.employees.length + 1,
-        customerId: null,
+        customerId: 100,
         communityCustomerId: 100,
-      });
+      };
+      workspace.employees.push(employee);
+      result = { success: true, employeeId: employee.id, orderId: 900, onboardingStatus: "Completed", message: "Local sample employee created. No real order or card was issued." };
+    }
+  } else if (req.url === "/api/corporate/employees/customer") {
+    const employee = workspace.employees.find((e) => e.id === body.id);
+    result = {
+      customerId: employee?.customerId ?? null,
+      onboarding: { orderId: 900, status: "Completed" },
+      cards: [{ number: employee?.ohoCardNumber || "123456789012", startDate: "2026-10-15", endDate: "2027-10-14", active: true }],
+      products: [{ id: 10, name: "Example group family plan", issuedOn: "2026-10-15", validTill: "2027-10-14" }],
+      family: (employee?.family ?? []).map((person, index) => ({ id: index + 1, name: person.fullName, cardHolderType: person.cardHolderType || (person.relationship === "Spouse" ? "Secondary" : "Family"), ...person })),
+    };
+  } else if (req.url === "/api/corporate/employees/provision") {
+    result = { success: true, message: "Local sample only. No real card API call." };
   } else if (req.url === "/api/corporate/roles/save")
     workspace.roles.push({
       ...body,
@@ -116,8 +131,8 @@ createServer(async (req, res) => {
   }
   res.setHeader("Content-Type", "application/json");
   res.end(JSON.stringify(result));
-}).listen(3001, "127.0.0.1", () =>
+}).listen(Number(process.env.CORPORATE_PREVIEW_PORT || 3001), "127.0.0.1", () =>
   console.log(
-    "Local corporate UI fixture at 127.0.0.1:3001; example data only.",
+    `Local corporate UI fixture at 127.0.0.1:${process.env.CORPORATE_PREVIEW_PORT || 3001}; example data only.`,
   ),
 );

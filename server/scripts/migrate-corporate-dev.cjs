@@ -14,6 +14,7 @@ const tables = [
   "CorporateAssignment",
   "CorporateInvoice",
   "CorporateAudit",
+  "CorporateOnboarding",
 ];
 
 async function main() {
@@ -29,10 +30,7 @@ async function main() {
   if (!config.get("DB_HOST") || !config.get("DB_USER"))
     throw Error("Backend DB_HOST and DB_USER must be configured.");
   const sql = (
-    await readFile(
-      path.resolve(__dirname, "../migrations/20261015-corporate.sql"),
-      "utf8",
-    )
+    (await Promise.all(["20261015-corporate.sql", "20261015-corporate-onboarding.sql"].map((file) => readFile(path.resolve(__dirname, "../migrations", file), "utf8")))).join("\n")
   ).replace(/^\s*--.*$/gm, "");
   const statements = sql
     .split(";")
@@ -122,7 +120,7 @@ async function main() {
     console.log(
       JSON.stringify({
         database,
-        migration: "20261015-corporate.sql",
+        migration: "20261015-corporate.sql + 20261015-corporate-onboarding.sql",
         verifiedTables: tables.length,
         verifiedForeignKeys: foreignKeys.length,
         completedAt: new Date().toISOString(),

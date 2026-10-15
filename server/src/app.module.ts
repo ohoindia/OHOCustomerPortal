@@ -49,7 +49,9 @@ class HealthController {
         ttl: 300000,
         limit: 10,
         skipIf: (context) =>
-          context.getClass().name !== "CorporateLoginController",
+          !["CorporateLoginController", "CorporateAdminController"].includes(
+            context.getClass().name,
+          ),
       },
       {
         name: "auth",

@@ -14,6 +14,7 @@ const who = {
   role: "HR",
   permissions: ["employees", "inventory"],
 };
+const onboarding = { products: async () => [], prepare: async () => {}, complete: async () => ({ success: true }) };
 function database(read) {
   const calls = [];
   return {
@@ -39,7 +40,7 @@ test("HR cannot manage roles or invoices and role checks precede database writes
   assert.throws(() => checkPermission(who, "invoices"), { status: 403 });
   const db = database(() => []);
   await assert.rejects(
-    new CorporateService(db).role(who, {
+    new CorporateService(db, onboarding).role(who, {
       name: "Admin",
       permissions: ["access"],
     }),
@@ -49,7 +50,7 @@ test("HR cannot manage roles or invoices and role checks precede database writes
 });
 test("expired, disabled or revoked sessions cannot authenticate", async () => {
   const db = database(() => []);
-  await assert.rejects(new CorporateService(db).identity("a".repeat(64)), {
+  await assert.rejects(new CorporateService(db, onboarding).identity("a".repeat(64)), {
     status: 401,
   });
   assert.match(db.calls[0].sql, /ExpiresAt>UTC_TIMESTAMP\(\)/);
@@ -59,7 +60,7 @@ test("expired, disabled or revoked sessions cannot authenticate", async () => {
 });
 test("cross-company employee IDs are rejected before mutation", async () => {
   const db = database(() => []);
-  await assert.rejects(new CorporateService(db).remove(who, 88), {
+  await assert.rejects(new CorporateService(db, onboarding).remove(who, 88), {
     status: 404,
   });
   assert.deepEqual(db.calls[0].values, [88, 7]);
@@ -79,7 +80,7 @@ test("inventory cannot be assigned across companies or beyond stock", async () =
           : [],
   );
   await assert.rejects(
-    new CorporateService(db).assign(who, { id: 9, employeeId: 3 }),
+    new CorporateService(db, onboarding).assign(who, { id: 9, employeeId: 3 }),
     { status: 409 },
   );
   assert.deepEqual(db.calls[0].values, [9, 7]);
@@ -95,7 +96,7 @@ test("HR workspace excludes invoices, roles and credentials", async () => {
       ? [{ id: 7, name: "Company", groupId: 20 }]
       : [],
   );
-  const result = await new CorporateService(db).workspace(who);
+  const result = await new CorporateService(db, onboarding).workspace(who);
   assert.deepEqual(result.invoices, []);
   assert.deepEqual(result.roles, []);
   assert.deepEqual(result.users, []);
@@ -118,7 +119,7 @@ test("onboarding creates a community customer and links an existing customer in 
         ? [{ CustomerId: 30 }]
         : [],
   );
-  await new CorporateService(db).employee(who, {
+  await new CorporateService(db, onboarding).employee(who, {
     name: "New Employee",
     mobile: "9876543210",
     email: "new@example.com",
@@ -159,11 +160,11 @@ test("onboarding rejects another company group and invalid calendar dates", asyn
     joinedOn: "2026-10-15",
     status: "Pending",
   };
-  await assert.rejects(new CorporateService(db).employee(who, employee), {
+  await assert.rejects(new CorporateService(db, onboarding).employee(who, employee), {
     status: 409,
   });
   await assert.rejects(
-    new CorporateService(db).employee(who, {
+    new CorporateService(db, onboarding).employee(who, {
       ...employee,
       joinedOn: "2026-02-30",
     }),
@@ -180,7 +181,7 @@ test("removal releases stock, retains customer records, and audits the company c
       ? [{ Id: 8, EmployeeCode: "EMP-8", CommunityCustomerId: 18 }]
       : [],
   );
-  await new CorporateService(db).remove(who, 8);
+  await new CorporateService(db, onboarding).remove(who, 8);
   assert.ok(
     db.calls.some(
       (c) =>
@@ -212,7 +213,7 @@ test("user management rejects foreign company role IDs and self modifications", 
   const admin = { ...who, permissions: ["access"] };
   const db = database(() => []);
   await assert.rejects(
-    new CorporateService(db).user(admin, {
+    new CorporateService(db, onboarding).user(admin, {
       name: "Test",
       email: "test@example.com",
       roleId: 100,
@@ -229,7 +230,7 @@ test("user management rejects foreign company role IDs and self modifications", 
         : [],
   );
   await assert.rejects(
-    new CorporateService(own).user(admin, {
+    new CorporateService(own, onboarding).user(admin, {
       id: 1,
       name: "Test",
       email: "test@example.com",
@@ -257,7 +258,7 @@ test("rehiring restores only an unassigned customer's original company group", a
           ? [{ GroupId: null }]
           : [],
   );
-  await new CorporateService(db).employee(who, {
+  await new CorporateService(db, onboarding).employee(who, {
     id: 9,
     name: "Returning Employee",
     mobile: "9876543210",
@@ -295,7 +296,7 @@ test("rehiring cannot take a customer away from another company group", async ()
           : [],
   );
   await assert.rejects(
-    new CorporateService(db).employee(who, {
+    new CorporateService(db, onboarding).employee(who, {
       id: 9,
       name: "Returning Employee",
       mobile: "9876543210",

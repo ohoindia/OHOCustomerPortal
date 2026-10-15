@@ -1,30 +1,29 @@
 import React, { useEffect, useRef, useState } from "react";
 import type {
   Employee,
-  Inventory,
   Permission,
   PortalUser,
   Workspace,
 } from "./api";
 import { exportCsv, login, logout, money, request } from "./api";
+import { EmployeeEnrollment } from "./EmployeeEnrollment";
+import { enrollmentBody } from "./enrollment";
+import { ExcelImportDialog } from "./ExcelImportDialog";
+import { EmployeeCustomerDialog } from "./EmployeeCustomerDialog";
 
 type Section =
   | "Overview"
   | "Employees"
   | "Onboarding"
   | "Invoices"
-  | "Inventory"
   | "Roles & access";
 type Modal =
   | { kind: "employee"; employee?: Employee }
   | { kind: "remove"; employee: Employee }
-  | { kind: "inventory" }
-  | { kind: "assign"; item: Inventory }
   | { kind: "role" }
   | { kind: "user"; user?: PortalUser };
 const allPermissions: Permission[] = [
   "employees",
-  "inventory",
   "invoices",
   "access",
 ];
@@ -40,11 +39,8 @@ const date = (value: string) =>
 function Brand() {
   return (
     <div className="brand">
-      <span className="brand-mark">
-        oho<span>+</span>
-      </span>
+      <img className="brand-logo" src="/ohowhitelogo.png" alt="OHOINDIA" />
       <div>
-        <strong>OHOINDIA</strong>
         <small>CORPORATE PORTAL</small>
       </div>
     </div>
@@ -120,6 +116,7 @@ function Dialog({
   error: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const [requestId] = useState(() => crypto.randomUUID());
   const title =
     modal.kind === "employee"
       ? modal.employee
@@ -127,15 +124,11 @@ function Dialog({
         : "Onboard an employee"
       : modal.kind === "remove"
         ? "Remove from company?"
-        : modal.kind === "inventory"
-          ? "Add inventory"
-          : modal.kind === "assign"
-            ? "Assign inventory"
-            : modal.kind === "role"
-              ? "Create a role"
-              : modal.user
-                ? "Edit portal access"
-                : "Add portal user";
+        : modal.kind === "role"
+          ? "Create a role"
+          : modal.user
+            ? "Edit portal access"
+            : "Add portal user";
   useEffect(() => {
     const dialog = ref.current!;
     dialog.showModal();
@@ -150,19 +143,11 @@ function Dialog({
       case "employee":
         path = "employees/save";
         if (modal.employee) body.id = modal.employee.id;
+        else enrollmentBody(form, body, requestId);
         break;
       case "remove":
         path = "employees/remove";
         body.id = modal.employee.id;
-        break;
-      case "inventory":
-        path = "inventory/save";
-        body.quantity = Number(body.quantity);
-        break;
-      case "assign":
-        path = "inventory/assign";
-        body.id = modal.item.id;
-        body.employeeId = Number(body.employeeId);
         break;
       case "role":
         path = "roles/save";
@@ -226,7 +211,7 @@ function Dialog({
                 name="email"
                 type="email"
                 value={modal.employee?.email}
-                maxLength={190}
+                maxLength={150}
               />
               <Field
                 label="Mobile number"
@@ -262,9 +247,11 @@ function Dialog({
                 </select>
               </label>
             </div>
+            {!modal.employee && <EmployeeEnrollment products={data.products ?? []} />}
             <p className="hint">
-              Pending employees can be activated after HR verifies their
-              details. Existing customer records are linked by mobile number.
+              Existing customers are linked by mobile number. Creating an employee
+              provisions the selected group product and included family members.
+              Roster status is managed separately from product coverage.
             </p>
           </>
         )}
@@ -272,40 +259,9 @@ function Dialog({
           <p>
             Remove <strong>{modal.employee.name}</strong> from the company
             roster? Their OHOINDIA customer account and history will be
-            retained. Assigned company inventory will be released. This cannot
+            retained. This cannot
             be undone in the portal.
           </p>
-        )}
-        {modal.kind === "inventory" && (
-          <div className="form-grid">
-            <Field label="Item name" name="name" maxLength={120} />
-            <Field label="SKU / reference" name="sku" maxLength={60} />
-            <Field label="Total units" name="quantity" type="number" min={1} />
-          </div>
-        )}
-        {modal.kind === "assign" && (
-          <>
-            <p>
-              Assign one unit of <strong>{modal.item.name}</strong>.{" "}
-              {Number(modal.item.quantity) - Number(modal.item.assigned)}{" "}
-              available.
-            </p>
-            <label className="field">
-              Active employee
-              <select name="employeeId" required defaultValue="">
-                <option value="" disabled>
-                  Select an employee
-                </option>
-                {data.employees
-                  .filter((e) => e.status === "Active")
-                  .map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.name} · {e.employeeCode}
-                    </option>
-                  ))}
-              </select>
-            </label>
-          </>
         )}
         {modal.kind === "role" && (
           <>
@@ -326,7 +282,6 @@ function Dialog({
                     {
                       {
                         employees: "Add, edit and remove employees",
-                        inventory: "Manage and assign inventory",
                         invoices: "View and export invoices",
                         access: "Create roles and manage portal access",
                       }[permission]
@@ -430,6 +385,8 @@ export default function Portal() {
   const [busy, setBusy] = useState(false);
   const [modalError, setModalError] = useState("");
   const [modal, setModal] = useState<Modal | null>(null);
+  const [customer, setCustomer] = useState<Employee | null>(null);
+  const [excelImport, setExcelImport] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [menu, setMenu] = useState(false);
@@ -437,6 +394,8 @@ export default function Portal() {
     const endSession = () => {
       setData(null);
       setModal(null);
+      setCustomer(null);
+      setExcelImport(false);
       setError("Your corporate session has ended. Please sign in again.");
       setSection("Overview");
     };
@@ -475,11 +434,13 @@ export default function Portal() {
     setBusy(true);
     setModalError("");
     try {
-      await request(path, body);
+      const result = await request<{ message?: string; employeeId?: number; orderId?: number }>(path, body);
       setModal(null);
-      setNotice("Changes saved successfully.");
+      setNotice(result.message ?? "Changes saved successfully.");
       try {
-        setData(await request<Workspace>("workspace"));
+        const updated = await request<Workspace>("workspace");
+        setData(updated);
+        if (result.orderId) setCustomer(updated.employees.find((e) => e.id === result.employeeId) ?? null);
       } catch {
         setError(
           "Your changes were saved. Refresh to load the updated workspace.",
@@ -516,6 +477,8 @@ export default function Portal() {
     } finally {
       setData(null);
       setModal(null);
+      setCustomer(null);
+      setExcelImport(false);
       setBusy(false);
     }
   }
@@ -525,10 +488,11 @@ export default function Portal() {
         <section className="login-story">
           <Brand />
           <div>
-            <span className="eyebrow">BETTER CARE. TOGETHER.</span>
+            <span className="eyebrow">OHOINDIA CORPORATE SERVICES</span>
             <h1>
-              A healthier team.
-              <br />A stronger company.
+              Manage your company.
+              <br />
+              Care for your team.
             </h1>
             <p>
               Your people, their onboarding, and your OHOINDIA services — in one
@@ -544,12 +508,13 @@ export default function Portal() {
               <span>03</span> Stay on top of every detail
             </div>
           </div>
-          <small>OHOINDIA · Employee care, made simple.</small>
+          <small>OHOINDIA · Corporate Portal</small>
         </section>
         <main className="login-main">
           <form className="login-card" onSubmit={signIn}>
             <span className="eyebrow">YOUR COMPANY WORKSPACE</span>
-            <h2>Welcome back</h2>
+            <img className="login-logo" src="/applogo.png" alt="OHOINDIA" />
+            <h2>Welcome to OHOINDIA</h2>
             <p className="muted">
               Sign in with the corporate account provided by OHOINDIA or your
               company administrator.
@@ -622,7 +587,6 @@ export default function Portal() {
     { name: "Employees", icon: "♙" },
     { name: "Onboarding", icon: "⊕", permission: "employees" },
     { name: "Invoices", icon: "▤", permission: "invoices" },
-    { name: "Inventory", icon: "◇", permission: "inventory" },
     { name: "Roles & access", icon: "⚿", permission: "access" },
   ];
   const employeeTable = (
@@ -649,7 +613,7 @@ export default function Portal() {
                     <div className="person">
                       <span className="avatar">{e.name.slice(0, 1)}</span>
                       <div>
-                        <strong>{e.name}</strong>
+                        <button className="text-button" onClick={() => setCustomer(e)}>{e.name}</button>
                         <small>{e.email}</small>
                         <small>+91 {e.mobile}</small>
                       </div>
@@ -738,7 +702,7 @@ export default function Portal() {
             ))}
         </nav>
         <div className="sidebar-bottom">
-          <p>Here for your people.</p>
+          <p>OHOINDIA Corporate Portal</p>
           <small>Your OHOINDIA company workspace</small>
         </div>
       </aside>
@@ -783,13 +747,12 @@ export default function Portal() {
                 {
                   {
                     Overview:
-                      "A little oversight. A lot of care for your people.",
+                      "Manage employees, company services and portal access.",
                     Employees:
                       "Manage the people connected to your OHOINDIA company group.",
                     Onboarding:
                       "Help every new employee get off to a healthy start.",
                     Invoices: "Keep track of your company’s OHOINDIA invoices.",
-                    Inventory: "Manage company stock and employee allocations.",
                     "Roles & access":
                       "Give your team the right access to this workspace.",
                   }[section]
@@ -797,6 +760,7 @@ export default function Portal() {
               </p>
             </div>
             <div className="heading-actions">
+              {can("employees") && ["Overview", "Employees", "Onboarding"].includes(section) && <button className="secondary" disabled={busy} onClick={() => setExcelImport(true)}>Upload Excel</button>}
               <button className="secondary" onClick={refresh} disabled={busy}>
                 {busy ? "Loading…" : "↻ Refresh"}
               </button>
@@ -809,14 +773,6 @@ export default function Portal() {
                     ＋ Add employee
                   </button>
                 )}
-              {section === "Inventory" && (
-                <button
-                  className="primary"
-                  onClick={() => open({ kind: "inventory" })}
-                >
-                  ＋ Add inventory
-                </button>
-              )}
             </div>
           </div>
           {error && (
@@ -915,26 +871,9 @@ export default function Portal() {
                     </div>
                     <span>→</span>
                   </button>
-                  {can("inventory") && (
-                    <button onClick={() => navigate("Inventory")}>
-                      <span className="check-icon">02</span>
-                      <div>
-                        <strong>Company inventory</strong>
-                        <small>
-                          {data.inventory.reduce(
-                            (sum, i) =>
-                              sum + Number(i.quantity) - Number(i.assigned),
-                            0,
-                          )}{" "}
-                          units available to assign
-                        </small>
-                      </div>
-                      <span>→</span>
-                    </button>
-                  )}
                   {can("access") && (
                     <button onClick={() => navigate("Roles & access")}>
-                      <span className="check-icon">03</span>
+                      <span className="check-icon">02</span>
                       <div>
                         <strong>Roles & permissions</strong>
                         <small>Manage HR, finance and admin access</small>
@@ -1135,66 +1074,6 @@ export default function Portal() {
               </section>
             </>
           )}
-          {section === "Inventory" && (
-            <section className="panel">
-              <div className="panel-heading">
-                <div>
-                  <h2>Company inventory</h2>
-                  <p className="muted">
-                    Track physical stock or benefit units. Allocations do not
-                    activate insurance or paid services.
-                  </p>
-                </div>
-              </div>
-              {!data.inventory.length ? (
-                <Empty text="Add stock to begin allocating units to active employees." />
-              ) : (
-                <div className="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Item</th>
-                        <th>SKU</th>
-                        <th>Total units</th>
-                        <th>Assigned</th>
-                        <th>Available</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.inventory.map((i) => (
-                        <tr key={i.id}>
-                          <td>
-                            <strong>{i.name}</strong>
-                          </td>
-                          <td>{i.sku}</td>
-                          <td>{i.quantity}</td>
-                          <td>{i.assigned}</td>
-                          <td>
-                            <Badge>
-                              {Number(i.quantity) - Number(i.assigned)}
-                            </Badge>
-                          </td>
-                          <td>
-                            <button
-                              className="text-button"
-                              disabled={
-                                Number(i.assigned) >= Number(i.quantity) ||
-                                !active.length
-                              }
-                              onClick={() => open({ kind: "assign", item: i })}
-                            >
-                              Assign to employee →
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
-          )}
           {section === "Roles & access" && (
             <>
               <section className="panel">
@@ -1223,8 +1102,8 @@ export default function Portal() {
                         </small>
                       </h3>
                       <div>
-                        {r.permissions.length ? (
-                          r.permissions.map((p) => (
+                        {r.permissions.some((p) => allPermissions.includes(p)) ? (
+                          r.permissions.filter((p) => allPermissions.includes(p)).map((p) => (
                             <span className="permission" key={p}>
                               {p}
                             </span>
@@ -1292,11 +1171,13 @@ export default function Portal() {
             </>
           )}
           <footer className="workspace-footer">
-            <span>OHOINDIA · Care for your community</span>
+            <span>OHOINDIA · Corporate Portal</span>
             <span>Company Group #{data.company.groupId}</span>
           </footer>
         </main>
       </div>
+      {customer && <EmployeeCustomerDialog key={customer.id} employee={customer} close={() => setCustomer(null)} canProvision={can("employees")} />}
+      {excelImport && <ExcelImportDialog data={data} close={() => setExcelImport(false)} onComplete={() => void refresh()} />}
       {modal && (
         <Dialog
           modal={modal}

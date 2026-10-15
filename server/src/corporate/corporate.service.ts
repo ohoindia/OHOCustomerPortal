@@ -16,6 +16,7 @@ import {
   UserDto,
 } from "./corporate.dto";
 import { hashPassword, verifyPassword } from "./password";
+import { CorporateOnboardingService, enrollmentFingerprint } from "./corporate-onboarding";
 
 export interface CorporateIdentity {
   userId: number;
@@ -39,7 +40,7 @@ function parsePermissions(value: unknown): string[] {
 }
 @Injectable()
 export class CorporateService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(private readonly db: DatabaseService, private readonly onboarding: CorporateOnboardingService) {}
   async login(email: string, password: string) {
     const [user] = await this.db.rows(
       "SELECT u.*, c.IsActive AS CompanyActive FROM CorporateUser u JOIN CorporateCompany c ON c.Id=u.CompanyId WHERE u.Email=?",
@@ -133,6 +134,7 @@ export class CorporateService {
       roles,
       users,
       activity,
+      products: await this.onboarding.products(who),
     };
   }
   private async audit(who: CorporateIdentity, action: string, c: Connection) {
@@ -168,7 +170,15 @@ export class CorporateService {
       date.toISOString().slice(0, 10) !== dto.joinedOn
     )
       throw new BadRequestException("Invalid joining date.");
-    return this.db.transaction(async (c) => {
+    const saved = await this.db.transaction(async (c) => {
+      if (!dto.id && dto.requestId) {
+        const [existing] = await this.db.rows("SELECT EmployeeId,RequestHash FROM CorporateOnboarding WHERE CompanyId=? AND RequestId=?", [who.companyId, dto.requestId], c);
+        if (existing) {
+          if (existing.RequestHash !== enrollmentFingerprint(dto)) throw new ConflictException("This onboarding request was already saved with different details. Open the existing employee's customer profile.");
+          return { success: true, employeeId: Number(existing.EmployeeId), created: true };
+        }
+      }
+      let employeeId = dto.id ?? 0;
       const [duplicate] = await this.db.rows(
         "SELECT Id FROM CorporateEmployee WHERE CompanyId=? AND (Mobile=? OR EmployeeCode=?) AND Id<>?",
         [who.companyId, dto.mobile, dto.employeeCode.trim(), dto.id ?? 0],
@@ -264,7 +274,7 @@ export class CorporateService {
             c,
           );
         }
-        await this.db.execute(
+        const roster = await this.db.execute(
           "INSERT INTO CorporateEmployee (CompanyId,CustomerId,CommunityCustomerId,Name,Email,Mobile,EmployeeCode,Department,JoinedOn,Status) VALUES (?,?,?,?,?,?,?,?,?,?)",
           [
             who.companyId,
@@ -280,14 +290,17 @@ export class CorporateService {
           ],
           c,
         );
+        employeeId = roster.insertId;
+        await this.onboarding.prepare(who, employeeId, dto, c);
       }
       await this.audit(
         who,
         `${dto.id ? "Updated" : "Onboarded"} employee ${dto.employeeCode}`,
         c,
       );
-      return { success: true };
-    }, `corporate-company:${who.companyId}`);
+      return { success: true, employeeId, created: !dto.id };
+    }, dto.id ? `corporate-company:${who.companyId}` : "corporate-onboarding");
+    return saved.created ? this.onboarding.complete(who, saved.employeeId) : saved;
   }
   async remove(who: CorporateIdentity, id: number) {
     checkPermission(who, "employees");
