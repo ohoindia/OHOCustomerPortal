@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
+    "corporate:install": "npm --prefix corporate ci",
+    "corporate:dev": "npm --prefix corporate run dev",
+    "corporate:build": "npm --prefix corporate run build",
+    "corporate:lint": "npm --prefix corporate run lint",
+    "corporate:preview": "npm --prefix corporate run preview",
     "dev": "npm --prefix client run dev",
     "build": "npm --prefix client run build",
     "lint": "npm --prefix client run lint",

@@ -1,8 +1,11 @@
 # OHO Customer App
 
+The separate responsive **corporate portal** runs with `npm run corporate:dev` and builds with `npm run corporate:build`. It includes a company-scoped backend, roles, employee onboarding, inventory and invoices. See [corporate setup and deployment](CORPORATE.md) before provisioning access.
+
 The repository separates the web client and backend so a React Native mobile app can be developed alongside them.
 
 - `client/`: existing React, TypeScript and Vite web app, including assets and frontend tests.
+- `corporate/`: standalone React, TypeScript and Vite portal for company HR and administrators, with independent dependencies, configuration and build output.
 - `common/`: shared API transport, typed data models, domain controllers, and data helpers for web and mobile. See [shared data layer](common/README.md).
 - `server/`: NestJS backend. See [server setup](server/README.md) and [deployment](server/DEPLOYMENT.md).
 - `mobile/`: Expo native shell bundling the same client screens, styling, and navigation, with native API requests, secure device sessions, and location access. See [mobile setup](mobile/README.md).

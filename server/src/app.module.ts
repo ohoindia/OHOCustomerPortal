@@ -16,6 +16,7 @@ import { PurchasesModule } from "./purchases/purchases.module";
 import { RuntimeConfigModule } from "./runtime-config/runtime-config.module";
 import { AuthModule } from "./auth/auth.module";
 import { JwtAuthGuard, Public } from "./auth/jwt-auth.guard";
+import { CorporateModule } from "./corporate/corporate.controller";
 
 @ApiTags("Health")
 @Controller("health")
@@ -44,6 +45,13 @@ class HealthController {
     ThrottlerModule.forRoot([
       { name: "default", ttl: 60000, limit: 120 },
       {
+        name: "corporate-login",
+        ttl: 300000,
+        limit: 10,
+        skipIf: (context) =>
+          context.getClass().name !== "CorporateLoginController",
+      },
+      {
         name: "auth",
         ttl: 300000,
         limit: 60,
@@ -66,6 +74,7 @@ class HealthController {
     CardsModule,
     ConsultationsModule,
     CommunitiesModule,
+    CorporateModule,
     CatalogModule,
     PortalModule,
     PurchasesModule,

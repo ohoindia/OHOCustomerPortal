@@ -52,7 +52,9 @@ export function useData<T>(path: string, body?: Record<string, unknown>) {
     return () => controller.abort();
   }, [path, serialized, key]);
   return {
-    ...(state.key === key ? state : { data: null, error: "", loading: true }),
+    ...(state.key === key
+      ? { data: state.data, error: state.error, loading: state.loading }
+      : { data: null, error: "", loading: true }),
     retry: () => setAttempt((n) => n + 1),
   };
 }
