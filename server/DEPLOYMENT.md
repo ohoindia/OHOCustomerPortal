@@ -87,7 +87,7 @@ Choose `ApiStageName=dev` for the dev stack and `ApiStageName=prod` for the prod
 1. Enter your VPC subnet/security group IDs, or, for a public database, press Enter without typing anything at each prompt showing `[]`. Do not type `""`: guided input treats those quotes as literal characters.
 2. Enter the optional onboarding queue ARN, or press Enter without typing anything at its `[]` prompt if unused.
 3. Allow SAM to create the execution role; keep CloudFormation rollback enabled.
-4. Save settings to `samconfig.toml` for subsequent deployments. This file is ignored by Git.
+4. Save settings to `samconfig.toml` for subsequent deployments. The repository includes non-secret dev/prod profiles; keep credentials out of this file.
 5. Review and confirm the CloudFormation changes.
 
 The API follows the app's existing unauthenticated route behavior; the template does not add an authorizer. Review the authentication limitations in [README.md](README.md#compatibility-and-intentional-differences) before exposing customer data in a production environment.
@@ -137,7 +137,7 @@ sam deploy --guided --template-file template.yaml --config-env prod --stack-name
 
 Select `ApiStageName=prod`, production origins/networking/queue parameters, and keep rollback enabled. Subsequent production releases use `--config-env prod`. Set the production frontend's `VITE_API_BASE_URL` to the production stack's `ApiBaseUrl`, including `/prod`. Both stacks can use the same AWS profile.
 
-`samconfig.toml` is ignored by Git. GitHub Actions must supply the appropriate stage and other deployment parameters explicitly, or use a committed configuration containing only non-secret settings.
+GitHub Actions uses the committed `dev` profile in `samconfig.toml`, including `ApiStageName=dev`. Keep credentials out of this file.
 
 From the `server` folder, with the original `samconfig.toml` and AWS profile:
 
@@ -146,7 +146,7 @@ npm ci
 npm test
 npm run package:lambda
 sam validate --lint --template-file template.yaml --region ap-south-1
-sam deploy --template-file template.yaml --config-env default --no-fail-on-empty-changeset
+sam deploy --template-file template.yaml --config-env dev --no-fail-on-empty-changeset
 ```
 
 This updates the existing CloudFormation stack and function. Its API base URL normally remains the same. Rebuild the artifact after every server change; redeploying without packaging would deploy the previous build. Keep the same stack name and region. If `samconfig.toml` is unavailable, repeat the guided command with the **existing** stack name and region to restore settings.
@@ -166,6 +166,29 @@ When upgrading a stack created with the previous Secrets Manager template, remov
 Keep code and infrastructure changes in SAM. Maintain database environment variables directly in Lambda and application configuration directly in the database tables. Check database environment variables after infrastructure updates or function replacement.
 
 ## 9. Logs, troubleshooting and rollback
+
+### Dev GitHub role cannot delete an API Gateway stage
+
+If stage replacement fails with `apigateway:DELETE` denied for `GitHubOhoCustomerApiDeploy`, the deployment role needs API Gateway management permissions. Lambda execution-role policies in `template.yaml` do not grant permissions to the GitHub deployment role.
+
+Apply the supplemental policy using an identity allowed to manage that role (from the `server` folder):
+
+```powershell
+aws iam put-role-policy --role-name GitHubOhoCustomerApiDeploy --policy-name OhoDevApiGatewayManagement --policy-document file://iam/github-dev-api-management.json
+```
+
+The policy is scoped to the existing dev HTTP API `y63a7v4onk` and its child resources in `ap-south-1`; update its ARNs if that API is intentionally recreated. It supplements the role's existing CloudFormation, Lambda, IAM and artifact permissions.
+
+For the preserved `UPDATE_FAILED` stack, rebuild the artifact and retry with rollback disabled:
+
+```powershell
+npm run package:lambda
+sam deploy --template-file template.yaml --config-env dev --disable-rollback --no-fail-on-empty-changeset
+```
+
+After recovery succeeds, set `disable_rollback = false` in both the `default` and `dev` profiles for subsequent releases. Let CloudFormation manage the failed stage cleanup rather than manually deleting the API.
+
+See [API Gateway management ARN formats](https://docs.aws.amazon.com/apigateway/latest/developerguide/arn-format-reference.html) and [SAM deploy rollback options](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-deploy.html).
 
 ```powershell
 sam logs --name CustomerApiFunction --stack-name oho-customer-api-dev --region ap-south-1 --tail

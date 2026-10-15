@@ -7,7 +7,7 @@ s3_prefix = "oho-customer-api-dev"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 disable_rollback = true
-parameter_overrides = "VpcSubnetIds=\"\" VpcSecurityGroupIds=\"\" OnboardingSmsQueueArn=\"\" AllowedFrontendOrigins=\"http://localhost:5173,https://develop.d1fysopts5fr14.amplifyapp.com\" ApiReservedConcurrency=\"20\""
+parameter_overrides = "ApiStageName=\"dev\" VpcSubnetIds=\"\" VpcSecurityGroupIds=\"\" OnboardingSmsQueueArn=\"\" AllowedFrontendOrigins=\"http://localhost:5173,https://develop.d1fysopts5fr14.amplifyapp.com\" ApiReservedConcurrency=\"20\""
 image_repositories = []
 
 [default.global.parameters]
@@ -32,7 +32,7 @@ s3_prefix = "oho-customer-api-dev"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 disable_rollback = true
-parameter_overrides = "VpcSubnetIds=\"\" VpcSecurityGroupIds=\"\" OnboardingSmsQueueArn=\"\" AllowedFrontendOrigins=\"http://localhost:5173,https://develop.d1fysopts5fr14.amplifyapp.com\" ApiReservedConcurrency=\"20\""
+parameter_overrides = "ApiStageName=\"dev\" VpcSubnetIds=\"\" VpcSecurityGroupIds=\"\" OnboardingSmsQueueArn=\"\" AllowedFrontendOrigins=\"http://localhost:5173,https://develop.d1fysopts5fr14.amplifyapp.com\" ApiReservedConcurrency=\"20\""
 image_repositories = []
 
 [dev.global.parameters]

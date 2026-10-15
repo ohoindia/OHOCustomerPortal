@@ -5,6 +5,7 @@ on:
     branches: [develop]
     paths:
       - "server/**"
+      - ".github/workflows/deploy-server.yml"
 
 permissions:
   contents: read
@@ -55,6 +56,6 @@ jobs:
         run: >
           sam deploy
           --template-file template.yaml
-          --config-env default
+          --config-env dev
           --no-confirm-changeset
           --no-fail-on-empty-changeset
