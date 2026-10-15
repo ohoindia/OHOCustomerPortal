@@ -46,9 +46,23 @@ export function Details({
   return (
     <>
       {fields.map(([key, label]) => (
-        <View key={key} style={{ gap: 4 }}>
-          <Text style={s.label}>{label}</Text>
-          <Copy>{value(row, key) || "—"}</Copy>
+        <View
+          key={key}
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            gap: 16,
+            paddingVertical: 8,
+            borderBottomWidth: 1,
+            borderColor: "#eef1f5",
+          }}
+        >
+          <Text style={[s.copy, { flex: 1 }]}>{translate(label)}</Text>
+          <Text
+            style={[s.label, { flex: 1, textAlign: "right", fontSize: 12 }]}
+          >
+            {value(row, key) || "\u2014"}
+          </Text>
         </View>
       ))}
     </>

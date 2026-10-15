@@ -3,9 +3,11 @@ import { getLocaleTag } from "../../../common/content/locale";
 export default function DateBadge({
   value,
   time = false,
+  compact = false,
 }: {
   value: string;
   time?: boolean;
+  compact?: boolean;
 }) {
   const date = new Date(value);
   const valid = !!value && Number.isFinite(date.getTime());
@@ -17,12 +19,27 @@ export default function DateBadge({
         }).format(date)
       : "—";
   return (
-    <View style={d.badge}>
+    <View
+      style={[
+        d.badge,
+        compact && {
+          width: 48,
+          paddingVertical: 6,
+          borderRadius: 10,
+          flexShrink: 0,
+        },
+      ]}
+    >
       <Text style={d.month}>{part({ month: "short" }).toUpperCase()}</Text>
       <Text style={d.day}>{part({ day: "2-digit" })}</Text>
       <Text style={d.small}>{part({ weekday: "short" })}</Text>
       {time && (
-        <Text style={d.small}>
+        <Text
+          style={[d.small, compact && { fontSize: 9 }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+        >
           {part({ hour: "numeric", minute: "2-digit", hour12: true })}
         </Text>
       )}

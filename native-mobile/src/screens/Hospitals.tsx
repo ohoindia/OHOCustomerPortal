@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Linking, Text, View } from "react-native";
+import { Linking, Text } from "react-native";
 import { router } from "expo-router";
 import * as Location from "expo-location";
 import {
@@ -21,6 +21,7 @@ import {
   s,
 } from "../components/ui";
 import { useData, value, type Row } from "../lib/data";
+import { Choice } from "../components/Choice";
 import HospitalMap from "../components/HospitalMap";
 export default function Hospitals({
   initialMap = false,
@@ -73,45 +74,46 @@ export default function Hospitals({
         value={search}
         onChangeText={setSearch}
       />
-      <View style={s.grid}>
-        <Button title="List" secondary={map} onPress={() => setMap(false)} />
-        <Button title="Map" secondary={!map} onPress={() => setMap(true)} />
-      </View>
-      <View style={s.grid}>
-        {(["all", "nearest", "nearby"] as const).map((mode) => (
-          <Button
-            key={mode}
-            title={
-              mode === "all"
-                ? "All hospitals"
-                : mode === "nearest"
-                  ? "Nearest 2"
-                  : "Within 10 km"
-            }
-            secondary={proximity !== mode}
-            disabled={locating}
-            onPress={() => void locate(mode)}
-          />
-        ))}
-      </View>
-      <Heading>Speciality</Heading>
-      <View style={s.grid}>
-        {[
-          "all",
+      <Choice
+        label="View hospitals"
+        options={["List", "Map"]}
+        selected={map ? "Map" : "List"}
+        onSelect={(mode) => setMap(mode === "Map")}
+      />
+      <Choice
+        label="Distance"
+        options={["All hospitals", "Nearest 2", "Within 10 km"]}
+        selected={
+          proximity === "all"
+            ? "All hospitals"
+            : proximity === "nearest"
+              ? "Nearest 2"
+              : "Within 10 km"
+        }
+        disabled={locating}
+        onSelect={(mode) =>
+          void locate(
+            mode === "All hospitals"
+              ? "all"
+              : mode === "Nearest 2"
+                ? "nearest"
+                : "nearby",
+          )
+        }
+      />
+      <Choice
+        label="Speciality"
+        options={[
+          "All",
           ...new Set(
             (data.data ?? [])
               .map((row) => value(row, "Specialization"))
               .filter(Boolean),
           ),
-        ].map((item) => (
-          <Button
-            key={item}
-            title={item === "all" ? "All" : item}
-            secondary={speciality !== item}
-            onPress={() => setSpeciality(item)}
-          />
-        ))}
-      </View>
+        ]}
+        selected={speciality === "all" ? "All" : speciality}
+        onSelect={(item) => setSpeciality(item === "All" ? "all" : item)}
+      />
       {!!error && <Text style={s.error}>{error}</Text>}
       <Status {...data} empty={!rows.length} />
       {map && rows.length > 0 && (

@@ -18,11 +18,22 @@ export default function BottomNavigation() {
       edges={["bottom", "left", "right"]}
       style={{
         backgroundColor: "#fff",
-        borderTopWidth: 1,
-        borderColor: colors.line,
+        paddingHorizontal: 16,
+        paddingBottom: 8,
       }}
     >
-      <View style={{ flexDirection: "row" }}>
+      <View
+        style={{
+          flexDirection: "row",
+          padding: 6,
+          borderWidth: 1,
+          borderColor: "#e2edf5",
+          borderRadius: 24,
+          width: "100%",
+          maxWidth: 568,
+          alignSelf: "center",
+        }}
+      >
         {items.map((item) => {
           const active = pathname === item.path;
           const color = active ? colors.brand : colors.muted;
@@ -37,7 +48,10 @@ export default function BottomNavigation() {
               }}
               style={{
                 flex: 1,
-                minHeight: 62,
+                minHeight: 58,
+                minWidth: 0,
+                borderRadius: 18,
+                backgroundColor: active ? "#e7f6fc" : "transparent",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 4,
@@ -47,7 +61,8 @@ export default function BottomNavigation() {
               <Text
                 style={{
                   fontSize: 10,
-                  fontWeight: active ? "700" : "500",
+                  fontFamily: active ? "InterSemiBold" : "Inter",
+                  textAlign: "center",
                   color,
                 }}
               >

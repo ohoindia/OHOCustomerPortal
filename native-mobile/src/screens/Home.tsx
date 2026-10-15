@@ -214,8 +214,10 @@ export default function Home() {
             style={{
               flex: 1,
               borderRadius: 18,
-              padding: 14,
-              gap: 12,
+              paddingVertical: 14,
+              paddingHorizontal: 8,
+              minWidth: 0,
+              gap: 10,
               backgroundColor: "#fff",
               borderWidth: 1,
               borderColor: colors.line,
@@ -228,7 +230,8 @@ export default function Home() {
               style={{
                 fontSize: 12,
                 color: colors.navy,
-                fontWeight: "600",
+                fontFamily: "InterSemiBold",
+                lineHeight: 17,
                 textAlign: "center",
               }}
             >

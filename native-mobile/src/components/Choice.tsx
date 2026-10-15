@@ -26,7 +26,10 @@ export function Choice({
             disabled={disabled}
             onPress={() => onSelect(option)}
             style={{
-              paddingVertical: 10,
+              minHeight: 44,
+              justifyContent: "center",
+              flexShrink: 1,
+              paddingVertical: 8,
               paddingHorizontal: 14,
               borderRadius: 20,
               borderWidth: 1,
@@ -38,6 +41,8 @@ export function Choice({
             <Text
               style={{
                 color: selected === option ? colors.brand : colors.navy,
+                fontFamily: "InterSemiBold",
+                fontSize: 12,
               }}
             >
               {translate(option)}

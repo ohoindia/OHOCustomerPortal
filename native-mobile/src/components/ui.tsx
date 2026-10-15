@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import type { TextInputProps } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { translate } from "../lib/localization";
@@ -52,12 +53,17 @@ export function Page({
                 }
                 style={s.back}
               >
-                <Text style={s.heading}>‹</Text>
+                <Ionicons name="chevron-back" size={22} color={colors.navy} />
               </Pressable>
             ) : (
               <View style={s.back} />
             )}
-            <Text style={[s.heading, { flex: 1, textAlign: "center" }]}>
+            <Text
+              style={[
+                s.heading,
+                { flex: 1, textAlign: "center", fontSize: 18 },
+              ]}
+            >
               {translate(title)}
             </Text>
             <View style={s.back} />
@@ -116,7 +122,8 @@ export function Button({
       <Text
         style={{
           color: secondary ? colors.brand : "#fff",
-          fontWeight: "700",
+          fontFamily: "InterSemiBold",
+          fontSize: 13,
           textAlign: "center",
         }}
       >
@@ -158,11 +165,11 @@ export function Menu({
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={s.menu}>
-      <View style={{ flex: 1, gap: 4 }}>
+      <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
         <Text style={s.label}>{translate(title)}</Text>
         {subtitle && <Text style={s.copy}>{translate(subtitle)}</Text>}
       </View>
-      <Text style={{ color: colors.brand, fontSize: 24 }}>›</Text>
+      <Ionicons name="chevron-forward" color={colors.muted} size={18} />
     </Pressable>
   );
 }
@@ -195,8 +202,16 @@ export function Status({
   ) : null;
 }
 export const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.surface },
-  content: { padding: 18, paddingBottom: 36, gap: 16 },
+  safe: { flex: 1, backgroundColor: "#fff" },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 28,
+    gap: 16,
+    width: "100%",
+    maxWidth: 600,
+    alignSelf: "center",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -205,17 +220,27 @@ export const s = StyleSheet.create({
   },
   back: { width: 46, alignItems: "center", padding: 10 },
   brand: { flexDirection: "row", alignItems: "center", gap: 10 },
-  heading: { fontSize: 20, fontFamily: "JakartaBold", color: colors.navy },
-  label: { fontSize: 15, fontFamily: "InterSemiBold", color: colors.navy },
+  heading: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontFamily: "JakartaBold",
+    color: colors.navy,
+  },
+  label: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontFamily: "InterSemiBold",
+    color: colors.navy,
+  },
   copy: {
     color: colors.muted,
     fontFamily: "Inter",
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 12,
+    lineHeight: 19,
   },
   card: {
-    padding: 18,
-    borderRadius: 18,
+    padding: 16,
+    borderRadius: 14,
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: colors.line,
@@ -223,8 +248,10 @@ export const s = StyleSheet.create({
   },
   button: {
     backgroundColor: colors.brand,
-    minHeight: 48,
-    padding: 14,
+    minHeight: 46,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexShrink: 1,
     borderRadius: 12,
     justifyContent: "center",
   },
@@ -241,7 +268,7 @@ export const s = StyleSheet.create({
     minHeight: 50,
     padding: 14,
     borderRadius: 12,
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Inter",
   },
   menu: {
@@ -257,7 +284,9 @@ export const s = StyleSheet.create({
   error: { color: "#b42318", lineHeight: 22 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   tile: {
-    width: "47%",
+    flexBasis: "47%",
+    flexGrow: 1,
+    minWidth: 0,
     padding: 16,
     borderRadius: 16,
     backgroundColor: "#e0f2fe",
