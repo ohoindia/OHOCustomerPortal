@@ -14,7 +14,6 @@ const tables = [
   "CorporateAssignment",
   "CorporateInvoice",
   "CorporateAudit",
-  "CorporateOnboarding",
 ];
 
 async function main() {
@@ -30,7 +29,7 @@ async function main() {
   if (!config.get("DB_HOST") || !config.get("DB_USER"))
     throw Error("Backend DB_HOST and DB_USER must be configured.");
   const sql = (
-    (await Promise.all(["20261015-corporate.sql", "20261015-corporate-onboarding.sql"].map((file) => readFile(path.resolve(__dirname, "../migrations", file), "utf8")))).join("\n")
+    (await Promise.all(["20261015-corporate.sql"].map((file) => readFile(path.resolve(__dirname, "../migrations", file), "utf8")))).join("\n")
   ).replace(/^\s*--.*$/gm, "");
   const statements = sql
     .split(";")
@@ -103,6 +102,7 @@ async function main() {
         JSON.stringify({ database, table: tables[index], applied: true }),
       );
     }
+    await require("./migrate-employee-onboarding.cjs").migrateEmployeeOnboarding(connection);
     const [created] = await connection.execute(
       "SELECT TABLE_NAME AS name,ENGINE AS engine FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME LIKE ?",
       [database, "Corporate%"],
@@ -120,7 +120,7 @@ async function main() {
     console.log(
       JSON.stringify({
         database,
-        migration: "20261015-corporate.sql + 20261015-corporate-onboarding.sql",
+        migration: "20261015-corporate.sql + employee onboarding consolidation",
         verifiedTables: tables.length,
         verifiedForeignKeys: foreignKeys.length,
         completedAt: new Date().toISOString(),

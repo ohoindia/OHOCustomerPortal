@@ -357,14 +357,14 @@ export class CorporateOnboardingService {
       c,
     );
     await this.db.execute(
-      "INSERT INTO CorporateOnboarding (CompanyId,EmployeeId,RequestId,RequestHash,OrderId,CreatedTime,Status) VALUES (?,?,?,?,?,?,'Ready')",
+      "UPDATE CorporateEmployee SET OnboardingRequestId=?,OnboardingRequestHash=?,OnboardingOrderId=?,OnboardingCreatedTime=?,OnboardingStatus='Ready',OnboardingUpdatedAt=NOW() WHERE Id=? AND CompanyId=?",
       [
-        who.companyId,
-        employeeId,
         dto.requestId,
         enrollmentFingerprint(dto),
         orderId,
         String(order.createdTime),
+        employeeId,
+        who.companyId,
       ],
       c,
     );
@@ -430,7 +430,7 @@ export class CorporateOnboardingService {
     // Persist the claim before the external call. A crash/timeout must never blindly repeat card issuance.
     const claim = await this.db.transaction(async (c) => {
       const [row] = await this.db.rows(
-        "SELECT b.* FROM CorporateOnboarding b JOIN CorporateEmployee e ON e.Id=b.EmployeeId AND e.CompanyId=b.CompanyId WHERE b.EmployeeId=? AND b.CompanyId=? AND e.Status<>'Removed' FOR UPDATE",
+        "SELECT OnboardingOrderId AS OrderId,OnboardingCreatedTime AS CreatedTime,OnboardingStatus AS Status,OnboardingUpdatedAt AS UpdatedAt FROM CorporateEmployee WHERE Id=? AND CompanyId=? AND Status<>'Removed' AND OnboardingOrderId IS NOT NULL FOR UPDATE",
         [employeeId, who.companyId],
         c,
       );
@@ -440,7 +440,7 @@ export class CorporateOnboardingService {
         );
       if (row.Status !== "Ready") return { row, send: false };
       await this.db.execute(
-        "UPDATE CorporateOnboarding SET Status='Processing',UpdatedAt=NOW() WHERE EmployeeId=? AND CompanyId=?",
+        "UPDATE CorporateEmployee SET OnboardingStatus='Processing',OnboardingUpdatedAt=NOW() WHERE Id=? AND CompanyId=?",
         [employeeId, who.companyId],
         c,
       );
@@ -494,7 +494,7 @@ export class CorporateOnboardingService {
           : String(claim.row.Status);
     // A simultaneous refresh must not overwrite another request's completion.
     await this.db.execute(
-      "UPDATE CorporateOnboarding SET Status=?,UpdatedAt=NOW() WHERE EmployeeId=? AND CompanyId=? AND Status<>'Completed'",
+      "UPDATE CorporateEmployee SET OnboardingStatus=?,OnboardingUpdatedAt=NOW() WHERE Id=? AND CompanyId=? AND OnboardingStatus<>'Completed'",
       [status, employeeId, who.companyId],
     );
     return {
@@ -519,7 +519,7 @@ export class CorporateOnboardingService {
     if (!employee)
       throw new NotFoundException("Employee not found in your company.");
     const onboarding = await this.db.rows(
-      "SELECT b.OrderId AS orderId,b.Status AS status,o.CustomerId AS customerId FROM CorporateOnboarding b JOIN Orders o ON o.OrdersId=b.OrderId WHERE b.EmployeeId=? AND b.CompanyId=?",
+      "SELECT e.OnboardingOrderId AS orderId,e.OnboardingStatus AS status,o.CustomerId AS customerId FROM CorporateEmployee e JOIN Orders o ON o.OrdersId=e.OnboardingOrderId WHERE e.Id=? AND e.CompanyId=?",
       [employeeId, who.companyId],
     );
     const customerId = Number(onboarding[0]?.customerId ?? employee.CustomerId);

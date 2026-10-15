@@ -1,3 +1,5 @@
+-- Historical migration only. Superseded by scripts/migrate-employee-onboarding.cjs.
+-- Do not run on new installations.
 -- Additive migration; preserves existing customer, order and card records.
 CREATE TABLE IF NOT EXISTS CorporateOnboarding (
  EmployeeId INT UNSIGNED PRIMARY KEY,

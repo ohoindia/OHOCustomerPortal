@@ -172,7 +172,7 @@ export class CorporateService {
       throw new BadRequestException("Invalid joining date.");
     const saved = await this.db.transaction(async (c) => {
       if (!dto.id && dto.requestId) {
-        const [existing] = await this.db.rows("SELECT EmployeeId,RequestHash FROM CorporateOnboarding WHERE CompanyId=? AND RequestId=?", [who.companyId, dto.requestId], c);
+        const [existing] = await this.db.rows("SELECT Id AS EmployeeId,OnboardingRequestHash AS RequestHash FROM CorporateEmployee WHERE CompanyId=? AND OnboardingRequestId=?", [who.companyId, dto.requestId], c);
         if (existing) {
           if (existing.RequestHash !== enrollmentFingerprint(dto)) throw new ConflictException("This onboarding request was already saved with different details. Open the existing employee's customer profile.");
           return { success: true, employeeId: Number(existing.EmployeeId), created: true };

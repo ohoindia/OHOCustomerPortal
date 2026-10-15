@@ -35,7 +35,6 @@ function harness(options = {}) {
     roster: null,
     customer: null,
     community: null,
-    onboarding: null,
     cards: options.cards ?? [],
     next: 50,
   };
@@ -60,25 +59,25 @@ function harness(options = {}) {
     rows: async (sql, values = [], connection) => {
       calls.push({ sql, values, connection });
       if (
-        sql.includes("FROM CorporateOnboarding b") &&
+        sql.includes("FROM CorporateEmployee e") &&
         sql.includes("JOIN Orders")
       )
-        return state.onboarding
+        return state.roster?.onboarding
           ? [
               {
-                orderId: state.onboarding.OrderId,
-                status: state.onboarding.Status,
+                orderId: state.roster?.onboarding.OrderId,
+                status: state.roster?.onboarding.Status,
                 customerId: state.orders[0]?.CustomerId,
               },
             ]
           : [];
-      if (sql.includes("FROM CorporateOnboarding b"))
-        return state.onboarding && state.roster.Status !== "Removed"
-          ? [state.onboarding]
+      if (sql.includes("OnboardingCreatedTime AS CreatedTime"))
+        return state.roster?.onboarding && state.roster.Status !== "Removed"
+          ? [state.roster?.onboarding]
           : [];
-      if (sql.includes("SELECT EmployeeId,RequestHash"))
-        return state.onboarding?.RequestId === values[1]
-          ? [state.onboarding]
+      if (sql.includes("SELECT Id AS EmployeeId,OnboardingRequestHash"))
+        return state.roster?.onboarding?.RequestId === values[1]
+          ? [state.roster?.onboarding]
           : [];
       if (sql.includes("FROM CorporateCompany")) return [{ GroupId: 20 }];
       if (sql.includes("FROM GroupProducts"))
@@ -163,23 +162,23 @@ function harness(options = {}) {
           Status: null,
         });
       }
-      if (sql.startsWith("INSERT INTO CorporateOnboarding"))
-        state.onboarding = {
-          CompanyId: v[0],
-          EmployeeId: v[1],
-          RequestId: v[2],
-          RequestHash: v[3],
-          OrderId: v[4],
-          CreatedTime: v[5],
+      if (sql.startsWith("UPDATE CorporateEmployee SET OnboardingRequestId="))
+        state.roster.onboarding = {
+          CompanyId: v[5],
+          EmployeeId: v[4],
+          RequestId: v[0],
+          RequestHash: v[1],
+          OrderId: v[2],
+          CreatedTime: v[3],
           Status: "Ready",
         };
-      if (sql.startsWith("UPDATE CorporateOnboarding SET Status='Processing'"))
-        state.onboarding.Status = "Processing";
+      if (sql.startsWith("UPDATE CorporateEmployee SET OnboardingStatus='Processing'"))
+        state.roster.onboarding.Status = "Processing";
       if (
-        sql.startsWith("UPDATE CorporateOnboarding SET Status=?") &&
-        state.onboarding.Status !== "Completed"
+        sql.startsWith("UPDATE CorporateEmployee SET OnboardingStatus=?") &&
+        state.roster?.onboarding.Status !== "Completed"
       )
-        state.onboarding.Status = v[0];
+        state.roster.onboarding.Status = v[0];
       return { insertId: id, affectedRows: 1 };
     },
     transaction: async (work) => {
