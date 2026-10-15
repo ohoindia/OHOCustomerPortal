@@ -430,7 +430,7 @@ export class CorporateOnboardingService {
     // Persist the claim before the external call. A crash/timeout must never blindly repeat card issuance.
     const claim = await this.db.transaction(async (c) => {
       const [row] = await this.db.rows(
-        "SELECT OnboardingOrderId AS OrderId,OnboardingCreatedTime AS CreatedTime,OnboardingStatus AS Status,OnboardingUpdatedAt AS UpdatedAt FROM CorporateEmployee WHERE Id=? AND CompanyId=? AND Status<>'Removed' AND OnboardingOrderId IS NOT NULL FOR UPDATE",
+        "SELECT Status AS EmployeeStatus,OnboardingOrderId AS OrderId,OnboardingCreatedTime AS CreatedTime,OnboardingStatus AS Status,OnboardingUpdatedAt AS UpdatedAt FROM CorporateEmployee WHERE Id=? AND CompanyId=? AND Status<>'Removed' AND OnboardingOrderId IS NOT NULL FOR UPDATE",
         [employeeId, who.companyId],
         c,
       );
@@ -438,7 +438,8 @@ export class CorporateOnboardingService {
         throw new NotFoundException(
           "Employee onboarding not found in your company.",
         );
-      if (row.Status !== "Ready") return { row, send: false };
+      if (row.EmployeeStatus !== "Active" || row.Status !== "Ready")
+        return { row, send: false };
       await this.db.execute(
         "UPDATE CorporateEmployee SET OnboardingStatus='Processing',OnboardingUpdatedAt=NOW() WHERE Id=? AND CompanyId=?",
         [employeeId, who.companyId],
@@ -503,7 +504,9 @@ export class CorporateOnboardingService {
       orderId: Number(claim.row.OrderId),
       onboardingStatus: status,
       message:
-        status === "Completed"
+        status === "Ready"
+          ? "Employee and order saved. Card creation is on hold until the employee status is Active."
+          : status === "Completed"
           ? "Employee onboarded. Customer benefits and card are available."
           : status === "Review"
             ? "Employee and order saved. Card creation needs OHOINDIA review. Do not create another employee or order."

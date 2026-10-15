@@ -179,6 +179,7 @@ export class CorporateService {
         }
       }
       let employeeId = dto.id ?? 0;
+      let activated = false;
       const [duplicate] = await this.db.rows(
         "SELECT Id FROM CorporateEmployee WHERE CompanyId=? AND (Mobile=? OR EmployeeCode=?) AND Id<>?",
         [who.companyId, dto.mobile, dto.employeeCode.trim(), dto.id ?? 0],
@@ -190,6 +191,7 @@ export class CorporateService {
         );
       if (dto.id) {
         const previous = await this.own("CorporateEmployee", dto.id, who, c);
+        activated = previous.Status !== "Active" && dto.status === "Active" && previous.OnboardingOrderId != null;
         if (previous.Mobile !== dto.mobile)
           throw new BadRequestException(
             "Contact OHOINDIA to change a linked customer's mobile number.",
@@ -298,9 +300,11 @@ export class CorporateService {
         `${dto.id ? "Updated" : "Onboarded"} employee ${dto.employeeCode}`,
         c,
       );
-      return { success: true, employeeId, created: !dto.id };
+      return { success: true, employeeId, created: !dto.id, activated };
     }, dto.id ? `corporate-company:${who.companyId}` : "corporate-onboarding");
-    return saved.created ? this.onboarding.complete(who, saved.employeeId) : saved;
+    return saved.created || ("activated" in saved && saved.activated)
+      ? this.onboarding.complete(who, saved.employeeId)
+      : saved;
   }
   async remove(who: CorporateIdentity, id: number) {
     checkPermission(who, "employees");

@@ -73,7 +73,7 @@ function harness(options = {}) {
           : [];
       if (sql.includes("OnboardingCreatedTime AS CreatedTime"))
         return state.roster?.onboarding && state.roster.Status !== "Removed"
-          ? [state.roster?.onboarding]
+          ? [{ ...state.roster.onboarding, EmployeeStatus: state.roster.Status }]
           : [];
       if (sql.includes("SELECT Id AS EmployeeId,OnboardingRequestHash"))
         return state.roster?.onboarding?.RequestId === values[1]
@@ -87,12 +87,12 @@ function harness(options = {}) {
       if (sql.includes("FROM CommunityCustomers"))
         return state.community ? [state.community] : [];
       if (sql.includes("FROM CorporateEmployee")) {
-        if (sql.includes("SELECT *")) return state.roster ? [state.roster] : [];
+        if (sql.includes("SELECT *")) return state.roster ? [{ ...state.roster, OnboardingOrderId: state.roster.onboarding?.OrderId }] : [];
         if (sql.includes("SELECT CustomerId"))
           return state.roster && values[1] === 7
             ? [{ CustomerId: state.roster.CustomerId }]
             : [];
-        return state.roster ? [{ Id: state.roster.Id }] : [];
+        return state.roster && state.roster.Id !== values[3] ? [{ Id: state.roster.Id }] : [];
       }
       if (sql.includes("FROM State")) return options.missingState ? [] : [{StateId:1}];
       if (sql.includes("FROM District")) return [{DistrictId:2}];
@@ -140,6 +140,8 @@ function harness(options = {}) {
           Status: v[9],
           Mobile: v[5],
         };
+      if (sql.startsWith("UPDATE CorporateEmployee SET Name="))
+        state.roster.Status = v[5];
       if (sql.startsWith("UPDATE CorporateEmployee SET CustomerId"))
         state.roster.CustomerId = v[0];
       if (sql.startsWith("INSERT INTO Orders")) {
@@ -441,4 +443,30 @@ test("Excel order addresses and declared amounts persist without Customer writes
  const invalid=harness({missingState:true});
  await assert.rejects(invalid.service.employee(who,body),{status:400});
  assert.equal(invalid.state.orders.length,0);
+});
+
+
+test("pending enrollment holds orders until activation and cannot provision early", async (t) => {
+  const h = harness();
+  let issued = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    issued++;
+    assert.equal(h.inTransaction, false);
+    assert.equal(h.state.roster.Status, "Active");
+    return { ok: true, json: async () => ({ status: true }) };
+  });
+  const body = { ...employee(), status: "Pending" };
+  const saved = await h.service.employee(who, body);
+  assert.equal(saved.onboardingStatus, "Ready");
+  assert.equal(h.state.orders.length, 2);
+  assert.equal(issued, 0);
+  await h.onboarding.complete(who, saved.employeeId);
+  await h.service.employee(who, body);
+  assert.equal(issued, 0);
+  await h.service.employee(who, { ...body, id: saved.employeeId, status: "Active" });
+  assert.equal(issued, 1);
+  assert.equal(h.state.orders.length, 2);
+  await h.service.employee(who, { ...body, id: saved.employeeId, status: "Active" });
+  await h.onboarding.complete(who, saved.employeeId);
+  assert.equal(issued, 1);
 });

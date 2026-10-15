@@ -249,9 +249,9 @@ function Dialog({
             </div>
             {!modal.employee && <EmployeeEnrollment products={data.products ?? []} />}
             <p className="hint">
-              Existing customers are linked by mobile number. Creating an employee
-              provisions the selected group product and included family members.
-              Roster status is managed separately from product coverage.
+              Existing customers are linked by mobile number. Saving creates the
+              employee and family orders. Card creation starts when onboarding
+              status is Active; Pending employees keep their orders on hold.
             </p>
           </>
         )}

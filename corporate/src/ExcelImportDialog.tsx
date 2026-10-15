@@ -9,7 +9,7 @@ import {
 import type { Cell, ImportEmployee } from "./excelImport";
 
 type Result = {
-  state: "Saved" | "Review" | "Failed" | "Processing";
+  state: "Saved" | "Review" | "Failed" | "Processing" | "On hold";
   message: string;
   orderId?: number;
 };
@@ -151,7 +151,9 @@ export function ExcelImportDialog({
             ...r,
             [row]: {
               state:
-                response.onboardingStatus === "Review"
+                response.onboardingStatus === "Ready"
+                  ? "On hold"
+                  : response.onboardingStatus === "Review"
                   ? "Review"
                   : response.onboardingStatus === "Completed"
                     ? "Saved"
