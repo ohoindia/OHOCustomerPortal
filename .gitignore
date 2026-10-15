@@ -17,6 +17,9 @@ server/build/
 server/.aws-sam/
 server/samconfig.toml
 
+# Environment-specific deployment workflow
+.github/workflows/*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
