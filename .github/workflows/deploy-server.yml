@@ -2,21 +2,22 @@ name: Deploy server API
 
 on:
   push:
-    branches: [develop]
+    branches: [master]
     paths:
       - "server/**"
+      - ".github/workflows/deploy-server.yml"
 
 permissions:
   contents: read
   id-token: write
 
 concurrency:
-  group: deploy-oho-customer-api-dev
+  group: deploy-oho-customer-api-prod
   cancel-in-progress: false
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
     defaults:
@@ -46,7 +47,7 @@ jobs:
       - name: Authenticate to AWS
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN_PROD }}
           aws-region: ap-south-1
           translate-env-variables: false
           retry-max-attempts: 1
@@ -55,6 +56,6 @@ jobs:
         run: >
           sam deploy
           --template-file template.yaml
-          --config-env default
+          --config-env prod
           --no-confirm-changeset
           --no-fail-on-empty-changeset
