@@ -44,6 +44,8 @@ The operator utility reads one JSON object from stdin until EOF. Use a secure in
 
 The Group must exist. Provisioning creates the company, four default roles and its first administrator atomically. Share the initial password through a secure channel. Existing Group members are not automatically imported; onboard them in the portal to link their existing customer records by mobile number. The same Group cannot be provisioned twice. Account emails are unique across companies.
 
+For adding Admin/HR accounts, changing roles, disabling users and resetting passwords without an internal admin app, see [OHOINDIA operator scripts](server/CORPORATE-ACCESS.md).
+
 ## Roles and access
 
 | Role    | Additional permissions                                |
@@ -53,7 +55,7 @@ The Group must exist. Provisioning creates the company, four default roles and i
 | Finance | Invoices                                              |
 | Viewer  | Directory and company activity only                   |
 
-All roles can read the company employee directory, including contact details, and the recent company activity log. Admins can create custom roles with any combination of the four permissions. Roles are immutable in this first version: create a replacement role and reassign users to change permissions. Admins add portal users, set passwords, change roles, disable access, and reset other users' passwords. Self access edits are blocked and at least one administrator must remain. There is no email invitation delivery or self-service password recovery. An OHOINDIA operator must recover a sole administrator through a controlled database maintenance procedure using the password hashing helper.
+All roles can read the company employee directory, including contact details, and the recent company activity log. Admins can create custom roles with any combination of the four permissions. Roles are immutable in this first version: create a replacement role and reassign users to change permissions. Admins add portal users, set passwords, change roles, disable access, and reset other users' passwords. Self access edits are blocked and at least one administrator must remain. There is no email invitation delivery or self-service password recovery. An OHOINDIA operator can recover a sole administrator using the trusted save-user script; see [operator instructions](server/CORPORATE-ACCESS.md).
 
 Passwords use salted scrypt hashes. Corporate sessions are random, server-stored, SHA-256 hashed tokens expiring in eight hours. The browser keeps the token in memory, so reloading requires signing in again. Every request checks current user, role and company status. Updating a user revokes their sessions. Logout revokes the current session. Configure HTTPS and a same-origin API proxy for deployment. Remove expired CorporateSession rows periodically; the expiry is enforced even before cleanup. The existing throttling store is process-local; use a shared rate-limit store for multi-instance deployments.
 
