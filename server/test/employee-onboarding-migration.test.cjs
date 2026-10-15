@@ -45,3 +45,12 @@ test('new installations do not create or drop the legacy table', async () => {
   assert.ok(!db.calls.some(sql => /CREATE TABLE|DROP TABLE/.test(sql)));
   assert.equal(db.calls.filter(sql => sql.startsWith('ALTER TABLE')).length, 8);
 });
+
+test('legacy table can be retained after copying and verifying onboarding data', async () => {
+  const db = database();
+  await migrateEmployeeOnboarding(db, { retainLegacyTable: true });
+  assert.equal(db.calls.filter(sql => sql.startsWith('SELECT COUNT')).length, 2);
+  assert.ok(db.calls.some(sql => sql.startsWith('UPDATE CorporateEmployee')));
+  assert.ok(db.calls.includes('commit'));
+  assert.ok(!db.calls.includes('DROP TABLE CorporateOnboarding'));
+});

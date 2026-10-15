@@ -1,6 +1,6 @@
 // Run with the corporate application stopped; MySQL DDL commits automatically.
 // Rerunnable after interruption: copy and verification precede legacy-table removal.
-async function migrateEmployeeOnboarding(connection) {
+async function migrateEmployeeOnboarding(connection, { retainLegacyTable = false } = {}) {
   const columns = {
     OnboardingRequestId: "CHAR(36) NULL",
     OnboardingRequestHash: "CHAR(64) NULL",
@@ -44,7 +44,7 @@ async function migrateEmployeeOnboarding(connection) {
     await connection.rollback();
     throw error;
   }
-  await connection.query("DROP TABLE CorporateOnboarding");
+  if (!retainLegacyTable) await connection.query("DROP TABLE CorporateOnboarding");
 }
 
 module.exports = { migrateEmployeeOnboarding };
