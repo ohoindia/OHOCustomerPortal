@@ -76,15 +76,7 @@ test("purchase progression respects family and nominee requirements", () => {
     true,
   );
 });
-test("only supported online payment methods and secure URLs are usable", () => {
-  for (const name of [
-    "Cashfree Payment Link",
-    "Cashfree PaymentLink and QRCode",
-    "PaymentLink",
-  ])
-    assert.equal(purchase.isPaymentLink({ PaymentTypeName: name }), true);
-  for (const name of ["Cash", "Static QRCode", "Net Banking"])
-    assert.equal(purchase.isPaymentLink({ PaymentTypeName: name }), false);
+test("payment URLs require secure HTTPS", () => {
   assert.equal(
     purchase.safePaymentUrl("https://payments.example.test/order/7"),
     true,

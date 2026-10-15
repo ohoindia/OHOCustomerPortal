@@ -24,7 +24,6 @@ import { useData, children, value, type Row } from "../lib/data";
 import { useResource } from "../lib/resource";
 import {
   blankPerson,
-  isPaymentLink,
   money,
   personError,
   plainText,
@@ -618,9 +617,19 @@ function NomineeStep({
     </Card>
   );
 }
-function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
+function PaymentStep({
+  id,
+  snapshot,
+  selectedMethod,
+  checkout = false,
+}: {
+  id: number;
+  snapshot: Snapshot;
+  selectedMethod?: number;
+  checkout?: boolean;
+}) {
   const [method, setMethod] = useState(
-    Number(snapshot.paymentMethods.find(isPaymentLink)?.PaymentTypeId),
+    selectedMethod ?? Number(snapshot.paymentMethods[0]?.PaymentTypeId),
   );
   const [link, setLink] = useState<PaymentLink | null>(null);
   const [status, setStatus] = useState("");
@@ -688,10 +697,28 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
     if (
       creating.current ||
       !snapshot.paymentMethods.some(
-        (row) => isPaymentLink(row) && Number(row.PaymentTypeId) === method,
+        (row) => Number(row.PaymentTypeId) === method,
       )
     )
       return;
+    if (!checkout) {
+      const selected = snapshot.paymentMethods.find(
+        (row) => Number(row.PaymentTypeId) === method,
+      );
+      const route = [
+        "/PaymentLinks",
+        "/StaticQRCode",
+        "/UPIPayment",
+        "/PaymentDetails",
+      ].includes(String(selected?.route))
+        ? String(selected?.route)
+        : "/PaymentDetails";
+      router.push({
+        pathname: route as "/PaymentDetails",
+        params: { orderId: id, paymentTypeId: method },
+      });
+      return;
+    }
     creating.current = true;
     setBusy(true);
     setError("");
@@ -740,15 +767,16 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
   return (
     <Card>
       <Heading>Complete your purchase</Heading>
-      <Copy>Cashfree securely handles your payment.</Copy>
+      <Copy>Choose how you’d like to pay.</Copy>
       <Heading>{money(snapshot.order.PayableAmount)}</Heading>
       {!active &&
+        !checkout &&
         snapshot.paymentMethods.map((row, i) => (
           <Button
             key={i}
-            title={`${value(row, "PaymentTypeName")}${!isPaymentLink(row) ? " · Unavailable" : ""}`}
+            title={value(row, "PaymentTypeName")}
             secondary={method !== Number(row.PaymentTypeId)}
-            disabled={busy || !isPaymentLink(row)}
+            disabled={busy}
             onPress={() => setMethod(Number(row.PaymentTypeId))}
           />
         ))}
@@ -787,13 +815,12 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
               ? "Preparing payment…"
               : link
                 ? "Create a new payment link"
-                : "Continue to secure payment"
+                : "Continue to payment"
           }
           disabled={
             busy ||
             !snapshot.paymentMethods.some(
-              (row) =>
-                isPaymentLink(row) && Number(row.PaymentTypeId) === method,
+              (row) => Number(row.PaymentTypeId) === method,
             )
           }
           onPress={() => void pay()}
@@ -821,5 +848,164 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
         />
       )}
     </Card>
+  );
+}
+
+type PaymentDetails = {
+  method: Row;
+  route: string;
+  qrCode: string;
+  amount: unknown;
+  reference: string;
+};
+export function PaymentDestination() {
+  const params = useLocalSearchParams<{
+    orderId: string;
+    paymentTypeId: string;
+  }>();
+  const id = Number(params.orderId);
+  const method = Number(params.paymentTypeId);
+  if (
+    !Number.isSafeInteger(id) ||
+    id <= 0 ||
+    !Number.isSafeInteger(method) ||
+    method <= 0
+  )
+    return (
+      <Page title="Payment">
+        <Copy>Select a payment method from your purchase.</Copy>
+        <Button title="Back to home" onPress={() => router.replace("/home")} />
+      </Page>
+    );
+  return (
+    <PaymentDestinationContent
+      key={`${id}/${method}`}
+      id={id}
+      method={method}
+    />
+  );
+}
+function PaymentDestinationContent({
+  id,
+  method,
+}: {
+  id: number;
+  method: number;
+}) {
+  const details = useResource<PaymentDetails>(
+    `api/purchases/${id}/payment-methods/${method}`,
+  );
+  const snapshot = useResource<Snapshot>(`api/purchases/${id}`);
+  const [reference, setReference] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const submitting = useRef(false);
+  async function submit() {
+    if (submitting.current || !reference.trim()) return;
+    submitting.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      await api(`api/purchases/${id}/payment-reference`, {
+        body: { paymentTypeId: method, reference: reference.trim() },
+        serverErrors: true,
+      });
+      setSubmitted(true);
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Unable to submit payment reference.",
+      );
+    } finally {
+      submitting.current = false;
+      setBusy(false);
+    }
+  }
+  const data = details.data;
+  return (
+    <Page title="Payment">
+      <Status {...details} />
+      <Status {...snapshot} />
+      {data &&
+        snapshot.data &&
+        (data.route === "/PaymentLinks" ? (
+          <PaymentStep
+            id={id}
+            snapshot={snapshot.data}
+            selectedMethod={method}
+            checkout
+          />
+        ) : (
+          <Card>
+            <Heading>{value(data.method, "PaymentTypeName")}</Heading>
+            <Heading>{money(data.amount)}</Heading>
+            {data.qrCode ? (
+              <Image
+                source={{ uri: data.qrCode }}
+                accessibilityLabel="Payment QR code"
+                style={{ width: 240, height: 240, alignSelf: "center" }}
+                resizeMode="contain"
+              />
+            ) : (
+              <Copy>Contact support for payment instructions if needed.</Copy>
+            )}
+            {submitted || data.reference ? (
+              <Copy>
+                Payment reference submitted. Your payment is pending
+                verification.
+              </Copy>
+            ) : (
+              <>
+                <Field
+                  label="UTR / payment reference"
+                  value={reference}
+                  onChangeText={setReference}
+                  maxLength={50}
+                />
+                <Button
+                  title={busy ? "Submitting…" : "Submit payment reference"}
+                  disabled={busy || !reference.trim()}
+                  onPress={() => void submit()}
+                />
+              </>
+            )}
+            <ErrorMessage error={error} />
+          </Card>
+        ))}
+      <Button
+        title="Back to payment options"
+        secondary
+        onPress={() => router.replace(purchaseRoute(id, "payment"))}
+      />
+    </Page>
+  );
+}
+
+export function PaymentSelection() {
+  const { orderId } = useLocalSearchParams<{ orderId?: string }>();
+  const id = Number(orderId);
+  const data = useResource<Row[]>("api/purchases/pending");
+  useEffect(() => {
+    if (Number.isSafeInteger(id) && id > 0)
+      router.replace(purchaseRoute(id, "payment"));
+  }, [id]);
+  return (
+    <Page title="Payment">
+      <Status {...data} />
+      {data.data?.map((order) => (
+        <Button
+          key={value(order, "OrdersId")}
+          title={`${value(order, "ProductName")} - ${value(order, "FullName")}`}
+          onPress={() =>
+            router.push(purchaseRoute(value(order, "OrdersId"), "payment"))
+          }
+        />
+      ))}
+      <Button
+        title="Browse packages"
+        secondary
+        onPress={() => router.push("/packages")}
+      />
+    </Page>
   );
 }

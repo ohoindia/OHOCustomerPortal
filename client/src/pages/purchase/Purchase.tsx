@@ -994,17 +994,20 @@ function NomineeStep({
     </section>
   );
 }
-const isPaymentLink = (row: PortalRow) =>
-  /^(cashfree|(?:cashfree)?paymentlink(?:andqrcode)?)$/.test(
-    String(row.PaymentTypeName ?? "")
-      .replace(/[\s_-]/g, "")
-      .toLowerCase(),
-  );
-
-function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
+function PaymentStep({
+  id,
+  snapshot,
+  selectedMethod,
+  checkout = false,
+}: {
+  id: number;
+  snapshot: Snapshot;
+  selectedMethod?: number;
+  checkout?: boolean;
+}) {
   const navigate = useNavigate();
   const [method, setMethod] = useState(
-    Number(snapshot.paymentMethods.find(isPaymentLink)?.PaymentTypeId),
+    selectedMethod ?? Number(snapshot.paymentMethods[0]?.PaymentTypeId),
   );
   const [link, setLink] = useState<PaymentLink | null>(null);
   const [failedQr, setFailedQr] = useState<string | null>(null);
@@ -1094,7 +1097,28 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
     };
   }, [id, status, currentLinkId]);
   async function pay() {
-    if (busy) return;
+    if (
+      busy ||
+      !snapshot.paymentMethods.some(
+        (row) => Number(row.PaymentTypeId) === method,
+      )
+    )
+      return;
+    if (!checkout) {
+      const selected = snapshot.paymentMethods.find(
+        (row) => Number(row.PaymentTypeId) === method,
+      );
+      const route = [
+        "/PaymentLinks",
+        "/StaticQRCode",
+        "/UPIPayment",
+        "/PaymentDetails",
+      ].includes(String(selected?.route))
+        ? String(selected?.route)
+        : "/PaymentDetails";
+      navigate(`${route}?orderId=${id}&paymentTypeId=${method}`);
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -1144,17 +1168,14 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
           ? localize("Scan to pay with Cashfree")
           : localize("Complete your purchase")}
       </h2>
-      <p>
-        {localize(
-          "Choose how you’d like to pay. Your payment is handled securely by Cashfree.",
-        )}
-      </p>
+      <p>{localize("Choose how you’d like to pay.")}</p>
       <div className="purchase-payment-total">
         <span>{localize("Amount to pay")}</span>
         <strong>{currency(snapshot.order.PayableAmount)}</strong>
         <small>{localize("Inclusive of applicable taxes")}</small>
       </div>
       {!active &&
+        !checkout &&
         snapshot.paymentMethods.map((row) => (
           <label
             className="purchase-payment-option"
@@ -1163,19 +1184,13 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
             <input
               type="radio"
               name="payment-method"
-              disabled={busy || !isPaymentLink(row)}
-              checked={
-                isPaymentLink(row) && method === Number(row.PaymentTypeId)
-              }
+              disabled={busy}
+              checked={method === Number(row.PaymentTypeId)}
               onChange={() => setMethod(Number(row.PaymentTypeId))}
             />
             <span>
               <b>{textValue(row, "PaymentTypeName")}</b>
-              <small>
-                {isPaymentLink(row)
-                  ? localize("Continue to secure online checkout")
-                  : localize("Not available in the customer app")}
-              </small>
+              <small>{localize("Continue with this payment method")}</small>
             </span>
           </label>
         ))}
@@ -1245,8 +1260,7 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
             disabled={
               busy ||
               !snapshot.paymentMethods.some(
-                (row) =>
-                  isPaymentLink(row) && Number(row.PaymentTypeId) === method,
+                (row) => Number(row.PaymentTypeId) === method,
               )
             }
             onClick={() => void pay()}
@@ -1255,10 +1269,10 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
               ? localize("Preparing payment…")
               : link
                 ? localize("Create a new payment link")
-                : localize("Continue to secure payment")}
+                : localize("Continue to payment")}
             <span aria-hidden="true">→</span>
           </button>
-          {!snapshot.paymentMethods.some(isPaymentLink) && (
+          {snapshot.paymentMethods.length === 0 && (
             <p className="purchase-help">
               {localize(
                 "No payment methods are currently available. Please contact support.",
@@ -1292,5 +1306,140 @@ function PaymentStep({ id, snapshot }: { id: number; snapshot: Snapshot }) {
         {localize("Review purchase details")}
       </Link>
     </section>
+  );
+}
+
+type PaymentDetails = {
+  method: PortalRow;
+  route: string;
+  qrCode: string;
+  amount: unknown;
+  reference: string;
+};
+export function PaymentDestination() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const id = Number(params.get("orderId"));
+  const method = Number(params.get("paymentTypeId"));
+  if (
+    !Number.isSafeInteger(id) ||
+    id <= 0 ||
+    !Number.isSafeInteger(method) ||
+    method <= 0
+  )
+    return (
+      <AppShell>
+        <PageHeader title={localize("Payment")} />
+        <p>{localize("Select a payment method from your purchase.")}</p>
+        <Link to="/home">{localize("Back to home")}</Link>
+      </AppShell>
+    );
+  return (
+    <PaymentDestinationContent
+      key={`${id}/${method}`}
+      id={id}
+      method={method}
+    />
+  );
+}
+function PaymentDestinationContent({
+  id,
+  method,
+}: {
+  id: number;
+  method: number;
+}) {
+  const details = useData<PaymentDetails>(
+    `api/purchases/${id}/payment-methods/${method}`,
+  );
+  const snapshot = useData<Snapshot>(`api/purchases/${id}`);
+  const [reference, setReference] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (busy || !reference.trim()) return;
+    setBusy(true);
+    setError("");
+    try {
+      await apiRequest(`api/purchases/${id}/payment-reference`, {
+        body: { paymentTypeId: method, reference: reference.trim() },
+      });
+      setSubmitted(true);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : localize("Unable to submit payment reference."),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  const data = details.data;
+  return (
+    <AppShell className="purchase-page">
+      <PageHeader title={localize("Payment")} />
+      {!data || !snapshot.data ? (
+        <Notice
+          error={details.error || snapshot.error}
+          retry={() => {
+            details.reload();
+            snapshot.reload();
+          }}
+        />
+      ) : data.route === "/PaymentLinks" ? (
+        <PaymentStep
+          id={id}
+          snapshot={snapshot.data}
+          selectedMethod={method}
+          checkout
+        />
+      ) : (
+        <section className="purchase-panel">
+          <h2>{textValue(data.method, "PaymentTypeName")}</h2>
+          <strong>{currency(data.amount)}</strong>
+          {data.qrCode ? (
+            <div className="purchase-payment-qr">
+              <img src={data.qrCode} alt={localize("Payment QR code")} />
+            </div>
+          ) : (
+            <p>
+              {localize("Contact support for payment instructions if needed.")}
+            </p>
+          )}
+          {submitted || data.reference ? (
+            <p role="status">
+              {localize(
+                "Payment reference submitted. Your payment is pending verification.",
+              )}
+            </p>
+          ) : (
+            <form onSubmit={submit}>
+              <label className="portal-label">
+                {localize("UTR / payment reference")}
+                <input
+                  required
+                  maxLength={50}
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                />
+              </label>
+              <button
+                className="purchase-primary"
+                disabled={busy || !reference.trim()}
+              >
+                {localize(busy ? "Submitting…" : "Submit payment reference")}
+              </button>
+            </form>
+          )}
+          {error && <Notice error={error} />}
+        </section>
+      )}
+      <Link className="purchase-text" to={`/purchase/${id}/payment`}>
+        {localize("Back to payment options")}
+      </Link>
+    </AppShell>
   );
 }

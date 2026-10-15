@@ -1041,4 +1041,18 @@ export default {
   "CARE FOR THE WHOLE FAMILY": "पूरे परिवार की देखभाल",
   "Access your benefits and find care close to home.":
     "अपने लाभों का उपयोग करें और घर के पास देखभाल पाएँ।",
+  "Continue with this payment method": "इस भुगतान विधि के साथ आगे बढ़ें",
+  "Choose how you’d like to pay.": "अपनी भुगतान विधि चुनें।",
+  "Select a payment method from your purchase.":
+    "अपनी खरीद से भुगतान विधि चुनें।",
+  "Unable to submit payment reference.": "भुगतान संदर्भ जमा नहीं किया जा सका।",
+  "Payment QR code": "भुगतान का QR कोड",
+  "Contact support for payment instructions if needed.":
+    "भुगतान निर्देशों के लिए सहायता से संपर्क करें।",
+  "Payment reference submitted. Your payment is pending verification.":
+    "भुगतान संदर्भ जमा हो गया है। आपके भुगतान का सत्यापन लंबित है।",
+  "UTR / payment reference": "UTR / भुगतान संदर्भ",
+  "Submitting…": "जमा किया जा रहा है…",
+  "Submit payment reference": "भुगतान संदर्भ जमा करें",
+  "Back to payment options": "भुगतान विकल्पों पर वापस जाएँ",
 } as Record<string, string>;

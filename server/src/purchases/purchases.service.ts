@@ -25,6 +25,16 @@ const isPaymentLink = (name: unknown) =>
       .toLowerCase(),
   );
 
+// Legacy customer portal destinations are resolved here, never used to filter options.
+const paymentRoute = (method: DbRow) => {
+  const id = Number(method.PaymentTypeId);
+  if (id === 3) return "/StaticQRCode";
+  if (id === 5) return "/UPIPayment";
+  if (id === 1 || id === 4 || isPaymentLink(method.PaymentTypeName))
+    return "/PaymentLinks";
+  return "/PaymentDetails";
+};
+
 const orderFields =
   "OrdersId, ProductsId, FullName, Gender, DateofBirth, Age, MobileNumber, Relationship, CardHolderType, PayableAmount, Status";
 @Injectable()
@@ -221,7 +231,7 @@ export class PurchasesService {
       nomineeProducts: this.nomineeProducts(product),
       paymentMethods: methods.map((method) => ({
         ...method,
-        enabled: isPaymentLink(method.PaymentTypeName),
+        route: paymentRoute(method),
       })),
     };
   }
@@ -508,6 +518,56 @@ export class PurchasesService {
       );
     return (await response.json()) as DbRow;
   }
+  async paymentDetails(customerId: number, id: number, methodId: number) {
+    const order = await this.owned(customerId, id);
+    const methods = await this.db.rows(
+      "SELECT PaymentTypeId, PaymentTypeName FROM PaymentType WHERE PaymentTypeId = ? AND IsActive = TRUE AND IsWeb = TRUE",
+      [validId(methodId)],
+    );
+    if (!methods[0])
+      throw new BadRequestException("Select an available payment method.");
+    const route = paymentRoute(methods[0]);
+    const qrCode =
+      route === "/StaticQRCode" || route === "/UPIPayment"
+        ? await this.config.get(
+            (await this.config.get("ToggleStaticQRCode")) === "true"
+              ? "StaticQRCodeImage"
+              : "CashfreeStaticQRCodeImage",
+          )
+        : "";
+    return {
+      method: methods[0],
+      route,
+      qrCode,
+      amount: order.PayableAmount,
+      reference: String(order.UTRNumber ?? ""),
+    };
+  }
+
+  async paymentReference(
+    customerId: number,
+    id: number,
+    methodId: number,
+    reference: string,
+  ) {
+    return this.db.transaction(async (connection) => {
+      const order = await this.owned(customerId, id, connection);
+      await this.editable(order, connection);
+      const details = await this.paymentDetails(customerId, id, methodId);
+      if (details.route === "/PaymentLinks")
+        throw new BadRequestException(
+          "Use secure checkout for this payment method.",
+        );
+      // A customer-supplied UTR is evidence for review, never proof of payment.
+      await this.db.execute(
+        "UPDATE Orders SET PaymentType = ?, UTRNumber = ? WHERE OrdersId = ?",
+        [String(methodId), reference.trim(), id],
+        connection,
+      );
+      return { status: "PENDING_VERIFICATION" };
+    }, `purchase-edit-${id}`);
+  }
+
   private publicLink(link: DbRow, provider?: DbRow) {
     const qrCode = provider?.link_qrcode ?? provider?.link_QRCode;
     return {
@@ -530,7 +590,7 @@ export class PurchasesService {
         [methodId],
         connection,
       );
-      if (!methods.length || !isPaymentLink(methods[0].PaymentTypeName))
+      if (!methods.length || paymentRoute(methods[0]) !== "/PaymentLinks")
         throw new BadRequestException("Select an available payment method.");
       const family = await this.db.rows(
         "SELECT Relationship FROM Orders WHERE RelatedOrderId = ?",

@@ -57,7 +57,11 @@ const snapshot = {
   nominees: [],
   nomineeProducts: product.includedProducts,
   paymentMethods: [
-    { PaymentTypeId: 5, PaymentTypeName: "Cashfree Payment Link" },
+    {
+      PaymentTypeId: 4,
+      PaymentTypeName: "Cashfree Payment Link",
+      route: "/PaymentLinks",
+    },
     { PaymentTypeId: 2, PaymentTypeName: "Cash" },
   ],
 };
@@ -133,9 +137,17 @@ function response(url, body, headers) {
     ];
     return { status: true };
   }
+  if (url === "/api/purchases/42/payment-methods/4")
+    return {
+      method: snapshot.paymentMethods[0],
+      route: "/PaymentLinks",
+      qrCode: "",
+      amount: 2999,
+      reference: "",
+    };
   if (url === "/api/payment/createPaymentLink") {
     assert.equal(body.orderId, 42);
-    assert.equal(body.paymentTypeId, 5);
+    assert.equal(body.paymentTypeId, 4);
     link = {
       mode: "link",
       url: "https://payments.example.test/42",
@@ -412,7 +424,9 @@ const server = http.createServer((req, res) => {
     await page.screenshot({ path: path.join(output, "nominee.png") });
     await button("Save nominee and continue").click();
     await page.waitForURL("**/purchase/42/payment");
-    await button("Continue to secure payment").click();
+    await button("Continue to payment").click();
+    await page.waitForURL("**/PaymentLinks?orderId=42&paymentTypeId=4");
+    await button("Continue to payment").click();
     await button("Open secure payment").waitFor();
     await page.screenshot({ path: path.join(output, "payment.png") });
     paid = true;

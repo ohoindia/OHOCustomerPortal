@@ -1,4 +1,3 @@
-import type { Row } from "./data";
 export const relationships = [
   "Spouse",
   "Son",
@@ -45,12 +44,6 @@ export function personError(person: Person, primary = false) {
     return "Enter a valid 10-digit mobile number.";
   return "";
 }
-export const isPaymentLink = (row: Row) =>
-  /^(cashfree)?paymentlink(andqrcode)?$/.test(
-    String(row.PaymentTypeName ?? "")
-      .replace(/[\s_-]/g, "")
-      .toLowerCase(),
-  );
 export function safePaymentUrl(url: string) {
   try {
     const parsed = new URL(url);

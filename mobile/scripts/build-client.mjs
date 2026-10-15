@@ -3,7 +3,6 @@ import react from "../../client/node_modules/@vitejs/plugin-react/dist/index.js"
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { mobilePaymentOptionsPlugin } from "./payment-options.mjs";
 import { mobileAppearancePlugin } from "./appearance.mjs";
 
 const client = fileURLToPath(new URL("../../client/", import.meta.url));
@@ -24,7 +23,6 @@ const result = await build({
   base: "/",
   define: { "process.env.NODE_ENV": JSON.stringify("production") },
   plugins: [
-    mobilePaymentOptionsPlugin(),
     mobileAppearancePlugin(),
     react(),
     {

@@ -31,3 +31,7 @@ export class PaymentMethodDto {
 export class CreatePaymentLinkDto extends PaymentMethodDto {
   @IsInt() @Min(1) orderId!: number;
 }
+
+export class PaymentReferenceDto extends PaymentMethodDto {
+  @IsString() @MaxLength(50) @Matches(/\S/) reference!: string;
+}

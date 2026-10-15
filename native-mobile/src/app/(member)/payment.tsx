@@ -1,1 +1,1 @@
-export { Payment as default } from "../../screens/Demo";
+export { PaymentSelection as default } from "../../screens/Purchase";

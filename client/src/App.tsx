@@ -1,3 +1,4 @@
+import { PaymentDestination } from "./pages/purchase/Purchase";
 import { UI_TEXT, UI_MESSAGES } from "../../common/content/labels";
 import { capitalizeName } from "../../common/utils/names";
 import { useEffect, useSyncExternalStore } from "react";
@@ -132,6 +133,11 @@ export default function App() {
         <Route path="/book-appointment" element={<BookAppointment />} />
         <Route path="/bookings" element={<Bookings />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/PaymentSelection" element={<Payment />} />
+        <Route path="/PaymentLinks" element={<PaymentDestination />} />
+        <Route path="/StaticQRCode" element={<PaymentDestination />} />
+        <Route path="/UPIPayment" element={<PaymentDestination />} />
+        <Route path="/PaymentDetails" element={<PaymentDestination />} />
         <Route path="/order-tracking" element={<OrderTracking />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/family" element={<Family />} />

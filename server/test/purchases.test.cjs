@@ -385,7 +385,12 @@ test("repeated payment requests verify and reuse an active link without creating
   result.service.gateway = async (path, body) => {
     assert.equal(path, "/existing");
     assert.equal(body, undefined, "Must not create another payment link");
-    return { link_id: "existing", link_amount: 2999, link_currency: "INR", link_status: "ACTIVE" };
+    return {
+      link_id: "existing",
+      link_amount: 2999,
+      link_currency: "INR",
+      link_status: "ACTIVE",
+    };
   };
   assert.equal((await result.service.payment(12, 50, 4)).linkId, "existing");
 });
@@ -413,7 +418,9 @@ for (const methodName of ["PaymentLink", "Cashfree"]) {
       call.sql?.startsWith("INSERT INTO PaymentLinkHistory"),
     );
     assert.deepEqual(history.values.slice(1, 3), [50, 50]);
-    assert.ok(!calls.some((call) => call.sql?.includes("Status = 'Completed'")));
+    assert.ok(
+      !calls.some((call) => call.sql?.includes("Status = 'Completed'")),
+    );
   });
 }
 test("expired payment links are verified before regenerating to prevent duplicate payments", async () => {
@@ -493,7 +500,7 @@ test("snapshot uses active web payment options and never exposes private custome
   );
 });
 
-test("Cashfree payment link options are enabled and static QR is disabled", async () => {
+test("payment options include backend destinations and non-link methods never create Cashfree links", async () => {
   for (const methodName of [
     "QR Code",
     "Static QRCode",
@@ -503,7 +510,7 @@ test("Cashfree payment link options are enabled and static QR is disabled", asyn
     "Online payment",
     "Credit Card",
   ]) {
-    const { service, calls } = harness({ methodName });
+    const { service, calls } = harness({ methodName, methodId: 9 });
     service.gateway = () =>
       assert.fail("Disabled methods must not contact the provider");
     await assert.rejects(
@@ -516,7 +523,8 @@ test("Cashfree payment link options are enabled and static QR is disabled", asyn
       ),
     );
     const snapshot = await service.snapshot(12, 50);
-    assert.equal(snapshot.paymentMethods[0].enabled, false);
+    assert.equal(snapshot.paymentMethods[0].route, "/PaymentDetails");
+    assert.equal(snapshot.paymentMethods[0].enabled, undefined);
   }
   for (const methodName of [
     "Cashfree",
@@ -539,10 +547,15 @@ test("Cashfree payment link options are enabled and static QR is disabled", asyn
     service.gateway = async (path, body) => {
       assert.equal(path, "/existing");
       assert.equal(body, undefined, "Must not create another payment link");
-      return { link_id: "existing", link_amount: 2999, link_currency: "INR", link_status: "ACTIVE" };
+      return {
+        link_id: "existing",
+        link_amount: 2999,
+        link_currency: "INR",
+        link_status: "ACTIVE",
+      };
     };
     const snapshot = await service.snapshot(12, 50);
-    assert.equal(snapshot.paymentMethods[0].enabled, true, methodName);
+    assert.equal(snapshot.paymentMethods[0].route, "/PaymentLinks", methodName);
     assert.equal(
       (await service.payment(12, 50, 4)).linkId,
       "existing",
@@ -573,4 +586,50 @@ test("fetch-by-link requires customer ownership before checking provider status"
   const status = await service.fetchPaymentLink(12, "owned");
   assert.equal(status.status, "ACTIVE");
   assert.equal(requested, "/owned");
+});
+
+test("backend maps legacy payment destinations and retains newly configured methods", async () => {
+  for (const [methodId, route] of [
+    [1, "/PaymentLinks"],
+    [4, "/PaymentLinks"],
+    [3, "/StaticQRCode"],
+    [5, "/UPIPayment"],
+    [20, "/PaymentDetails"],
+  ]) {
+    const { service } = harness({ methodId, methodName: "Configured option" });
+    const snapshot = await service.snapshot(12, 50);
+    assert.equal(snapshot.paymentMethods.length, 1);
+    assert.equal(snapshot.paymentMethods[0].route, route);
+  }
+});
+test("static QR uses backend configuration and UTR submissions remain unpaid", async () => {
+  const { service, calls } = harness({
+    methodId: 3,
+    methodName: "Static QRCode",
+    settings: {
+      ToggleStaticQRCode: "true",
+      StaticQRCodeImage: "https://merchant.test/qr.png",
+    },
+  });
+  const details = await service.paymentDetails(12, 50, 3);
+  assert.equal(details.qrCode, "https://merchant.test/qr.png");
+  assert.equal(details.amount, "2999.00");
+  assert.deepEqual(await service.paymentReference(12, 50, 3, " UTR123 "), {
+    status: "PENDING_VERIFICATION",
+  });
+  const update = calls.find((call) =>
+    call.sql?.includes("SET PaymentType = ?, UTRNumber"),
+  );
+  assert.deepEqual(update.values, ["3", "UTR123", 50]);
+  assert.ok(
+    !calls.some(
+      (call) =>
+        /PaidAmount\s*=|Status\s*=/.test(call.sql ?? "") &&
+        call.sql?.startsWith("UPDATE"),
+    ),
+  );
+  await assert.rejects(
+    service.paymentReference(99, 50, 3, "UTR123"),
+    /does not belong/,
+  );
 });

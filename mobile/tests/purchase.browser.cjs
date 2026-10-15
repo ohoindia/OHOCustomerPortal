@@ -63,8 +63,13 @@ const snapshot = {
   nominees: [],
   nomineeProducts: product.includedProducts,
   paymentMethods: [
-    { PaymentTypeId: 9, PaymentTypeName: "Static QRCode" },
-    { PaymentTypeId: 5, PaymentTypeName: "Cashfree" },
+    {
+      PaymentTypeId: 3,
+      PaymentTypeName: "Static QRCode",
+      route: "/StaticQRCode",
+    },
+    { PaymentTypeId: 4, PaymentTypeName: "Cashfree", route: "/PaymentLinks" },
+    { PaymentTypeId: 5, PaymentTypeName: "UPI", route: "/UPIPayment" },
     { PaymentTypeId: 11, PaymentTypeName: "Cashfree Payment Link" },
     { PaymentTypeId: 10, PaymentTypeName: "Cashfree PaymentLink and QRCode" },
     { PaymentTypeId: 2, PaymentTypeName: "Cash" },
@@ -110,9 +115,22 @@ function response(message) {
     ];
     return { status: true };
   }
+  if (url.startsWith("/api/purchases/42/payment-methods/")) {
+    const id = Number(url.split("/").pop());
+    const method = snapshot.paymentMethods.find(
+      (row) => row.PaymentTypeId === id,
+    );
+    return {
+      method,
+      route: method.route,
+      qrCode: id === 3 || id === 5 ? "https://merchant.test/qr.png" : "",
+      amount: 2999,
+      reference: "",
+    };
+  }
   if (url === "/api/payment/createPaymentLink") {
     assert.equal(body.orderId, 42);
-    assert.equal(body.paymentTypeId, 5);
+    assert.equal(body.paymentTypeId, 4);
     paymentLink = {
       mode: "link",
       linkId: "test-link",
@@ -221,37 +239,32 @@ function response(message) {
       .click();
     await page.waitForURL("**#/purchase/42/payment");
     console.log("Nominee saved; creating secure payment link.");
+    for (const name of [/Static QRCode/, /^Cash Continue/, /^UPI Continue/]) {
+      assert.equal(await page.getByRole("radio", { name }).isDisabled(), false);
+    }
     assert.equal(
-      await page.getByRole("radio", { name: /Static QRCode/ }).isDisabled(),
+      await page.getByRole("radio", { name: /Static QRCode/ }).isChecked(),
       true,
     );
-    assert.equal(
-      await page
-        .getByRole("radio", { name: /^Cash Not available/ })
-        .isDisabled(),
-      true,
-    );
-    assert.equal(
-      await page
-        .getByRole("radio", { name: /^Cashfree Continue to secure/ })
-        .isChecked(),
-      true,
-    );
-    assert.equal(
-      await page.getByRole("radio", { name: /Cashfree Payment Link/ }).isDisabled(),
-      false,
-    );
-    assert.equal(
-      await page
-        .getByRole("radio", { name: /Cashfree PaymentLink and QRCode/ })
-        .isDisabled(),
-      false,
-    );
-    await page
-      .getByRole("button", { name: /^Continue to secure payment/ })
-      .click();
+    for (const [name, route] of [
+      [/Static QRCode/, "StaticQRCode"],
+      [/^UPI Continue/, "UPIPayment"],
+    ]) {
+      await page.getByRole("radio", { name }).check();
+      await page.getByRole("button", { name: /^Continue to payment/ }).click();
+      await page.waitForURL(`**#/${route}?orderId=42&paymentTypeId=*`);
+      await page.getByLabel("UTR / payment reference").waitFor();
+      await page.getByRole("img", { name: "Payment QR code" }).waitFor();
+      await page.getByRole("link", { name: "Back to payment options" }).click();
+    }
+    await page.getByRole("radio", { name: /^Cashfree Continue/ }).check();
+    await page.getByRole("button", { name: /^Continue to payment/ }).click();
+    await page.waitForURL("**#/PaymentLinks?orderId=42&paymentTypeId=4");
+    await page.getByRole("button", { name: /^Continue to payment/ }).click();
     await page.getByRole("link", { name: /^Open secure payment/ }).click();
-    await page.waitForFunction(() => location.hash === "#/purchase/42/payment");
+    await page.waitForFunction(
+      () => location.hash === "#/PaymentLinks?orderId=42&paymentTypeId=4",
+    );
     assert.deepEqual(external, ["https://payments.example.com/test-link"]);
     paid = true;
     await page.getByRole("button", { name: "Check payment status" }).click();
@@ -261,7 +274,9 @@ function response(message) {
       await page.getByText("App version 2.4.6", { exact: true }).waitFor();
       assert.equal(await page.locator(".bottom-nav-featured").count(), 0);
       assert.equal(errors.length, 0, errors.join("\n"));
-      console.log("PASS: mobile Cashfree selection, secure payment link, native external opening and payment confirmation.");
+      console.log(
+        "PASS: mobile Cashfree selection, secure payment link, native external opening and payment confirmation.",
+      );
       return;
     }
     {

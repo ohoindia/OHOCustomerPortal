@@ -17,6 +17,7 @@ import {
   CreatePaymentLinkDto,
   NomineeDto,
   PaymentMethodDto,
+  PaymentReferenceDto,
   PersonDto,
   PurchaseDto,
 } from "./purchase.dto";
@@ -74,6 +75,30 @@ export class PurchasesController {
   ) {
     return this.service.nominee(session.customerId, id, body);
   }
+  @Get(":id/payment-methods/:methodId")
+  paymentDetails(
+    @Param("id", ParseIntPipe) id: number,
+    @Param("methodId", ParseIntPipe) methodId: number,
+    @CurrentSession() session: SessionClaims,
+  ) {
+    return this.service.paymentDetails(session.customerId, id, methodId);
+  }
+
+  @Post(":id/payment-reference")
+  @HttpCode(200)
+  paymentReference(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: PaymentReferenceDto,
+    @CurrentSession() session: SessionClaims,
+  ) {
+    return this.service.paymentReference(
+      session.customerId,
+      id,
+      body.paymentTypeId,
+      body.reference,
+    );
+  }
+
   @Post(":id/payment")
   @HttpCode(200)
   payment(

@@ -1048,4 +1048,18 @@ export default {
   "CARE FOR THE WHOLE FAMILY": "మొత్తం కుటుంబానికి సంరక్షణ",
   "Access your benefits and find care close to home.":
     "మీ ప్రయోజనాలను పొందండి మరియు ఇంటికి సమీపంలో వైద్య సేవలను కనుగొనండి.",
+  "Continue with this payment method": "ఈ చెల్లింపు పద్ధతితో కొనసాగండి",
+  "Choose how you’d like to pay.": "మీ చెల్లింపు పద్ధతిని ఎంచుకోండి.",
+  "Select a payment method from your purchase.":
+    "మీ కొనుగోలు నుండి చెల్లింపు పద్ధతిని ఎంచుకోండి.",
+  "Unable to submit payment reference.": "చెల్లింపు సూచనను సమర్పించలేకపోయాము.",
+  "Payment QR code": "చెల్లింపు QR కోడ్",
+  "Contact support for payment instructions if needed.":
+    "చెల్లింపు సూచనల కోసం సహాయ బృందాన్ని సంప్రదించండి.",
+  "Payment reference submitted. Your payment is pending verification.":
+    "చెల్లింపు సూచన సమర్పించబడింది. మీ చెల్లింపు ధృవీకరణ పెండింగ్‌లో ఉంది.",
+  "UTR / payment reference": "UTR / చెల్లింపు సూచన",
+  "Submitting…": "సమర్పిస్తోంది…",
+  "Submit payment reference": "చెల్లింపు సూచన సమర్పించండి",
+  "Back to payment options": "చెల్లింపు ఎంపికలకు తిరిగి వెళ్ళండి",
 } as Record<string, string>;
