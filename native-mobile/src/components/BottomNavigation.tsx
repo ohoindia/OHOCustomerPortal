@@ -35,7 +35,15 @@ export default function BottomNavigation() {
         }}
       >
         {items.map((item) => {
-          const active = pathname === item.path;
+          const active =
+            pathname === item.path ||
+            (item.path === "/bookings" &&
+              (pathname.startsWith("/hospital") ||
+                [
+                  "/book-service",
+                  "/book-appointment",
+                  "/booking-payment",
+                ].includes(pathname)));
           const color = active ? colors.brand : colors.muted;
           return (
             <Pressable
@@ -44,7 +52,7 @@ export default function BottomNavigation() {
               accessibilityLabel={translate(item.label)}
               accessibilityState={{ selected: active }}
               onPress={() => {
-                if (!active) router.navigate(item.path);
+                if (pathname !== item.path) router.navigate(item.path);
               }}
               style={{
                 flex: 1,

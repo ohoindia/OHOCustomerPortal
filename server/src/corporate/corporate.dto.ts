@@ -105,3 +105,11 @@ export class UserDto {
   @IsInt() @Min(1) roleId!: number;
   @IsIn(["Active", "Disabled"]) status!: string;
 }
+
+export class CorporateInvoiceDto {
+  @IsString() @Matches(/\S/) @MaxLength(60) number!: string;
+  @Matches(/^\d{4}-\d{2}-\d{2}$/) issuedOn!: string;
+  @Matches(/^\d{4}-\d{2}-\d{2}$/) dueOn!: string;
+  @IsInt() @Min(1) @Max(100000000000) amountPaise!: number;
+  @IsString() @Matches(/\S/) @MaxLength(500) description!: string;
+}

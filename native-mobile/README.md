@@ -20,6 +20,7 @@ Use an Expo Go version compatible with SDK 57, or a development build. Set `EXPO
 - Home with live benefit balances, profile/membership notices, upcoming appointments, pending purchases and quick services.
 - Hospital network, search/speciality/distance filters, native map, details, directions and membership-gated free OPD booking for self or dependents.
 - Booking history and filters, individual booking details, savings and enlarged hospital check-in QR codes.
+- Hospital bill payments against a booking: camera QR scan, recipient/amount review, installed Android UPI app selection, native activity-result capture and persistent payment-attempt history.
 - Live categorized packages, premium/eligibility details, purchaser confirmation, family selection/removal, spouse requirements, nominees, adult guardians for minors, secure Cashfree payment links/QR, expiry and payment confirmation.
 - Account details, family coverage, membership cards, profile, family members, purchased packages, policy and nominee details.
 - Live wallet balances, subscription credits, transaction categories, running balances and expandable bill details.
@@ -27,6 +28,18 @@ Use an Expo Go version compatible with SDK 57, or a development build. Set `EXPO
 - Doctors, lab tests, pharmacy, health records, notifications, appointment/payment and order-tracking previews retain the source app's sample-data behavior. They do not create a real medical order or payment. Real purchases and hospital OPD bookings use the live flows above.
 
 All named routes in `client/src/App.tsx` have explicit native entry points, including original aliases and dynamic purchase/policy/doctor links. `src/app/(member)/` is protected by the session guard. Device credentials persist in SecureStore; expiry and HTTP 401 clear the session. The bottom navigation matches the client: Home, Bookings, Wallet, Packages, Profile.
+
+## Hospital booking and QR payments
+
+Choose a hospital, select the patient and visit details, review the request, then send it. A saved request opens its booking details and hospital check-in QR. The **Scan & pay hospital** action opens a separate bill-payment flow linked to that booking.
+
+On Android, scan the hospital counter's standard `upi://pay` QR, check the displayed recipient and bill amount, confirm them with the hospital, and choose any installed UPI-capable payment app. PhonePe and other apps are discovered from the device rather than from a fixed list. The native module starts the chosen activity and resolves its JavaScript Promise with success, cancellation, failure or an unknown result. Check-in QR codes and payment QR codes serve separate purposes.
+
+Every active hospital booking supports scanned recipients without pre-registering the hospital's UPI account. Optional hospital settings can restrict the recipient or disable payments. Free consultation benefits stay free; this action is for separately billed hospital charges. Standard QR codes without an amount allow entry of the hospital's bill amount. Signed payment QR codes need a provider-specific integration and are rejected with an explanation.
+
+The server saves the attempt and selected app before launch. Returned evidence is saved on the phone before reporting, and failed reports retry when this booking is opened again by the same account. History keeps the amount, recipient, app outcome and available transaction/bank references. An app-reported success or missing result requires hospital/provider confirmation before another payment. An Android callback does not confirm receipt of money; it never marks a booking paid or consumes a coupon.
+
+Deploy the updated backend and apply [the payment migration](../server/docs/hospital-booking-payments.md) to its database before using this flow. Rebuild and install the Android binary so it includes the local UPI module and camera permission. Expo Go, iOS and web show payment history and an availability message. A controlled Android test with PhonePe is still required to verify its real return behavior; a JavaScript export does not compile or test the Kotlin module. See [native bridge validation](modules/oho-upi/README.md).
 
 ## Android APK and Play Store AAB
 

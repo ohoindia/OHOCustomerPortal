@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import BookingQr from "../components/BookingQr";
 import DateBadge from "../components/DateBadge";
@@ -36,6 +37,12 @@ import {
 import { children, useData, value, type Row } from "../lib/data";
 import { clearSession, getSession } from "../lib/session";
 import { destination } from "../lib/navigation";
+const bookingAppointment = (input: string) =>
+  new Date(
+    /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?$/.test(input)
+      ? `${input.replace(" ", "T")}+05:30`
+      : input,
+  );
 export function Details({
   row,
   fields,
@@ -128,8 +135,15 @@ export function Family() {
   );
 }
 export function Bookings() {
+  return <BookingRecords />;
+}
+export function BookingDetails() {
+  return <BookingRecords detail />;
+}
+function BookingRecords({ detail = false }: { detail?: boolean }) {
   const id = getSession()!.member.MemberId;
-  const { bookingId } = useLocalSearchParams<{ bookingId?: string }>();
+  const params = useLocalSearchParams<{ bookingId?: string }>();
+  const bookingId = detail ? params.bookingId || "invalid" : undefined;
   const [period, setPeriod] = useState(bookingPeriods[0]);
   const data = useData<Row[]>(
     "api/BookingConsultation/PendingAndSuccessConsultationList",
@@ -265,6 +279,34 @@ export function Bookings() {
         </View>
       )}
       <Status {...data} />
+      {!!bookingId && !data.loading && !data.error && !!rows?.length && (
+        <Card>
+          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+            <Ionicons name="calendar-outline" size={27} color="#0094c6" />
+            <View style={{ flex: 1, gap: 5 }}>
+              <Heading>Your hospital visit</Heading>
+              <Copy>
+                Booking #{bookingId} ·{" "}
+                {value(rows[0], "StatusName") || "Awaiting update"}
+              </Copy>
+            </View>
+          </View>
+          <Copy>
+            {/initiated|pending|requested/i.test(value(rows[0], "StatusName"))
+              ? "Your request is with the hospital. Wait for its confirmation before your visit."
+              : /cancelled|canceled|rejected|closed/i.test(
+                    value(rows[0], "StatusName"),
+                  )
+                ? "This visit is closed. Your booking and payment records are still available."
+                : "Check your visit details and show your check-in QR to the hospital team."}
+          </Copy>
+          <Button
+            title="Refresh booking status"
+            secondary
+            onPress={data.retry}
+          />
+        </Card>
+      )}
       {!bookingId && !data.loading && !data.error && (
         <View
           style={{
@@ -356,7 +398,17 @@ export function Bookings() {
                 flexWrap: "wrap",
               }}
             >
-              <DateBadge value={value(row, "AppointmentDate")} />
+              <DateBadge
+                value={
+                  Number.isFinite(
+                    bookingAppointment(value(row, "AppointmentDate")).getTime(),
+                  )
+                    ? bookingAppointment(
+                        value(row, "AppointmentDate"),
+                      ).toISOString()
+                    : ""
+                }
+              />
               <View style={{ flex: 1, minWidth: 100, gap: 8 }}>
                 <Text
                   style={{
@@ -369,15 +421,19 @@ export function Bookings() {
                 </Text>
                 <Copy>
                   {value(row, "AppointmentDate") &&
-                  Number.isFinite(Date.parse(value(row, "AppointmentDate")))
-                    ? new Date(
+                  Number.isFinite(
+                    bookingAppointment(value(row, "AppointmentDate")).getTime(),
+                  )
+                    ? bookingAppointment(
                         value(row, "AppointmentDate"),
-                      ).toLocaleDateString(getLocaleTag(), {
+                      ).toLocaleString(getLocaleTag(), {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
                         timeZone: "Asia/Kolkata",
-                      })
+                      }) + " IST"
                     : UI_TEXT.appointmentDateToBeConfirmed}
                 </Copy>
                 <Text
@@ -459,12 +515,62 @@ export function Bookings() {
               )}
             </View>
             {!!bookingId && <Details row={row} fields={appointmentFields} />}
+            {!!bookingId && (
+              <View
+                style={{
+                  backgroundColor: "#f4f8fc",
+                  borderRadius: 12,
+                  padding: 14,
+                  gap: 8,
+                }}
+              >
+                <Heading>At the hospital</Heading>
+                <Copy>
+                  Show the booking QR above to check in. To pay an additional
+                  bill, scan the UPI payment QR provided by the hospital.
+                </Copy>
+                {!!value(row, "Reason") && (
+                  <Copy>
+                    {translate("Reason to visit:")} {value(row, "Reason")}
+                  </Copy>
+                )}
+              </View>
+            )}
+            <Button
+              title={
+                /cancelled|canceled|rejected|closed/i.test(
+                  value(row, "StatusName"),
+                )
+                  ? "View payment history"
+                  : "Scan & pay hospital"
+              }
+              secondary
+              onPress={() =>
+                router.push({
+                  pathname: "/booking-payment",
+                  params: { bookingId: value(row, "BookingConsultationId") },
+                })
+              }
+            />
+            {!!bookingId && (
+              <Copy>
+                Payment results and attempts are tracked against this booking.
+                Open payments to check their latest status.
+              </Copy>
+            )}
           </Card>
         ))}
       <Button
         title="Book a service"
         onPress={() => router.push("/hospitals")}
       />
+      {!!bookingId && (
+        <Button
+          title="Go to My bookings"
+          secondary
+          onPress={() => router.replace("/bookings")}
+        />
+      )}
     </Page>
   );
 }

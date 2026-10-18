@@ -1,1 +1,1 @@
-export { Bookings as default } from "../../screens/Account";
+export { BookingDetails as default } from "../../screens/Account";

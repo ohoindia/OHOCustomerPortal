@@ -34,7 +34,8 @@ export function Page({
   title,
   children,
   back = true,
-}: PropsWithChildren<{ title?: string; back?: boolean }>) {
+  onBack,
+}: PropsWithChildren<{ title?: string; back?: boolean; onBack?: () => void }>) {
   useLocale();
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={s.safe}>
@@ -48,8 +49,10 @@ export function Page({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Go back"
-                onPress={() =>
-                  router.canGoBack() ? router.back() : router.replace("/")
+                onPress={
+                  onBack ??
+                  (() =>
+                    router.canGoBack() ? router.back() : router.replace("/"))
                 }
                 style={s.back}
               >

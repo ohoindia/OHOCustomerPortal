@@ -1,0 +1,6 @@
+{
+  "name": "oho-upi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Android UPI activity-result bridge for OHO booking payments"
+}

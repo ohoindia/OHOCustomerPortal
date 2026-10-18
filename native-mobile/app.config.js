@@ -45,6 +45,15 @@ module.exports = {
       "expo-secure-store",
       "expo-font",
       [
+        "expo-camera",
+        {
+          cameraPermission:
+            "Allow OHOINDIA to scan the hospital's UPI payment QR code.",
+          recordAudioAndroid: false,
+          barcodeScannerEnabled: true,
+        },
+      ],
+      [
         "expo-splash-screen",
         {
           image: "./assets/oho-brand.png",

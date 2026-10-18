@@ -313,3 +313,26 @@ test("rehiring cannot take a customer away from another company group", async ()
     false,
   );
 });
+
+
+test("creating portal access writes only a company login, never employee or group customer records", async () => {
+  const db = database((sql) => sql.includes("SELECT * FROM CorporateRole") ? [{ Id: 2, Permissions: '["access"]' }] : []);
+  await new CorporateService(db, onboarding).user({ ...who, permissions: ["access"] }, {
+    name: "Portal Admin", email: "ADMIN@example.test", roleId: 2,
+    status: "Active", password: "test-password-long-enough",
+  });
+  const insert = db.calls.find(c => c.sql.startsWith("INSERT INTO CorporateUser"));
+  assert.deepEqual(insert.values.slice(0, 5), [7, "Portal Admin", "admin@example.test", 2, "Active"]);
+  assert.equal(db.calls.some(c => /(?:INSERT INTO|UPDATE) (?:CorporateEmployee|CommunityCustomers|Customer)\b/.test(c.sql)), false);
+});
+
+test("OHO operator can update the only admin while preserving active access", async () => {
+  const db = database((sql) => sql.includes("SELECT * FROM CorporateRole")
+    ? [{ Id: 2, Permissions: '["access"]' }]
+    : sql.includes("SELECT * FROM CorporateUser") ? [{ Id: 9 }]
+    : sql.includes("COUNT(*)") ? [{ total: 0 }] : []);
+  await new CorporateService(db, onboarding).user({ ...who, userId: 0, permissions: ["access"] }, {
+    id: 9, name: "Portal Admin", email: "admin@example.test", roleId: 2, status: "Active",
+  });
+  assert.ok(db.calls.some(c => c.sql.startsWith("UPDATE CorporateUser")));
+});

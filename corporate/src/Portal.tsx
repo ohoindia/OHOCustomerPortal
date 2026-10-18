@@ -794,24 +794,24 @@ export default function Portal() {
                   </span>
                   <strong>
                     {
-                      data.employees.filter((e) => e.status !== "Removed")
+                      data.employeeCounts?.total ?? data.employees.filter((e) => e.status !== "Removed")
                         .length
                     }
                   </strong>
-                  <small>Connected to your company</small>
+                  <small>{data.employeeCounts ? `${data.employeeCounts.groupMembers} group customers ? ${data.employeeCounts.onboarded} onboarded` : "Connected to your company"}</small>
                 </div>
                 <div className="stat">
                   <span>
                     Active employees <b>✓</b>
                   </span>
-                  <strong>{active.length}</strong>
-                  <small>Onboarding completed</small>
+                  <strong>{data.employeeCounts?.active ?? active.length}</strong>
+                  <small>Employee status is Active</small>
                 </div>
                 <div className="stat">
                   <span>
                     Onboarding pending <b>◷</b>
                   </span>
-                  <strong>{pending.length}</strong>
+                  <strong>{data.employeeCounts?.pending ?? pending.length}</strong>
                   <small>Ready for HR review</small>
                 </div>
                 <div className="stat">

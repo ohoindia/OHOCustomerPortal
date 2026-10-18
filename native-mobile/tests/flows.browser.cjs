@@ -79,6 +79,8 @@ const booking = {
 };
 const requests = [];
 let paid = false;
+let rejectBooking = false;
+let showPaymentHistory = false;
 let link;
 function response(url, body, headers) {
   requests.push({ url, body, authorization: headers.authorization });
@@ -207,24 +209,22 @@ function response(url, body, headers) {
       },
     ];
   if (url.includes("GetDependentsByCustomerId"))
-    return capturingScreenshots
-      ? [
-          {
-            CustomerId: 8,
-            Name: "Spouse Member",
-            Relationship: "Spouse",
-            Gender: "Male",
-            DateofBirth: "1994-05-10",
-          },
-          {
-            CustomerId: 9,
-            Name: "Child Member",
-            Relationship: "Daughter",
-            Gender: "Female",
-            DateofBirth: "2016-08-12",
-          },
-        ]
-      : [];
+    return [
+      {
+        CustomerId: 8,
+        Name: "Spouse Member",
+        Relationship: "Spouse",
+        Gender: "Male",
+        DateofBirth: "1994-05-10",
+      },
+      {
+        CustomerId: 9,
+        Name: "Child Member",
+        Relationship: "Daughter",
+        Gender: "Female",
+        DateofBirth: "2016-08-12",
+      },
+    ];
   if (/AddressExistsOrNot|PANVerifiedOrNot|KYCVerifiedOrNot/.test(url))
     return { status: true };
   if (url === "/api/ConfigValues/all")
@@ -248,6 +248,68 @@ function response(url, body, headers) {
       },
     ];
   if (url.includes("PendingAndSuccessConsultationList")) return [booking];
+  if (url === "/api/BookingConsultation/88/payments")
+    return {
+      bookingId: 88,
+      booking: {
+        id: 88,
+        hospitalId: 1,
+        hospitalName: booking.HospitalName,
+        patientName: booking.Name,
+      },
+      paymentEnabled: true,
+      disabledReason: null,
+      // Most hospitals need no payment setup; the scanned QR provides the payee.
+      approvedPayee: null,
+      attempts: showPaymentHistory
+        ? [
+            {
+              id: "c69f7f08-09d0-4fc2-9822-a437901d6fa1",
+              bookingId: 88,
+              transactionRef: "OHOAPPRETURNEDSUCCESS",
+              amount: 650,
+              payeeVpa: "hospital@upi",
+              payeeName: booking.HospitalName,
+              upiUri:
+                "upi://pay?pa=hospital%40upi&am=650.00&cu=INR&tr=OHOAPPRETURNEDSUCCESS",
+              status: "SUCCESS",
+              verificationStatus: "UNVERIFIED",
+              appPackage: "com.phonepe.app",
+              responseCode: "00",
+              resultCode: -1,
+              txnId: "PHONEPE-TRANSACTION-88",
+              approvalRefNo: "BANK-REFERENCE-88",
+              createdAt: "2026-10-18T07:30:00.000Z",
+              updatedAt: "2026-10-18T07:31:00.000Z",
+              expiresAt: "2026-10-18T07:45:00.000Z",
+              reportedAt: "2026-10-18T07:31:00.000Z",
+              verifiedAt: null,
+            },
+            {
+              id: "9f58537c-6994-4923-9e84-640d0a706821",
+              bookingId: 88,
+              transactionRef: "OHOAPPCANCELLED",
+              amount: 650,
+              payeeVpa: "hospital@upi",
+              payeeName: booking.HospitalName,
+              upiUri:
+                "upi://pay?pa=hospital%40upi&am=650.00&cu=INR&tr=OHOAPPCANCELLED",
+              status: "CANCELLED",
+              verificationStatus: "UNVERIFIED",
+              appPackage: "com.phonepe.app",
+              responseCode: null,
+              resultCode: 0,
+              txnId: null,
+              approvalRefNo: null,
+              createdAt: "2026-10-18T07:20:00.000Z",
+              updatedAt: "2026-10-18T07:21:00.000Z",
+              expiresAt: "2026-10-18T07:35:00.000Z",
+              reportedAt: "2026-10-18T07:21:00.000Z",
+              verifiedAt: null,
+            },
+          ]
+        : [],
+    };
   if (url === "/api/Hospital/all" || url === "/api/Hospital/GetById/1")
     return [
       {
@@ -270,9 +332,20 @@ function response(url, body, headers) {
     ];
   if (url === "/api/HospitalServices/all")
     return [{ HospitalServicesId: 1, ServiceName: "General medicine" }];
-  if (url.includes("checkIndividualCoupons")) return { availableCoupons: 2 };
+  if (url.includes("checkIndividualCoupons"))
+    return body.dependentCustomerId === 9
+      ? {
+          availableCoupons: 0,
+          message: "No coupons available for this patient.",
+        }
+      : { availableCoupons: 2 };
   if (url.includes("bookAppointment/add"))
-    return { status: true, data: { BookingConsultationId: 88 } };
+    return rejectBooking
+      ? {
+          status: false,
+          message: "The hospital could not accept this request. Try again.",
+        }
+      : { status: true, data: { BookingConsultationId: 88 } };
   if (url.includes("Products/GetById")) return [product];
   return [];
 }
@@ -450,19 +523,204 @@ const server = http.createServer((req, res) => {
     await button("Close").waitFor();
     await page.screenshot({ path: path.join(output, "booking-qr.png") });
     await button("Close").click();
+    await page.getByRole("tab", { name: "Bookings", exact: true }).click();
+    await page.waitForURL("**/bookings");
+    await page
+      .getByText("My bookings", { exact: true })
+      .filter({ visible: true })
+      .first()
+      .waitFor();
     await go("/hospitals");
     await input("Search hospitals").fill("Hyderabad");
     await button("Book service").click();
-    await input("Appointment date & time (India time)").fill(
-      "2098-10-15 10:30",
+    await page
+      .getByRole("radio", { name: "Child Member", exact: true })
+      .click();
+    await page
+      .getByText("No coupons available for this patient.", { exact: true })
+      .waitFor();
+    assert.equal(
+      await button("Continue to visit details").isDisabled(),
+      true,
+      "Patient without coupons cannot continue",
     );
-    await button("General medicine").click();
-    await button("Book free consultation").click();
+    await page
+      .getByRole("radio", { name: "Spouse Member", exact: true })
+      .click();
+    await button("Continue to visit details").click();
+    await page
+      .getByRole("radio", { name: "General medicine", exact: true })
+      .click();
+    await input("Appointment date").fill("2020-10-15");
+    await input("Appointment time (India time)").fill("10:30");
+    await button("Review booking").click();
+    await page
+      .getByRole("alert")
+      .filter({ hasText: "Choose a future date" })
+      .waitFor();
+    assert.equal(
+      requests.filter((request) => request.url.includes("bookAppointment/add"))
+        .length,
+      0,
+    );
+    await input("Appointment date").fill("2098-10-15");
+    await input("Reason to visit (optional)").fill("Routine consultation");
+    await button("Review booking").click();
+    await page.getByText("Everything look right?", { exact: true }).waitFor();
+    assert.equal(
+      requests.filter((request) => request.url.includes("bookAppointment/add"))
+        .length,
+      0,
+      "Review does not submit a booking",
+    );
+    await button("Edit visit details").click();
+    assert.equal(await input("Appointment date").inputValue(), "2098-10-15");
+    assert.equal(
+      await input("Appointment time (India time)").inputValue(),
+      "10:30",
+    );
+    assert.equal(
+      await input("Reason to visit (optional)").inputValue(),
+      "Routine consultation",
+    );
+    await button("Back to patient").click();
+    await button("Continue to visit details").click();
+    assert.equal(await input("Appointment date").inputValue(), "2098-10-15");
+    await button("Review booking").click();
+    rejectBooking = true;
+    await button("Confirm booking request").click();
+    await page
+      .getByRole("alert")
+      .filter({ hasText: "The hospital could not accept" })
+      .waitFor();
+    assert.equal(
+      await page
+        .getByText("Your booking request is sent", { exact: true })
+        .count(),
+      0,
+      "Rejected API response must not show confirmation",
+    );
+    rejectBooking = false;
+    await button("Confirm booking request").click();
+    await page
+      .getByText("Your booking request is sent", { exact: true })
+      .waitFor();
+    await page.screenshot({
+      path: path.join(output, "booking-confirmation.png"),
+    });
+    await button("View booking & check-in QR").click();
     await page.waitForURL("**/hospitalConsulationForm?bookingId=88");
+    await button("Scan & pay hospital").waitFor();
+    await button("Scan & pay hospital").click();
+    await page.waitForURL("**/booking-payment?bookingId=88");
+    await page
+      .getByText("Hospital payment", { exact: true })
+      .filter({ visible: true })
+      .waitFor();
+    await page
+      .getByText("BOOKING #88", { exact: true })
+      .filter({ visible: true })
+      .waitFor();
+    await page
+      .getByText(booking.HospitalName, { exact: true })
+      .filter({ visible: true })
+      .first()
+      .waitFor();
+    await page
+      .getByText(booking.Name, { exact: true })
+      .filter({ visible: true })
+      .first()
+      .waitFor();
+    await page
+      .getByText("QR payment app selection is available in the Android app.", {
+        exact: true,
+      })
+      .waitFor();
+    await page
+      .getByText(
+        "No payment attempts yet. Each app result and payment reference will appear here.",
+        { exact: true },
+      )
+      .waitFor();
+    assert.equal(
+      await page
+        .getByText(/not enabled|not been enabled|not configured/i)
+        .filter({ visible: true })
+        .count(),
+      0,
+      "A hospital without a saved payee must still expose the payment history and Android entry guidance",
+    );
+    assert.equal(
+      await button("Scan hospital UPI QR").count(),
+      0,
+      "The browser must never open the native scanner",
+    );
+    await page.screenshot({
+      path: path.join(output, "booking-payment-web.png"),
+    });
+    showPaymentHistory = true;
+    await button("Refresh history").click();
+    await page
+      .getByText("App reported success · verification pending", { exact: true })
+      .first()
+      .waitFor();
+    await page.getByText("Cancelled in payment app", { exact: true }).waitFor();
+    await page
+      .getByText(`${booking.HospitalName} · hospital@upi`, { exact: true })
+      .first()
+      .waitFor();
+    await page
+      .getByText("Reference: OHOAPPRETURNEDSUCCESS", { exact: true })
+      .waitFor();
+    await page
+      .getByText("Bank reference: BANK-REFERENCE-88", { exact: true })
+      .waitFor();
+    assert.equal(
+      await page.getByText("Payment verified", { exact: true }).count(),
+      0,
+      "An app's success response must remain unverified",
+    );
+    await page
+      .getByText("Payment history", { exact: true })
+      .filter({ visible: true })
+      .evaluate((node) => node.scrollIntoView({ block: "start" }));
+    await page.screenshot({
+      path: path.join(output, "booking-payment-history.png"),
+    });
+    assert.equal(
+      requests.some(
+        (request) =>
+          request.url === "/api/BookingConsultation/88/payments" &&
+          request.body.upiUri,
+      ),
+      false,
+      "Web history browsing must not prepare a payment",
+    );
+    await button("View booking details").click();
+    await page.waitForURL(
+      (url) =>
+        url.pathname === "/hospitalConsulationForm" &&
+        url.searchParams.get("bookingId") === "88",
+    );
+    const paymentRequests = requests.filter((request) =>
+      /\/payments(?:\/|$)/.test(request.url),
+    ).length;
+    await go("/booking-payment?bookingId=invalid");
+    await button("Go to bookings").waitFor();
+    assert.equal(
+      requests.filter((request) => /\/payments(?:\/|$)/.test(request.url))
+        .length,
+      paymentRequests,
+      "Invalid booking IDs must not request payment data",
+    );
+    assert.equal(await button("Scan hospital UPI QR").count(), 0);
+    await button("Go to bookings").click();
+    await page.waitForURL("**/bookings");
     assert.ok(
       requests.some(
         (request) =>
           request.url.includes("bookAppointment/add") &&
+          request.body.dependentCustomerId === 8 &&
           request.body.appointmentDate === "2098-10-15T05:00:00.000Z",
       ),
     );
@@ -518,7 +776,9 @@ const server = http.createServer((req, res) => {
       /[\u0C00-\u0C7F]/.test(document.body.innerText),
     );
     await go("/book-service?hospitalId=1");
-    await page.locator('input[placeholder="YYYY-MM-DD HH:mm"]').waitFor();
+    await page
+      .getByRole("radio", { name: "Test Member (Self)", exact: true })
+      .waitFor();
     await go("/language");
     await page.getByRole("button").nth(2).click();
     await page.getByRole("button").last().click();
@@ -535,7 +795,7 @@ const server = http.createServer((req, res) => {
     await page.waitForURL("**/home");
     assert.equal(errors.length, 0, errors.join("\n"));
     console.log(
-      "PASS: login, guarded routes, native family/nominee/guardian purchase, payment confirmation, live wallet, QR modal, OPD booking, page smoke checks, password reset, language switching, logout and OTP registration.",
+      "PASS: login, guarded routes, family/nominee/guardian purchase, payment confirmation, live wallet, QR modal, patient coupon checks, booking review/back navigation, rejected booking recovery, confirmed request, booking payment context/history/web fallback/invalid ID, page smoke checks, password reset, language switching, logout and OTP registration.",
     );
   } catch (error) {
     console.error(error);

@@ -1,4 +1,7 @@
+import { JwtService } from "@nestjs/jwt";
 import {
+  BadRequestException,
+  ConflictException,
   Body,
   CanActivate,
   Controller,
@@ -17,18 +20,53 @@ import { Public } from "../auth/jwt-auth.guard";
 import { RuntimeConfigService } from "../runtime-config/runtime-config.service";
 import { DatabaseService } from "../database/database.service";
 import { CorporateService, CorporateIdentity } from "./corporate.service";
-import { ProvisionDto, RoleDto, UserDto } from "./corporate.dto";
+import { ProvisionDto, RoleDto, UserDto, IdDto, CorporateInvoiceDto } from "./corporate.dto";
 import { hashPassword } from "./password";
+import { CorporateOnboardingService } from "./corporate-onboarding";
+import { employeeCounts } from "./employee-counts";
 
 interface AdminRequest {
   headers: { authorization?: string };
   operator: string;
+  adminUserId: number;
 }
 @Injectable()
 export class CorporateAdminGuard implements CanActivate {
-  constructor(private readonly config: RuntimeConfigService) {}
+  constructor(private readonly config: RuntimeConfigService, private readonly db: DatabaseService) {}
+  private async secret() {
+    const secret = await this.config.getSecret("JWT_SECRET");
+    if (Buffer.byteLength(secret) < 32) throw new ServiceUnavailableException("Corporate sessions are not configured.");
+    return secret;
+  }
+  async session(userId: number) {
+    const token = await new JwtService().signAsync({ adminUserId: userId }, {
+      secret: await this.secret(), algorithm: "HS256", issuer: "oho-corporate-admin",
+      audience: "oho-frontweb", expiresIn: "8h",
+    });
+    return { token };
+  }
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<AdminRequest>();
+    const bearer = /^Bearer ([^\s]+)$/.exec(request.headers.authorization ?? "");
+    if (bearer) {
+      if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(bearer[1])) throw new UnauthorizedException("Invalid administrator session.");
+      let claims;
+      const secret = await this.secret();
+      try {
+        claims = await new JwtService().verifyAsync(bearer[1], {
+          secret, algorithms: ["HS256"], issuer: "oho-corporate-admin", audience: "oho-frontweb",
+        });
+      } catch { throw new UnauthorizedException("Your session expired. Please log in again."); }
+      if (!Number.isSafeInteger(claims.adminUserId) || claims.adminUserId < 1)
+        throw new UnauthorizedException("Invalid administrator session.");
+      const allowed = (await this.config.get("CORPORATE_ADMIN_ROLE_IDS")).split(",").map(s => s.trim()).filter(s => /^[1-9]\d*$/.test(s));
+      const [user] = await this.db.rows("SELECT EmployeeId,UserRoleId,IsActive FROM Employee WHERE EmployeeId=?", [claims.adminUserId]);
+      if (!user || !Number(user.IsActive) || !allowed.includes(String(user.UserRoleId)))
+        throw new ForbiddenException("Your role cannot manage corporate users.");
+      request.adminUserId = claims.adminUserId;
+      request.operator = `OHOINDIA admin #${claims.adminUserId}`;
+      return true;
+    }
     const match = /^Basic ([A-Za-z0-9+/=]+)$/.exec(
       request.headers.authorization ?? "",
     );
@@ -101,6 +139,7 @@ export class CorporateAdminGuard implements CanActivate {
       throw new ForbiddenException(
         "Your admin role cannot manage corporate access.",
       );
+    request.adminUserId = Number(user.UserId);
     request.operator = `OHOINDIA admin #${user.UserId}`;
     return true;
   }
@@ -147,7 +186,45 @@ export class CorporateAdminService {
       "SELECT u.Id,u.Name,u.Email,u.RoleId,u.Status,r.Name AS Role FROM CorporateUser u JOIN CorporateRole r ON r.Id=u.RoleId AND r.CompanyId=u.CompanyId WHERE u.CompanyId=? ORDER BY u.Id",
       [Number(company.Id)],
     );
-    return { company, roles, users };
+    const employees = await this.db.rows(
+      "SELECT e.Id AS id,c.CustomerId AS customerId,c.IsActive AS customerActive,e.CommunityCustomerId AS communityCustomerId,e.Name AS name,e.Email AS email,e.Mobile AS mobile,e.EmployeeCode AS employeeCode,e.Department AS department,DATE_FORMAT(e.JoinedOn,'%Y-%m-%d') AS joinedOn,e.Status AS status,e.OnboardingStatus AS onboardingStatus FROM CorporateEmployee e LEFT JOIN Customer c ON c.CustomerId=e.CustomerId WHERE e.CompanyId=? ORDER BY e.Id DESC",
+      [Number(company.Id)],
+    );
+    const invoices = await this.db.rows(
+      "SELECT Id AS id,InvoiceNumber AS number,DATE_FORMAT(IssuedOn,'%Y-%m-%d') AS issuedOn,DATE_FORMAT(DueOn,'%Y-%m-%d') AS dueOn,AmountPaise AS amountPaise,Status AS status,Description AS description FROM CorporateInvoice WHERE CompanyId=? ORDER BY IssuedOn DESC,Id DESC",
+      [Number(company.Id)],
+    );
+    const customerLinks = await this.db.rows(
+      "SELECT DISTINCT c.CustomerId AS customerId,c.IsActive AS customerActive FROM Customer c JOIN CommunityCustomers m ON m.MobileNumber=c.MobileNumber JOIN CorporateCompany co ON co.GroupId=m.GroupId WHERE co.Id=? AND c.RelatedCustomerId IS NULL",
+      [Number(company.Id)],
+    );
+    return { company, roles, users, employees, invoices, customerLinks, employeeCounts: await employeeCounts(this.db, Number(company.Id)) };
+  }
+  async invoice(groupId: number, dto: CorporateInvoiceDto, operator: string) {
+    const validDate = (value: string) => {
+      const date = new Date(`${value}T00:00:00Z`);
+      return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+    };
+    if (!validDate(dto.issuedOn) || !validDate(dto.dueOn) || dto.dueOn < dto.issuedOn)
+      throw new BadRequestException("Enter valid invoice dates; due date cannot precede issue date.");
+    const who = await this.identity(groupId, operator);
+    try {
+      return await this.db.transaction(async (c) => {
+        const result = await this.db.execute(
+          "INSERT INTO CorporateInvoice (CompanyId,InvoiceNumber,IssuedOn,DueOn,AmountPaise,Status,Description) VALUES (?,?,?,?,?,'Due',?)",
+          [who.companyId, dto.number.trim(), dto.issuedOn, dto.dueOn, dto.amountPaise, dto.description.trim()], c,
+        );
+        await this.db.execute(
+          "INSERT INTO CorporateAudit (CompanyId,UserId,ActorName,Action) VALUES (?,0,?,?)",
+          [who.companyId, operator, `Invoice raised: ${dto.number.trim()}`], c,
+        );
+        return { invoiceId: result.insertId };
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code === "ER_DUP_ENTRY")
+        throw new ConflictException("This invoice number already exists for this company.");
+      throw error;
+    }
   }
   async provision(groupId: number, dto: ProvisionDto, operator: string) {
     const password = await hashPassword(dto.password);
@@ -222,9 +299,24 @@ export class CorporateAdminController {
   constructor(
     private readonly admin: CorporateAdminService,
     private readonly corporate: CorporateService,
+    private readonly onboarding: CorporateOnboardingService,
   ) {}
   @Post("access") access(@Param("groupId", ParseIntPipe) groupId: number) {
     return this.admin.access(groupId);
+  }
+  @Post("employees/customer") async employeeDetails(
+    @Param("groupId", ParseIntPipe) groupId: number,
+    @Body() dto: IdDto,
+    @Req() r: AdminRequest,
+  ) {
+    return this.onboarding.details(await this.admin.identity(groupId, r.operator), dto.id);
+  }
+  @Post("invoices/raise") invoice(
+    @Param("groupId", ParseIntPipe) groupId: number,
+    @Body() dto: CorporateInvoiceDto,
+    @Req() r: AdminRequest,
+  ) {
+    return this.admin.invoice(groupId, dto, r.operator);
   }
   @Post("provision") provision(
     @Param("groupId", ParseIntPipe) groupId: number,
@@ -252,5 +344,17 @@ export class CorporateAdminController {
       await this.admin.identity(groupId, r.operator),
       dto,
     );
+  }
+}
+
+@Public()
+@UseGuards(CorporateAdminGuard)
+@Controller("api/corporate-admin")
+export class CorporateAdminSessionController {
+  constructor(private readonly guard: CorporateAdminGuard) {}
+  @Post("session") session(@Req() request: AdminRequest) {
+    if (!request.headers.authorization?.startsWith("Basic "))
+      throw new UnauthorizedException("Sign in through OHOINDIA to start a session.");
+    return this.guard.session(request.adminUserId);
   }
 }

@@ -118,10 +118,16 @@ exports.capture = async function ({
     "Book an OPD service",
     "Book service",
   );
-  await input("Appointment date & time (India time)").fill("2026-10-16 10:30");
-  await button("General medicine").click();
-  await input("Appointment date & time (India time)").scrollIntoViewIfNeeded();
+  await button("Continue to visit details").click();
+  await input("Appointment date").fill("2098-10-16");
+  await input("Appointment time (India time)").fill("10:30");
+  await page
+    .getByRole("radio", { name: "General medicine", exact: true })
+    .click();
+  await input("Appointment date").scrollIntoViewIfNeeded();
   await shot("opd-form", "OPD appointment form");
+  await button("Review booking").click();
+  await shot("opd-review", "Review hospital booking");
   await screen("/bookings", "bookings", "My bookings");
   await screen(
     "/hospitalConsulationForm?bookingId=88",

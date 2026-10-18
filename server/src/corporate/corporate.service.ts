@@ -16,6 +16,7 @@ import {
   UserDto,
 } from "./corporate.dto";
 import { hashPassword, verifyPassword } from "./password";
+import { employeeCounts } from "./employee-counts";
 import { CorporateOnboardingService, enrollmentFingerprint } from "./corporate-onboarding";
 
 export interface CorporateIdentity {
@@ -127,6 +128,7 @@ export class CorporateService {
     );
     return {
       company,
+      employeeCounts: await employeeCounts(this.db, who.companyId),
       identity: who,
       employees,
       inventory,
@@ -416,7 +418,7 @@ export class CorporateService {
     checkPermission(who, "access");
     const password = dto.password ? await hashPassword(dto.password) : null;
     return this.db.transaction(async (c) => {
-      await this.own("CorporateRole", dto.roleId, who, c);
+      const role = await this.own("CorporateRole", dto.roleId, who, c);
       const email = dto.email.trim().toLowerCase();
       const [duplicate] = await this.db.rows(
         "SELECT Id FROM CorporateUser WHERE Email=? AND Id<>?",
@@ -436,7 +438,8 @@ export class CorporateService {
           [who.companyId, dto.id],
           c,
         );
-        if (!Number(admin.total))
+        const remainsAdmin = dto.status === "Active" && parsePermissions(role.Permissions).includes("access");
+        if (!Number(admin.total) && !remainsAdmin)
           throw new BadRequestException(
             "Keep at least one active access administrator.",
           );

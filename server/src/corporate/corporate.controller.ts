@@ -17,6 +17,7 @@ import { Public } from "../auth/jwt-auth.guard";
 import { CorporateService, CorporateIdentity } from "./corporate.service";
 import {
   CorporateAdminController,
+  CorporateAdminSessionController,
   CorporateAdminGuard,
   CorporateAdminService,
 } from "./corporate-admin";
@@ -113,6 +114,7 @@ class CorporateController {
     CorporateController,
     CorporateLoginController,
     CorporateAdminController,
+  CorporateAdminSessionController,
   ],
   providers: [
     CorporateService,

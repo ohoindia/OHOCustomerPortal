@@ -35,6 +35,7 @@ export interface PortalUser {
   status: string;
 }
 export interface Workspace {
+  employeeCounts?: { groupMembers: number; total: number; active: number; pending: number; onboarded: number };
   products: { id: number; name: string; maximumMembers: number; requiresSpouse: boolean; nominees: { id: number; name: string }[] }[];
   company: { id: number; name: string; groupId: number };
   identity: {
