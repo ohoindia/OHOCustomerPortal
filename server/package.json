@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "deploy:dev": "node scripts/deploy-dev.cjs",
+    "verify:dev": "node scripts/verify-dev-deployment.cjs",
     "corporate:admin": "node scripts/corporate-admin.cjs",
     "corporate:configure:dev": "node scripts/configure-corporate-admin-dev.cjs --apply-ohoindiadev",
     "corporate:migrate:dev": "node scripts/migrate-corporate-dev.cjs --apply-ohoindiadev",

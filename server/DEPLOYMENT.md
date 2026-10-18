@@ -4,6 +4,14 @@ The included `template.yaml` creates a new Lambda function, execution role, API 
 
 The commands below use PowerShell, region `ap-south-1` and stack `oho-customer-api-dev`. Run them from **the `server` folder**. Use a separate stack and configuration for production.
 
+## Redeploy dev with one command
+
+From the repository root, run `npm run server:deploy:dev`, or run `npm run deploy:dev` from `server/`. The runner at `scripts/deploy-dev.cjs` checks the existing dev stack and its `ohoindiadev` database, runs server tests, rebuilds the Lambda package, validates SAM and deploys to `oho-customer-api-dev` in `ap-south-1`. It then checks that Lambda environment variables were preserved and verifies health, the hospital payment OpenAPI routes and their authentication requirement. It does not print environment values or migrate the database.
+
+The tracked dev GitHub workflow is [`.github/workflows/deploy-server.yml`](../.github/workflows/deploy-server.yml). It runs on server changes pushed to `develop` and also supports **Run workflow** for that branch. Configure the existing repository variable `AWS_DEPLOY_ROLE_ARN` for its AWS OIDC role. The workflow runs tests and checks the deployed API after SAM completes. Other environment-specific workflow files remain ignored; the dev workflow has an explicit exception in `.gitignore` so it is included in Git.
+
+To verify an existing dev deployment without redeploying, run `npm --prefix server run verify:dev` from the repository root. This uses read-only health, schema and unauthenticated route probes; it does not create a booking or start a payment.
+
 ## 1. Prerequisites
 
 - Node.js 22+, npm, AWS CLI v2 and AWS SAM CLI installed.
@@ -18,7 +26,6 @@ node --version
 npm --version
 aws --version
 sam --version
-c
 aws sso login --profile oho-dev
 $env:AWS_PROFILE = 'oho-dev'
 aws sts get-caller-identity
@@ -90,7 +97,7 @@ Choose `ApiStageName=dev` for the dev stack and `ApiStageName=prod` for the prod
 4. Save settings to `samconfig.toml` for subsequent deployments. The repository includes non-secret dev/prod profiles; keep credentials out of this file.
 5. Review and confirm the CloudFormation changes.
 
-The API follows the app's existing unauthenticated route behavior; the template does not add an authorizer. Review the authentication limitations in [README.md](README.md#compatibility-and-intentional-differences) before exposing customer data in a production environment.
+The template does not add an API Gateway authorizer. NestJS enforces JWT authentication and customer ownership for protected routes, including hospital booking payments. See [AUTHENTICATION.md](AUTHENTICATION.md).
 
 On success, CloudFormation outputs `ApiBaseUrl` and `FunctionName`. Fetch them at any time:
 

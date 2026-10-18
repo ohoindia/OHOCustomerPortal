@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
+    "server:deploy:dev": "npm --prefix server run deploy:dev",
     "corporate:install": "npm --prefix corporate ci",
     "corporate:dev": "npm --prefix corporate run dev",
     "corporate:build": "npm --prefix corporate run build",

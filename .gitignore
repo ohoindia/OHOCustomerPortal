@@ -19,6 +19,7 @@ server/samconfig.toml
 
 # Environment-specific deployment workflow
 .github/workflows/*
+!.github/workflows/deploy-server.yml
 
 # Editor directories and files
 .vscode/*
